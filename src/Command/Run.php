@@ -3,6 +3,10 @@
 namespace Asynit\Command;
 
 use Asynit\Parser\Discovery;
+use Http\Adapter\React\Client as ReactAdapter;
+use Http\Client\Common\Plugin\AddHostPlugin;
+use Http\Client\Common\Plugin\ContentLengthPlugin;
+use Http\Client\Common\PluginClient;
 use Http\Message\MessageFactory\GuzzleMessageFactory;
 use Http\Message\UriFactory\GuzzleUriFactory;
 use React\Dns\Resolver\Factory as DnsResolverFactory;
@@ -47,9 +51,19 @@ class Run extends Command
         $connector = new DnsConnector(new TcpConnector($loop), $dnsResolver);
 
         // Build the HTTP Client
-        $reactClient = new ReactClient($connector, new SecureConnector($connector, $loop, [
+        $reactClient = new ReactAdapter($requestFactory, $loop, new ReactClient($connector, new SecureConnector($connector, $loop, [
             'allow_self_signed' => $input->getOption('allow-self-signed-certificate'),
-        ]));
+        ])));
+
+        $plugins = [
+            new ContentLengthPlugin()
+        ];
+
+        if ($input->hasOption('host') && null !== $input->getOption('host')) {
+            $plugins[] = new AddHostPlugin($uriFactory->createUri($input->getOption('host')));
+        }
+
+        $httpClient = new PluginClient($reactClient, $plugins);
 
         // Build a list of tests from the directory
         $discovery = new Discovery();
