@@ -3,16 +3,22 @@
 namespace Asynit\Output;
 
 use Asynit\Test;
-use Psr\Http\Message\RequestInterface;
 
 /**
- * Interface for displaying tests
+ * Interface for displaying tests.
  */
 interface OutputInterface
 {
-    public function outputPending(Test $test, RequestInterface $request);
+    public function outputStep(Test $test, $debugOutput);
 
-    public function outputFailure(Test $test);
+    /**
+     * @param Test                  $test
+     * @param string                $debugOutput
+     * @param \Throwable|\Exception $failure
+     *
+     * @return mixed
+     */
+    public function outputFailure(Test $test, $debugOutput, $failure);
 
-    public function outputSuccess(Test $test);
+    public function outputSuccess(Test $test, $debugOutput);
 }

@@ -2,7 +2,11 @@
 
 namespace Asynit\Command;
 
+use Asynit\Output\Detector;
 use Asynit\Parser\Discovery;
+use Asynit\Parser\TestPoolBuilder;
+use Asynit\Runner\PoolRunner;
+use Doctrine\Common\Annotations\AnnotationReader;
 use Http\Adapter\React\Client as ReactAdapter;
 use Http\Client\Common\Plugin\AddHostPlugin;
 use Http\Client\Common\Plugin\ContentLengthPlugin;
@@ -56,7 +60,7 @@ class Run extends Command
         ])));
 
         $plugins = [
-            new ContentLengthPlugin()
+            new ContentLengthPlugin(),
         ];
 
         if ($input->hasOption('host') && null !== $input->getOption('host')) {
@@ -65,40 +69,17 @@ class Run extends Command
 
         $httpClient = new PluginClient($reactClient, $plugins);
 
-        // Build a list of tests from the directory
+        // Build service for parsing and running tests
         $discovery = new Discovery();
-        $testMethods = $discovery->discover($input->getArgument('directory'));
+        $builder = new TestPoolBuilder(new AnnotationReader());
+        $output = (new Detector($loop))->detect();
+        $runner = new PoolRunner($requestFactory, $httpClient, $loop, $output);
 
-        var_dump($testMethods);
+        // Build a list of tests from the directory
+        $testMethods = $discovery->discover($input->getArgument('directory'));
+        $pool = $builder->build($testMethods);
 
         // Run the list of tests
-
-        /**
-        $file = $input->getArgument('file');
-        $loop = new StreamSelectLoop();
-        $requestFactory = new GuzzleMessageFactory();
-        $uriFactory = new GuzzleUriFactory();
-        $dnsResolver = (new DnsResolverFactory())->createCached($input->getOption('dns'), $loop);
-        $connector = new DnsConnector(new TcpConnector($loop), $dnsResolver);
-        $reactClient = new ReactClient($connector, new SecureConnector($connector, $loop, [
-            'allow_self_signed' => true,
-        ]));
-        $client = new Client($requestFactory, $loop, $reactClient);
-        if ($input->hasOption('host') && null !== $input->getOption('host')) {
-            $client = new PluginClient($client, [
-                new AddHostPlugin($uriFactory->createUri($input->getOption('host'))),
-            ]);
-        }
-        $client = new PluginClient($client, [
-            new ContentLengthPlugin(),
-        ]);
-        $parser = new TestParser($requestFactory);
-        $runner = new Runner($client, $loop, $requestFactory, 540);
-        $tests = $parser->parse($file);
-        set_error_handler(function ($errno, $errstr, $errfile, $errline) {
-            throw new \ErrorException($errstr, $errno, 0, $errfile, $errline);
-        });
-        return $runner->run($tests);
-         **/
+        return $runner->run($pool);
     }
 }

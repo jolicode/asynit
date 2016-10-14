@@ -2,20 +2,21 @@
 
 namespace Asynit\Parser;
 
+use Asynit\Test;
 use Asynit\TestCase;
 use Symfony\Component\Finder\Finder;
 
 /**
- * Discover test class
+ * Discover test class.
  */
 class Discovery
 {
     /**
-     * Return a list of test method
+     * Return a list of test method.
      *
      * @param $directory
      *
-     * @return \ReflectionMethod[]
+     * @return Test[]
      */
     public function discover($directory)
     {
@@ -38,7 +39,8 @@ class Discovery
                 if (is_subclass_of($class, TestCase::class)) {
                     foreach (get_class_methods($class) as $method) {
                         if (preg_match('/^test(.+)$/', $method)) {
-                            $methods[] = new \ReflectionMethod($class, $method);
+                            $test = new Test(new \ReflectionMethod($class, $method));
+                            $methods[$test->getIdentifier()] = $test;
                         }
                     }
                 }
