@@ -26,37 +26,40 @@ class Simple implements OutputInterface
     public function outputStep(Test $test, $debugOutput)
     {
         $message = sprintf(
-            "Step %s %s\n",
+            "%s %s",
             $this->outputFormatPending->apply('Pending'),
             $test->getIdentifier()
         );
 
-        fwrite(STDOUT, $message);
-        fwrite(STDOUT, $debugOutput);
+        $this->outputMessage($test, $message, $debugOutput);
     }
 
     public function outputFailure(Test $test, $debugOutput, $failure)
     {
         $message = sprintf(
-            "Step %s %s : %s\n",
+            "%s %s : %s",
             $this->outputFormatFail->apply('Failure'),
             $test->getIdentifier(),
             $failure->getMessage()
         );
 
-        fwrite(STDOUT, $message);
-        fwrite(STDOUT, $debugOutput);
+        $this->outputMessage($test, $message, $debugOutput);
     }
 
     public function outputSuccess(Test $test, $debugOutput)
     {
         $message = sprintf(
-            "Step %s %s\n",
+            "%s %s",
             $this->outputFormatSuccess->apply('Success'),
             $test->getIdentifier()
         );
 
-        fwrite(STDOUT, $message);
+        $this->outputMessage($test, $message, $debugOutput);
+    }
+
+    protected function outputMessage(Test $test, $message, $debugOutput)
+    {
+        fwrite(STDOUT, $message . "\n");
         fwrite(STDOUT, $debugOutput);
     }
 }

@@ -124,7 +124,7 @@ class PoolRunner
         }
 
         // Output remaining
-        @ob_end_flush();
+        ob_end_flush();
 
         return $failedTest;
     }
@@ -151,7 +151,8 @@ class PoolRunner
             $test->getFutureHttpPool()->merge($futureHttpCollection);
             $pool->queueFutureHttp($futureHttpCollection);
         } catch (\Throwable $exception) {
-            $debugOutput = ob_get_clean();
+            $debugOutput = ob_get_contents();
+            ob_clean();
 
             if ($test->getFutureHttpPool()->isEmpty()) {
                 $pool->passFinishTest($test);
@@ -161,7 +162,8 @@ class PoolRunner
 
             return false;
         } catch (\Exception $exception) {
-            $debugOutput = ob_get_clean();
+            $debugOutput = ob_get_contents();
+            ob_clean();
 
             if ($test->getFutureHttpPool()->isEmpty()) {
                 $pool->passFinishTest($test);
@@ -172,7 +174,8 @@ class PoolRunner
             return false;
         }
 
-        $debugOutput = ob_get_clean();
+        $debugOutput = ob_get_contents();
+        ob_clean();
 
         if ($isTestMethod) {
             foreach ($test->getChildren() as $childTest) {

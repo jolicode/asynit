@@ -38,6 +38,8 @@ class Run extends Command
             ->addOption('host', null, InputOption::VALUE_OPTIONAL, 'Base host to use', null)
             ->addOption('allow-self-signed-certificate', null, InputOption::VALUE_NONE, 'Allow self signed ssl certificate')
             ->addOption('dns', null, InputOption::VALUE_OPTIONAL, 'DNS Ip to use', '8.8.8.8')
+            ->addOption('tty', null, InputOption::VALUE_NONE, 'Force to use tty output')
+            ->addOption('no-tty', null, InputOption::VALUE_NONE, 'Force to use no tty output')
         ;
     }
     /**
@@ -72,7 +74,7 @@ class Run extends Command
         // Build service for parsing and running tests
         $discovery = new Discovery();
         $builder = new TestPoolBuilder(new AnnotationReader());
-        $output = (new Detector($loop))->detect();
+        $output = (new Detector($loop))->detect($input->getOption('tty'), $input->getOption('no-tty'));
         $runner = new PoolRunner($requestFactory, $httpClient, $loop, $output);
 
         // Build a list of tests from the directory

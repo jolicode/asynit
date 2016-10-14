@@ -21,9 +21,15 @@ class Detector
      *
      * @return OutputInterface
      */
-    public function detect()
+    public function detect($forceTty = false, $forceNoTty = false)
     {
-        return new Simple();
+        if ($forceTty) {
+            return new Tty($this->loop);
+        }
+
+        if ($forceNoTty) {
+            return new Simple();
+        }
 
         // Return simple output if no posix methods
         if (!function_exists('posix_isatty')) {

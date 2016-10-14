@@ -2,20 +2,6 @@
 
 class HttpbinTest extends \Asynit\TestCase
 {
-    public function &testGet()
-    {
-        $server = null;
-
-        $this->get('http://httpbin.org')->shouldResolve(
-            function (\Psr\Http\Message\ResponseInterface $response) use (&$server) {
-                $server = $response->getHeaderLine('Server');
-            }
-        );
-
-
-        return $server;
-    }
-
     public function testFoo()
     {
         $this->get('http://httpbin.org/delay/3')->shouldResolve(
@@ -112,5 +98,19 @@ class HttpbinTest extends \Asynit\TestCase
     public function testDummy2($token)
     {
         \Assert\Assertion::eq('toto', $token);
+    }
+
+    public function &testGet()
+    {
+        $server = null;
+
+        $this->get('http://httpbin.org')->shouldResolve(
+            function (\Psr\Http\Message\ResponseInterface $response) use (&$server) {
+                $server = $response->getHeaderLine('Server');
+                var_dump($server);
+            }
+        );
+
+        return $server;
     }
 }
