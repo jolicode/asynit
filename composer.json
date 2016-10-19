@@ -9,6 +9,9 @@
             "email": "joel.wurtz@gmail.com"
         }
     ],
+    "bin": [
+        "bin/asynit"
+    ],
     "autoload": {
         "psr-4": {
             "Asynit\\": "src/"
