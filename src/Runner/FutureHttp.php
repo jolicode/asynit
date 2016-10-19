@@ -2,6 +2,7 @@
 
 namespace Asynit\Runner;
 
+use Asynit\Test;
 use Psr\Http\Message\RequestInterface;
 
 class FutureHttp
@@ -11,6 +12,9 @@ class FutureHttp
 
     /** @var callable List of resolved callbacks */
     private $resolveCallback;
+
+    /** @var Test reference to the test */
+    private $test;
 
     public function __construct(RequestInterface $request)
     {
@@ -41,5 +45,21 @@ class FutureHttp
     public function getRequest()
     {
         return $this->request;
+    }
+
+    /**
+     * @return Test
+     */
+    public function getTest()
+    {
+        return $this->test;
+    }
+
+    /**
+     * @param Test $test
+     */
+    public function setTest(Test $test)
+    {
+        $this->test = $test;
     }
 }

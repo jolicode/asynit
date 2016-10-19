@@ -102,7 +102,9 @@ class PoolRunner
                 $request = $futureHttp->getRequest();
 
                 $httpClient->sendAsyncRequest($request)->then(
-                    function (ResponseInterface $response) use ($test, $pool, $futureHttp, &$failedTest) {
+                    function (ResponseInterface $response) use ($pool, $futureHttp, &$failedTest) {
+                        $test = $futureHttp->getTest();
+
                         $test->getFutureHttpPool()->removeElement($futureHttp);
                         $pool->passFinishHttp($futureHttp);
 
@@ -111,7 +113,9 @@ class PoolRunner
                             $assertCallback($response);
                         }, $test, $pool);
                     },
-                    function (Exception $exception) use ($test, $pool, $futureHttp, &$failedTest) {
+                    function (Exception $exception) use ($pool, $futureHttp, &$failedTest) {
+                        $test = $futureHttp->getTest();
+
                         $test->getFutureHttpPool()->removeElement($futureHttp);
                         $pool->passFinishHttp($futureHttp);
 
@@ -148,16 +152,14 @@ class PoolRunner
             }
 
             $futureHttpCollection = $this->futureHttpPool->flush();
-            $test->getFutureHttpPool()->merge($futureHttpCollection);
+            $test->mergeFutureHttp($futureHttpCollection, $test);
             $pool->queueFutureHttp($futureHttpCollection);
         } catch (\Throwable $exception) {
             $debugOutput = ob_get_contents();
             ob_clean();
 
-            if ($test->getFutureHttpPool()->isEmpty()) {
-                $pool->passFinishTest($test);
-            }
-
+            $this->futureHttpPool->flush();
+            $pool->passFinishTest($test);
             $this->output->outputFailure($test, $debugOutput, $exception);
 
             return false;
@@ -165,10 +167,8 @@ class PoolRunner
             $debugOutput = ob_get_contents();
             ob_clean();
 
-            if ($test->getFutureHttpPool()->isEmpty()) {
-                $pool->passFinishTest($test);
-            }
-
+            $this->futureHttpPool->flush();
+            $pool->passFinishTest($test);
             $this->output->outputFailure($test, $debugOutput, $exception);
 
             return false;

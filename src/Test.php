@@ -2,6 +2,7 @@
 
 namespace Asynit;
 
+use Asynit\Runner\FutureHttp;
 use Asynit\Runner\FutureHttpPool;
 
 /**
@@ -98,5 +99,18 @@ class Test
     public function getArguments()
     {
         return array_values($this->arguments);
+    }
+
+    /**
+     * @param FutureHttp[] $futureHttps
+     * @param Test         $test
+     */
+    public function mergeFutureHttp($futureHttps, Test $test)
+    {
+        foreach ($futureHttps as $futureHttp) {
+            $futureHttp->setTest($test);
+        }
+
+        $this->futureHttpPool->merge($futureHttps);
     }
 }
