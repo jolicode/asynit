@@ -61,19 +61,75 @@ class PoolRunner
                 $this->loop->tick();
             }
 
-            $test = $pool->passRunningTest();
-
-            if (null === $test) {
-                // No more tests are available let the loop end
-                $this->loop->tick();
-
-                continue;
+            if (!$this->passTest($pool)) {
+                ++$failedTest;
             }
 
+            $this->passHttp($pool);
+
+            $this->loop->tick();
+        }
+
+        // Output remaining
+        ob_end_flush();
+
+        return $failedTest;
+    }
+
+    /**
+     * Add a new request to the running pool if available
+     *
+     * @param Pool $pool
+     */
+    protected function passHttp(Pool $pool)
+    {
+        $futureHttp = $pool->passRunningHttp();
+
+        if (null !== $futureHttp) {
+            $request = $futureHttp->getRequest();
+            $httpClient = $futureHttp->getTest()->getHttpClient();
+            $httpClient->sendAsyncRequest($request)->then(
+                function (ResponseInterface $response) use ($pool, $futureHttp) {
+                    $test = $futureHttp->getTest();
+
+                    $test->getFutureHttpPool()->removeElement($futureHttp);
+                    $pool->passFinishHttp($futureHttp);
+
+                    $this->executeTestStep(function () use ($response, $futureHttp) {
+                        $assertCallback = $futureHttp->getResolveCallback();
+                        $assertCallback($response);
+                    }, $test, $pool);
+                },
+                function (Exception $exception) use ($pool, $futureHttp) {
+                    $test = $futureHttp->getTest();
+
+                    $test->getFutureHttpPool()->removeElement($futureHttp);
+                    $pool->passFinishHttp($futureHttp);
+
+                    $this->executeTestStep(function () use ($exception) {
+                        throw $exception;
+                    }, $test, $pool);
+                }
+            );
+        }
+    }
+
+    /**
+     * Add a new test to the running pool
+     *
+     * @param Pool $pool
+     *
+     * @return bool
+     */
+    protected function passTest(Pool $pool)
+    {
+        $test = $pool->passRunningTest();
+
+        if (null !== $test) {
             // Prepare test callback
             $testCase = $this->getTestObject($test);
             $method = $test->getMethod()->getName();
-            $httpClient = $testCase->setUp($this->httpClient);
+            $test->setHttpClient($testCase->setUp($this->httpClient));
             $args = $test->getArguments();
 
             if ($test->getMethod()->returnsReference()) {
@@ -87,50 +143,11 @@ class PoolRunner
             }
 
             if (!$this->executeTestStep($executeCallback, $test, $pool, true)) {
-                ++$failedTest;
+                return false;
             }
-
-            do {
-                $futureHttp = $pool->passRunningHttp();
-
-                if (null === $futureHttp) {
-                    $this->loop->tick();
-
-                    continue;
-                }
-
-                $request = $futureHttp->getRequest();
-
-                $httpClient->sendAsyncRequest($request)->then(
-                    function (ResponseInterface $response) use ($pool, $futureHttp, &$failedTest) {
-                        $test = $futureHttp->getTest();
-
-                        $test->getFutureHttpPool()->removeElement($futureHttp);
-                        $pool->passFinishHttp($futureHttp);
-
-                        $this->executeTestStep(function () use ($response, $futureHttp) {
-                            $assertCallback = $futureHttp->getResolveCallback();
-                            $assertCallback($response);
-                        }, $test, $pool);
-                    },
-                    function (Exception $exception) use ($pool, $futureHttp, &$failedTest) {
-                        $test = $futureHttp->getTest();
-
-                        $test->getFutureHttpPool()->removeElement($futureHttp);
-                        $pool->passFinishHttp($futureHttp);
-
-                        $this->executeTestStep(function () use ($exception) {
-                            throw $exception;
-                        }, $test, $pool);
-                    }
-                );
-            } while ($pool->countPendingHttp() > 0 && $pool->countRunningHttp() < $this->concurrency);
         }
 
-        // Output remaining
-        ob_end_flush();
-
-        return $failedTest;
+        return true;
     }
 
     /**
@@ -183,7 +200,7 @@ class PoolRunner
             }
         }
 
-        if ($test->getFutureHttpPool()->isEmpty()) {
+        if ($pool->hasTest($test) && $test->getFutureHttpPool()->isEmpty()) {
             $pool->passFinishTest($test);
             $this->output->outputSuccess($test, $debugOutput);
 
@@ -204,7 +221,9 @@ class PoolRunner
             return true;
         }
 
-        $this->output->outputStep($test, $debugOutput);
+        if ($pool->hasTest($test)) {
+            $this->output->outputStep($test, $debugOutput);
+        }
 
         return true;
     }

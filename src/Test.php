@@ -4,6 +4,7 @@ namespace Asynit;
 
 use Asynit\Runner\FutureHttp;
 use Asynit\Runner\FutureHttpPool;
+use Http\Client\HttpAsyncClient;
 
 /**
  * A test.
@@ -24,6 +25,9 @@ class Test
 
     /** @var FutureHttpPool */
     private $futureHttpPool;
+
+    /** @var HttpAsyncClient */
+    private $httpClient;
 
     public function __construct(\ReflectionMethod $reflectionMethod)
     {
@@ -98,7 +102,13 @@ class Test
      */
     public function getArguments()
     {
-        return array_values($this->arguments);
+        $args = [];
+
+        foreach ($this->getParents() as $parent) {
+            $args[] = $this->arguments[$parent->getIdentifier()];
+        }
+
+        return $args;
     }
 
     /**
@@ -112,5 +122,21 @@ class Test
         }
 
         $this->futureHttpPool->merge($futureHttps);
+    }
+
+    /**
+     * @return HttpAsyncClient
+     */
+    public function getHttpClient()
+    {
+        return $this->httpClient;
+    }
+
+    /**
+     * @param HttpAsyncClient $httpClient
+     */
+    public function setHttpClient($httpClient)
+    {
+        $this->httpClient = $httpClient;
     }
 }
