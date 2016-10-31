@@ -31,7 +31,7 @@ class Simple implements OutputInterface
             $test->getIdentifier()
         );
 
-        $this->outputMessage($test, $message, $debugOutput);
+        $this->outputMessage($test, $message, $debugOutput, true);
     }
 
     public function outputFailure(Test $test, $debugOutput, $failure)
@@ -57,9 +57,11 @@ class Simple implements OutputInterface
         $this->outputMessage($test, $message, $debugOutput);
     }
 
-    protected function outputMessage(Test $test, $message, $debugOutput)
+    protected function outputMessage(Test $test, $message, $debugOutput, $temp = false)
     {
-        fwrite(STDOUT, $message . "\n");
-        fwrite(STDOUT, $debugOutput);
+        if (!$temp) {
+            fwrite(STDOUT, $message . "\n");
+            fwrite(STDOUT, $debugOutput);
+        }
     }
 }

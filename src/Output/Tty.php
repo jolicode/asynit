@@ -48,7 +48,7 @@ class Tty extends Simple
         $this->columns = $matches[2];
     }
 
-    protected function outputMessage(Test $test, $message, $debugMessage)
+    protected function outputMessage(Test $test, $message, $debugMessage, $temp = false)
     {
         if (!array_key_exists($test->getIdentifier(), $this->testOutputs)) {
             $this->testOutputs[$test->getIdentifier()] = [
