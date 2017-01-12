@@ -2,6 +2,8 @@
 
 namespace Asynit\Command;
 
+use Asynit\Output\Chain;
+use Asynit\Output\Count;
 use Asynit\Output\Detector;
 use Asynit\Parser\Discovery;
 use Asynit\Parser\TestPoolBuilder;
@@ -74,14 +76,21 @@ class Run extends Command
         // Build service for parsing and running tests
         $discovery = new Discovery();
         $builder = new TestPoolBuilder(new AnnotationReader());
-        $output = (new Detector($loop))->detect($input->getOption('tty'), $input->getOption('no-tty'));
-        $runner = new PoolRunner($requestFactory, $httpClient, $loop, $output);
+        $countOutput = new Count();
+        $chainOutput = new Chain();
+        $chainOutput->addOutput((new Detector($loop))->detect($input->getOption('tty'), $input->getOption('no-tty')));
+        $chainOutput->addOutput($countOutput);
+
+        $runner = new PoolRunner($requestFactory, $httpClient, $loop, $chainOutput);
 
         // Build a list of tests from the directory
         $testMethods = $discovery->discover($input->getArgument('directory'));
         $pool = $builder->build($testMethods);
 
         // Run the list of tests
-        return $runner->run($pool);
+        $runner->run($pool);
+
+        // Return the number of failed tests
+        return $countOutput->getFailed();
     }
 }
