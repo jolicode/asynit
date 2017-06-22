@@ -29,11 +29,18 @@ class Test
     /** @var HttpAsyncClient */
     private $httpClient;
 
-    public function __construct(\ReflectionMethod $reflectionMethod)
+    private $identifier;
+
+    public function __construct(\ReflectionMethod $reflectionMethod, $identifier = null)
     {
         $this->method = $reflectionMethod;
         $this->arguments = [];
         $this->futureHttpPool = new FutureHttpPool();
+        $this->identifier = $identifier ?: sprintf(
+            '%s::%s',
+            $this->method->getDeclaringClass()->getName(),
+            $this->method->getName()
+        );
     }
 
     /**
@@ -43,11 +50,7 @@ class Test
      */
     public function getIdentifier()
     {
-        return sprintf(
-            '%s::%s',
-            $this->method->getDeclaringClass()->getName(),
-            $this->method->getName()
-        );
+        return $this->identifier;
     }
 
     /**
@@ -74,6 +77,11 @@ class Test
     public function addParent(Test $test)
     {
         $this->parents[] = $test;
+    }
+
+    public function addArgumentWithoutRef($argument, Test $test)
+    {
+        $this->arguments[$test->getIdentifier()] = $argument;
     }
 
     public function addArgument(&$argument, Test $test)
@@ -103,12 +111,14 @@ class Test
     public function getArguments()
     {
         $args = [];
+        $arguments = $this->arguments;
 
         foreach ($this->getParents() as $parent) {
-            $args[] = $this->arguments[$parent->getIdentifier()];
+            $args[] = $arguments[$parent->getIdentifier()];
+            unset($arguments[$parent->getIdentifier()]);
         }
 
-        return $args;
+        return array_merge($args, array_values($arguments));
     }
 
     /**
