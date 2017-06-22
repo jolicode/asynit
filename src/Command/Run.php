@@ -2,6 +2,7 @@
 
 namespace Asynit\Command;
 
+use Asynit\Dns\ResolverFactory;
 use Asynit\Output\Chain;
 use Asynit\Output\Count;
 use Asynit\Output\Detector;
@@ -15,7 +16,6 @@ use Http\Client\Common\Plugin\ContentLengthPlugin;
 use Http\Client\Common\PluginClient;
 use Http\Message\MessageFactory\GuzzleMessageFactory;
 use Http\Message\UriFactory\GuzzleUriFactory;
-use React\Dns\Resolver\Factory as DnsResolverFactory;
 use React\EventLoop\Factory as EventLoopFactory;
 use React\HttpClient\Client as ReactClient;
 use React\SocketClient\DnsConnector;
@@ -55,7 +55,7 @@ class Run extends Command
 
         // Build the event loop
         $loop = EventLoopFactory::create();
-        $dnsResolver = (new DnsResolverFactory())->createCached($input->getOption('dns'), $loop);
+        $dnsResolver = (new ResolverFactory())->createCached($input->getOption('dns'), $loop);
         $connector = new DnsConnector(new TcpConnector($loop), $dnsResolver);
 
         // Build the HTTP Client
