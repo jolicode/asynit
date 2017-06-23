@@ -7,7 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 class FutureHttpPool extends ArrayCollection
 {
     /**
-     * Shift a future http of the beggining.
+     * Shift a future http of the beginning.
      *
      * @return FutureHttp
      */

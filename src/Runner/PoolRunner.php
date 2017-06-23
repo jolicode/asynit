@@ -162,7 +162,7 @@ class PoolRunner
     protected function executeTestStep($callback, Test $test, Pool $pool, $isTestMethod = false)
     {
         try {
-            if ($test->getMethod()->returnsReference() && $isTestMethod) {
+            if ($isTestMethod && $test->getMethod()->returnsReference()) {
                 $result = &$callback();
             } else {
                 $result = $callback();

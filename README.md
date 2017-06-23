@@ -175,7 +175,7 @@ class SecurityTest extends TestCase
 }
 ```
 
-Here `testAuthentifactedRequest` will only be run after `testLogin` has been completed. You can also use dependency between different test case.
+Here `testAuthenticatedRequest` will only be run after `testLogin` has been completed. You can also use dependency between different test case.
 The previous test case is under the `Application\ApiTest` namespace and thus we can write another test case like this:
 
 ```php
