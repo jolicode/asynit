@@ -36,7 +36,7 @@ class ApiTest extends TestCase
     public function testGet()
     {
         $this->get('http://my-site-web')->shouldResolve(function (ResponseInterface $response) {
-            if ($response->getStatusCode() !)= 200) {
+            if ($response->getStatusCode() != 200) {
                 throw \Exception('bad status code');
             }
         });
