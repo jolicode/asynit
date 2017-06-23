@@ -165,7 +165,7 @@ class SecurityTest extends TestCase
     /**
      * @Depend("testLogin")
      */
-    public function testAuthentifactedRequest($token)
+    public function testAuthenticatedRequest($token)
     {
         $this->get('/api', ['X-Auth-Token' => $token])->shouldResolve(function (ResponseInterface $response) {
             if ($response->getStatusCode() !)= 200) {
