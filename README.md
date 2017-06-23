@@ -99,7 +99,7 @@ class ApiTest extends TestCase
     public function testGetHome()
     {
         $this->get('/')->shouldResolve(function (ResponseInterface $response) {
-            if ($response->getStatusCode() !)= 200) {
+            if ($response->getStatusCode() != 200) {
                 throw \Exception('bad status code');
             }
         });
@@ -108,7 +108,7 @@ class ApiTest extends TestCase
     public function testPostContact()
     {
         $this->post('/contact')->shouldResolve(function (ResponseInterface $response) {
-            if ($response->getStatusCode() !)= 200) {
+            if ($response->getStatusCode() != 200) {
                 throw \Exception('bad status code');
             }
         });
@@ -151,7 +151,7 @@ class SecurityTest extends TestCase
         $token = null;
     
         $this->post('/', [], '{ "username": "user", "password": "pass" }')->shouldResolve(function (ResponseInterface $response) use(&$token) {
-            if ($response->getStatusCode() !)= 200) {
+            if ($response->getStatusCode() != 200) {
                 throw \Exception('bad status code');
             }
             
@@ -167,7 +167,7 @@ class SecurityTest extends TestCase
     public function testAuthenticatedRequest($token)
     {
         $this->get('/api', ['X-Auth-Token' => $token])->shouldResolve(function (ResponseInterface $response) {
-            if ($response->getStatusCode() !)= 200) {
+            if ($response->getStatusCode() != 200) {
                 throw \Exception('bad status code');
             }
         });
@@ -187,7 +187,7 @@ class PostTest
     public function testGet($token)
     {
         $this->get('/posts', ['X-Auth-Token' => $token])->shouldResolve(function (ResponseInterface $response) {
-            if ($response->getStatusCode() !)= 200) {
+            if ($response->getStatusCode() != 200) {
                 throw \Exception('bad status code');
             }
         });
