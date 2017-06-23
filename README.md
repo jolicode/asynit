@@ -14,7 +14,7 @@ composer require --dev jolicode/asynit
 
 #### Basic usage
 
-Asynit will read PHP Class and try to mimic the API of PHPUnit, so you need to a create a test class in some directory,
+Asynit will read PHP's classes and try to mimic the API of PHPUnit, so you need to a create a test class in some directory,
 which will extends the `TestCase` class of Asynit:
 
 ```php
@@ -44,14 +44,14 @@ class ApiTest extends TestCase
 }
 ```
 
-Here we tell the test to do a GET request on `http://my-site-web` then we pass it a callback, that will be called when 
-the response will be available. Having this API allow to launch multiple requests in parallels without blocking.
+Here we tell the test to do a GET request on `http://my-site-web` then we pass it a callback that will be called when 
+the response will be available. Having this API allows to launch multiple requests in parallels without blocking.
 
-You can also note that there is not assert, this library doesn't provide that, instead it use exception to detect failure.
-A failed test is then a test that throw an exception. If you want to use assertion there is numerous library existing that
+You can also note that there is no assert, this library doesn't provide that, instead it uses exception to detect failure.
+A failed test is a test that throws an exception. If you want to use assertion there is numerous library that
 can handle this use case.
 
-For running this test you will only need to use the php file provided by this project:
+For running this test you will only need to use the PHP file provided by this project:
 
 ```bash
 $ php vendor/bin/asynit tests-directory/
@@ -76,8 +76,7 @@ class ApiTest extends TestCase
 }
 ```
 
-The underlying client is a React one respecting the HTTPlug Async interface. So you can use any library that is compatible with 
-this standard. As an example you can add the plugin client with the BaseUri plugin to prefix all your requests with a specific url:
+The underlying client is a React one respecting the HTTPlug Async interface. So you can use any library that is compatible with this standard. As an example you can add the BaseUri plugin to prefix all your requests with a specific url:
 
 
 ```php
@@ -124,8 +123,8 @@ some requests (or a cookie defining the session).
 
 Asynit provides a `Depend` annotation which allows you to specify that a test is dependent from another one.
 
-So if you have 3 tests, A, B and C and you say that C depend on A, A and B will be run in parallel and once A is completed
-and is successful C will be run with the result from A, let's see an example:
+So if you have 3 tests, A, B and C and you say that C depend on A; A and B will be run in parallel and once A is completed
+and successful, C will be run with the result from A, let's see an example:
 
 ```php
 
