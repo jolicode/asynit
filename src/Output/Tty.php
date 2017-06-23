@@ -36,7 +36,7 @@ class Tty extends Simple
     }
 
     /**
-     * Set the terminal size by ussing stty -a
+     * Set the terminal size by using stty -a
      */
     protected function setTerminalSize()
     {
