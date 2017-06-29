@@ -208,8 +208,9 @@ class PoolRunner
                 $complete = true;
 
                 foreach ($childTest->getParents() as $parentTest) {
-                    if ($pool->hasTest($parentTest)) {
+                    if (!$pool->hasCompletedTest($parentTest)) {
                         $complete = false;
+                        break;
                     }
                 }
 

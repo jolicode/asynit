@@ -11,6 +11,8 @@ use Doctrine\Common\Collections\ArrayCollection;
  */
 class Pool
 {
+    private $completedTests;
+
     private $tests;
 
     private $runningTests;
@@ -21,6 +23,7 @@ class Pool
 
     public function __construct()
     {
+        $this->completedTests = new ArrayCollection();
         $this->futureTests = new ArrayCollection();
         $this->runningTests = new ArrayCollection();
         $this->futureHttpPool = new FutureHttpPool();
@@ -92,6 +95,7 @@ class Pool
      */
     public function passFinishTest(Test $test)
     {
+        $this->completedTests->add($test);
         $this->runningTests->removeElement($test);
     }
 
@@ -133,6 +137,18 @@ class Pool
     public function countPendingHttp()
     {
         return $this->futureHttpPool->count();
+    }
+
+    /**
+     * Check if a test in the pool has been completed.
+     *
+     * @param Test $test
+     *
+     * @return bool
+     */
+    public function hasCompletedTest(Test $test)
+    {
+        return $this->completedTests->contains($test);
     }
 
     /**
