@@ -44,6 +44,10 @@ class Tty extends Simple
 
         preg_match('/rows (\d+); columns (\d+)/', $sttyOutput[0], $matches);
 
+        if (count($matches) < 2) {
+            preg_match('/(\d+) rows; (\d+) columns/', $sttyOutput[0], $matches);
+        }
+
         $this->rows = $matches[1];
         $this->columns = $matches[2];
     }
