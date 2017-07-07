@@ -4,11 +4,39 @@ namespace Asynit\Output;
 
 class TestOutput
 {
-    private $debugOutput;
+    private $debugOutput = '';
 
     private $message = '';
 
     private $lastOutputSize = 0;
+
+    private $index;
+
+    public function __construct($index)
+    {
+        $this->index = $index;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getIndex()
+    {
+        return $this->index;
+    }
+
+    public function decrementIndex()
+    {
+        $this->index--;
+    }
+
+    /**
+     * @param mixed $index
+     */
+    public function setIndex($index)
+    {
+        $this->index = $index;
+    }
 
     /**
      * @return mixed
@@ -31,14 +59,6 @@ class TestOutput
      */
     public function addDebugOutput($debugOutput)
     {
-        if (empty($debugOutput)) {
-            return;
-        }
-
-        if (null === $this->debugOutput) {
-            $this->debugOutput = "";
-        }
-
         $this->debugOutput .= $debugOutput;
     }
 
@@ -51,14 +71,14 @@ class TestOutput
      */
     public function calculateHeightSize($columns)
     {
-        $linesArray = null === $this->debugOutput ? [] : preg_split('/\n|\r/', $this->debugOutput);
-        $linesCount = ceil(strlen($this->message) / $columns);
+        $linesArray = $this->getOutput();
+        $linesCount = 0;
 
         foreach ($linesArray as $line) {
-            $linesCount += ceil(strlen($line) / $columns);
+            $linesCount += max(ceil(strlen($line) / $columns), 1);
         }
 
-        return (int) $linesCount;
+        return (int) $linesCount - 1;
     }
 
     /**
@@ -80,16 +100,10 @@ class TestOutput
     /**
      * @return mixed
      */
-    public function getDebugOutput()
+    public function getOutput()
     {
-        $debugOutput = $this->debugOutput;
+        $message = $this->message . $this->debugOutput;
 
-        if (null === $debugOutput) {
-            return [];
-        }
-
-        $debugOutput = rtrim($debugOutput);
-
-        return preg_split('/\n|\r/', $debugOutput);
+        return preg_split('/\n|\r/', $message);
     }
 }

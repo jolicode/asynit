@@ -116,13 +116,13 @@ class HttpbinTest extends \Asynit\TestCase
     {
         $this->get('http://httpbin.org')->shouldResolve(
             function (\Psr\Http\Message\ResponseInterface $response) use ($token) {
-                \Assert\Assertion::eq('foo', $token);
+                self::assertEquals('foo', $token);
             }
         );
 
         $this->get('http://httpbin.org')->shouldResolve(
             function (\Psr\Http\Message\ResponseInterface $response)  use ($token) {
-                \Assert\Assertion::eq('meinheld/0.6.1', $token);
+                self::assertEquals('meinheld/0.6.1', $token);
             }
         );
     }
@@ -132,7 +132,7 @@ class HttpbinTest extends \Asynit\TestCase
      */
     public function testDummy1($token)
     {
-        \Assert\Assertion::eq('meinheld/0.6.1', $token);
+        self::assertEquals('meinheld/0.6.1', $token);
 
         $this->get('http://httpbin.org')->shouldResolve(
             function (\Psr\Http\Message\ResponseInterface $response) {
@@ -146,7 +146,7 @@ class HttpbinTest extends \Asynit\TestCase
      */
     public function testDummy2($token, $return)
     {
-        \Assert\Assertion::eq('tata', $return);
-        \Assert\Assertion::eq('meinheld/0.6.1', $token);
+        self::assertEquals('tata', $return);
+        self::assertEquals('meinheld/0.6.1', $token);
     }
 }

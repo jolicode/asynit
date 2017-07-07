@@ -26,7 +26,7 @@ class Simple implements OutputInterface
     public function outputStep(Test $test, $debugOutput)
     {
         $message = sprintf(
-            "%s %s",
+            "%s %s\n",
             $this->outputFormatPending->apply('Pending'),
             $test->getIdentifier()
         );
@@ -37,7 +37,7 @@ class Simple implements OutputInterface
     public function outputFailure(Test $test, $debugOutput, $failure)
     {
         $message = sprintf(
-            "%s %s : %s",
+            "%s %s : %s\n",
             $this->outputFormatFail->apply('Failure'),
             $test->getIdentifier(),
             $failure->getMessage()
@@ -49,7 +49,7 @@ class Simple implements OutputInterface
     public function outputSuccess(Test $test, $debugOutput)
     {
         $message = sprintf(
-            "%s %s",
+            "%s %s\n",
             $this->outputFormatSuccess->apply('Success'),
             $test->getIdentifier()
         );
@@ -60,7 +60,7 @@ class Simple implements OutputInterface
     protected function outputMessage(Test $test, $message, $debugOutput, $temp = false)
     {
         if (!$temp) {
-            fwrite(STDOUT, $message . "\n");
+            fwrite(STDOUT, $message);
             fwrite(STDOUT, $debugOutput);
         }
     }

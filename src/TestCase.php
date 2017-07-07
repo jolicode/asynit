@@ -2,6 +2,7 @@
 
 namespace Asynit;
 
+use Asynit\Assert\AssertCaseTrait;
 use Asynit\Runner\FutureHttp;
 use Asynit\Runner\FutureHttpPool;
 use Http\Client\HttpAsyncClient;
@@ -10,6 +11,8 @@ use Psr\Http\Message\RequestInterface;
 
 class TestCase
 {
+    use AssertCaseTrait;
+
     /** @var RequestFactory */
     private $requestFactory;
 
