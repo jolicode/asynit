@@ -32,8 +32,5 @@
         "bovigo/assert": "^2.1",
         "sebastian/environment": "^3.1"
     },
-    "require-dev": {
-    },
-    "minimum-stability": "dev",
     "prefer-stable": true
 }
