@@ -29,6 +29,8 @@ class Test
     /** @var HttpAsyncClient */
     private $httpClient;
 
+    private $assertions = [];
+
     private $identifier;
 
     public function __construct(\ReflectionMethod $reflectionMethod, $identifier = null)
@@ -87,6 +89,19 @@ class Test
     public function addArgument(&$argument, Test $test)
     {
         $this->arguments[$test->getIdentifier()] = &$argument;
+    }
+
+    public function addAssertion($assertion)
+    {
+        $this->assertions[] = $assertion;
+    }
+
+    /**
+     * @return array
+     */
+    public function getAssertions(): array
+    {
+        return $this->assertions;
     }
 
     /**

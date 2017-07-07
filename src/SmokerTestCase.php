@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Asynit;
 
 use Psr\Http\Message\ResponseInterface;
-use Webmozart\Assert\Assert;
 
 class SmokerTestCase extends TestCase
 {
@@ -14,7 +13,7 @@ class SmokerTestCase extends TestCase
         list($uri, $expected) = $data;
 
         $this->get($uri)->shouldResolve(function (ResponseInterface $response) use ($expected) {
-            Assert::eq($response->getStatusCode(), $expected['status']);
+            static::assertStatusCode($expected['status'], $response);
         });
     }
 }

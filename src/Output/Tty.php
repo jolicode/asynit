@@ -12,12 +12,12 @@ class Tty extends Simple
     private $loop;
 
     /** @var int */
-    private $rows;
+    private $rows = 30;
 
     /** @var int */
-    private $columns;
+    private $columns = 80;
 
-    /** @var array */
+    /** @var TestOutput[] */
     private $testOutputs = [];
 
     public function __construct(LoopInterface $loop)
@@ -55,70 +55,66 @@ class Tty extends Simple
     protected function outputMessage(Test $test, $message, $debugMessage, $temp = false)
     {
         if (!array_key_exists($test->getIdentifier(), $this->testOutputs)) {
-            $this->testOutputs[$test->getIdentifier()] = [
-                'output' => new TestOutput(),
-                'index' => count($this->testOutputs),
-            ];
+            $this->testOutputs[$test->getIdentifier()] = new TestOutput(count($this->testOutputs));
         }
 
         /** @var TestOutput $testOutput */
-        $index = $this->testOutputs[$test->getIdentifier()]['index'];
-        $testOutput = $this->testOutputs[$test->getIdentifier()]['output'];
+        $testOutput = $this->testOutputs[$test->getIdentifier()];
         $testOutput->addDebugOutput($debugMessage);
         $testOutput->setMessage($message);
 
-        $size = $testOutput->calculateHeightSize($this->columns);
         // Calculate size to go up
-        $upSize = $testOutput->getLastOutputSize();
+        $upSize = 0;
 
-        foreach ($this->testOutputs as $testOutputIndex) {
-            if ($testOutputIndex['index'] > $index) {
-                $upSize += $testOutputIndex['output']->getLastOutputSize();
+        foreach ($this->testOutputs as $testOutputItem) {
+            if ($testOutputItem->getIndex() >= $testOutput->getIndex()) {
+                $upSize += $testOutputItem->getLastOutputSize();
             }
         }
 
         // If size to go up is higher than the current columns count print this test to the bottom
         if ($upSize > $this->rows) {
             // Decrement all next index
-            foreach ($this->testOutputs as &$testOutputIndex) {
-                if ($testOutputIndex['index'] > $index) {
-                    $testOutputIndex['index']--;
+            foreach ($this->testOutputs as $testOutputItem) {
+                if ($testOutputItem->getIndex() > $testOutput->getIndex()) {
+                    $testOutputItem->decrementIndex();
                 }
             }
 
             // Change the index to the last one
             $index = count($this->testOutputs) - 1;
             $upSize = 0;
-            $this->testOutputs[$test->getIdentifier()]['index'] = $index;
+            $this->testOutputs[$test->getIdentifier()]->setIndex($index);
         }
 
         // Go up for X lines
         if ($upSize > 0) {
             fwrite(STDOUT, sprintf("\e[%sA", $upSize));
         }
-        // Draw the message
-        fwrite(STDOUT, "\r\e[K" . $message . "\n");
 
-        foreach ($testOutput->getDebugOutput() as $debugOutput) {
-            fwrite(STDOUT, "\r\e[K" . $debugOutput . "\n");
-        }
+        $this->draw($testOutput->getIndex() - 1);
+    }
 
-        // Set the size for future reference
-        $testOutput->setLastOutputSize($size);
-
-        // Redraw next test output if needed or set the cursor down
-        foreach ($this->testOutputs as $testOutputIndex) {
-            if ($testOutputIndex['index'] > $index) {
-                $testOutput = $testOutputIndex['output'];
-
+    protected function draw($index)
+    {
+        foreach ($this->testOutputs as $testOutput) {
+            if ($testOutput->getIndex() > $index) {
                 $size = $testOutput->calculateHeightSize($this->columns);
-                fwrite(STDOUT, "\r\e[K" . $testOutput->getMessage() . "\n");
-
-                foreach ($testOutput->getDebugOutput() as $debugOutput) {
-                    fwrite(STDOUT, "\r\e[K" . $debugOutput . "\n");
-                }
-
+                $this->drawTest($testOutput);
                 $testOutput->setLastOutputSize($size);
+            }
+        }
+    }
+
+    protected function drawTest($testOutput)
+    {
+        $lines = $testOutput->getOutput();
+
+        foreach ($lines as $key => $debugOutput) {
+            fwrite(STDOUT, "\r\e[K" . $debugOutput);
+
+            if (count($lines) > $key + 1) {
+                fwrite(STDOUT, "\n");
             }
         }
     }

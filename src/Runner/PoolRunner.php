@@ -2,6 +2,7 @@
 
 namespace Asynit\Runner;
 
+use Asynit\Assert\Assertion;
 use Asynit\Output\OutputInterface;
 use Asynit\Test;
 use Asynit\TestCase;
@@ -162,6 +163,8 @@ class PoolRunner
     protected function executeTestStep($callback, Test $test, Pool $pool, $isTestMethod = false)
     {
         try {
+            Assertion::$currentTest = $test;
+
             if ($isTestMethod && $test->getMethod()->returnsReference()) {
                 $result = &$callback();
             } else {
