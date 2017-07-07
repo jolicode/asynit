@@ -13,7 +13,7 @@ class SmokerTestCase extends TestCase
         list($uri, $expected) = $data;
 
         $this->get($uri)->shouldResolve(function (ResponseInterface $response) use ($expected) {
-            static::assertEquals($expected['status'], $response->getStatusCode());
+            static::assertStatusCode($expected['status'], $response);
         });
     }
 }
