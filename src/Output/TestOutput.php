@@ -75,7 +75,7 @@ class TestOutput
         $linesCount = 0;
 
         foreach ($linesArray as $line) {
-            $linesCount += max(ceil(strlen($line) / $columns), 1);
+            $linesCount += max(ceil($this->getDisplayLength($line) / $columns), 1);
         }
 
         return (int) $linesCount - 1;
@@ -105,5 +105,13 @@ class TestOutput
         $message = $this->message . $this->debugOutput;
 
         return preg_split('/\n|\r/', $message);
+    }
+
+    protected function getDisplayLength(string $text)
+    {
+        $parsed = preg_replace('#\\x1b[[][^A-Za-z]*[A-Za-z]#', '', $text);
+        $parsed = str_replace("\t", "        ", $parsed);
+
+        return strlen($parsed);
     }
 }
