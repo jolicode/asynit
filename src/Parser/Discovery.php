@@ -31,7 +31,7 @@ class Discovery
         foreach ($finder as $file) {
             $existingClasses = get_declared_classes();
 
-            include $file->getRealPath();
+            require_once $file->getRealPath();
 
             $newClasses = array_diff(get_declared_classes(), $existingClasses);
 
