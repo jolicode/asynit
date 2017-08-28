@@ -30,6 +30,7 @@ class Run extends Command
             ->addOption('dns', null, InputOption::VALUE_OPTIONAL, 'DNS Ip to use', '8.8.8.8')
             ->addOption('tty', null, InputOption::VALUE_NONE, 'Force to use tty output')
             ->addOption('no-tty', null, InputOption::VALUE_NONE, 'Force to use no tty output')
+            ->addOption('concurrency', null, InputOption::VALUE_OPTIONAL, 'Max number of parallels requests', 10)
         ;
     }
 
@@ -48,7 +49,7 @@ class Run extends Command
         // Build service for parsing and running tests
         $discovery = new Discovery();
         $builder = new TestPoolBuilder(new AnnotationReader());
-        $runner = new PoolRunner(new GuzzleMessageFactory(), $client, $loop, $chainOutput);
+        $runner = new PoolRunner(new GuzzleMessageFactory(), $client, $loop, $chainOutput, $input->getOption('concurrency'));
 
         // Build a list of tests from the directory
         $testMethods = $discovery->discover($input->getArgument('directory'));
