@@ -100,6 +100,8 @@ class PoolRunner
                         $assertCallback = $futureHttp->getResolveCallback();
                         $assertCallback($response);
                     }, $test, $pool);
+
+                    return $response;
                 },
                 function (Exception $exception) use ($pool, $futureHttp) {
                     $test = $futureHttp->getTest();
@@ -110,6 +112,8 @@ class PoolRunner
                     $this->executeTestStep(function () use ($exception) {
                         throw $exception;
                     }, $test, $pool);
+
+                    throw $exception;
                 }
             );
         }
