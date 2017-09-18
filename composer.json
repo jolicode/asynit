@@ -23,7 +23,7 @@
         "doctrine/annotations": "^1.2",
         "doctrine/collections": "^1.3",
         "mkraemer/react-pcntl": "^2.1",
-        "php-http/react-adapter": "^0.3",
+        "php-http/react-adapter": "^0.3 | ^1.0 | ^2.0",
         "php-http/message": "^1.3",
         "php-http/client-common": "^1.2",
         "symfony/console": "^3.1",
