@@ -5,6 +5,8 @@ namespace Asynit;
 use Amp\Artax\Client;
 use Amp\Artax\DefaultClient;
 use Amp\Artax\Response;
+use Amp\Parallel\Sync\Lock;
+use Amp\Parallel\Sync\Semaphore;
 use Amp\Promise;
 use Asynit\Assert\AssertWebCaseTrait;
 use Http\Message\MessageFactory;
@@ -17,12 +19,16 @@ class TestCase
     /** @var MessageFactory */
     private $messageFactory;
 
+    /** @var Semaphore */
+    private $semaphore;
+
     /** @var Client */
     private $client;
 
-    final public function __construct(MessageFactory $messageFactory)
+    final public function __construct(MessageFactory $messageFactory, Semaphore $semaphore)
     {
         $this->messageFactory = $messageFactory;
+        $this->semaphore = $semaphore;
     }
 
     /**
@@ -59,9 +65,13 @@ class TestCase
             $req = $req->withHeaders($request->getHeaders());
             $req = $req->withBody((string) $request->getBody());
 
+            /** @var Lock $lock */
+            $lock = yield $this->semaphore->acquire();
             /** @var Response $response */
             $response = yield $this->client->request($req);
             $content = yield $response->getBody()->read();
+
+            $lock->release();
 
             return $this->messageFactory->createResponse(
                 $response->getStatus(),

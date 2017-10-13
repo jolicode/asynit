@@ -3,6 +3,7 @@
 namespace Asynit\Runner;
 
 use Amp\Loop;
+use Amp\Parallel\Sync\Semaphore;
 use Amp\Promise;
 use Asynit\Output\OutputInterface;
 use Asynit\Test;
@@ -17,17 +18,17 @@ class PoolRunner
     /** @var OutputInterface */
     private $output;
 
-    /** @var int */
-    private $concurrency;
-
     /** @var RequestFactory */
     private $requestFactory;
+
+    /** @var Semaphore */
+    private $semaphore;
 
     public function __construct(RequestFactory $requestFactory, OutputInterface $output, $concurrency = 10)
     {
         $this->requestFactory = $requestFactory;
         $this->output = $output;
-        $this->concurrency = $concurrency;
+        $this->semaphore = new SimpleSemaphore($concurrency);
     }
 
     public function loop(Pool $pool)
@@ -108,7 +109,7 @@ class PoolRunner
         $class = $test->getMethod()->getDeclaringClass()->getName();
 
         if (!array_key_exists($class, $this->testObjects)) {
-            $this->testObjects[$class] = $test->getMethod()->getDeclaringClass()->newInstance($this->requestFactory);
+            $this->testObjects[$class] = $test->getMethod()->getDeclaringClass()->newInstance($this->requestFactory, $this->semaphore);
         }
 
         return $this->testObjects[$class];

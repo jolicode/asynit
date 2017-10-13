@@ -1,6 +1,6 @@
 # asynit
 
-Asynchronous HTTP Request Testing Library for API or more...
+Asynchronous (using coroutine) HTTP Request Testing Library for API or more...
 
 ## Install
 
