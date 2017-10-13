@@ -4,40 +4,25 @@ namespace Asynit;
 
 use Amp\Artax\Client;
 use Amp\Artax\DefaultClient;
-use Amp\Loop;
+use Amp\Artax\Response;
 use Amp\Promise;
 use Asynit\Assert\AssertWebCaseTrait;
-use Asynit\Runner\FutureHttp;
-use Asynit\Runner\FutureHttpPool;
-use Http\Message\RequestFactory;
+use Http\Message\MessageFactory;
 use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
 
 class TestCase
 {
     use AssertWebCaseTrait;
 
-    /** @var RequestFactory */
-    private $requestFactory;
-
-    /** @var FutureHttpPool */
-    private $futureHttpPool;
+    /** @var MessageFactory */
+    private $messageFactory;
 
     /** @var Client */
     private $client;
 
-    final public function __construct(RequestFactory $requestFactory, FutureHttpPool $pool)
+    final public function __construct(MessageFactory $messageFactory)
     {
-        $this->requestFactory = $requestFactory;
-        $this->futureHttpPool = $pool;
-    }
-
-    /**
-     * @return FutureHttpPool
-     */
-    public function getFutureHttpPool()
-    {
-        return $this->futureHttpPool;
+        $this->messageFactory = $messageFactory;
     }
 
     /**
@@ -62,14 +47,32 @@ class TestCase
     /**
      * Allow to test a rejection or a resolution of an async call.
      *
-     * @param RequestInterface $requestInterface
+     * @param RequestInterface $request
      *
      * @return Promise
      */
-    final protected function sendRequest(RequestInterface $request)
+    final protected function sendRequest(RequestInterface $request): Promise
     {
         return \Amp\call(function () use($request) {
-            yield $this->client->request($request);
+            $req = new \Amp\Artax\Request($request->getUri(), $request->getMethod());
+            $req = $req->withProtocolVersions([$request->getProtocolVersion()]);
+            $req = $req->withHeaders($request->getHeaders());
+            $req = $req->withBody((string) $request->getBody());
+
+            echo "YOLO";
+            /** @var Response $response */
+            $response = yield $this->client->request($req);
+            echo "YOLO2";
+            $content = yield $response->getBody()->read();
+            echo "YOLO3";
+
+            return $this->messageFactory->createResponse(
+                $response->getStatus(),
+                $response->getReason(),
+                $response->getHeaders(),
+                $content,
+                $response->getProtocolVersion()
+            );
         });
     }
 
@@ -81,9 +84,9 @@ class TestCase
      *
      * @return Promise
      */
-    final protected function get($uri, $headers = [], $body = null, $version = '1.1')
+    final protected function get($uri, $headers = [], $body = null, $version = '1.1'): Promise
     {
-        return $this->sendRequest($this->requestFactory->createRequest('GET', $uri, $headers, $body, $version));
+        return $this->sendRequest($this->messageFactory->createRequest('GET', $uri, $headers, $body, $version));
     }
     /**
      * @param        $uri
@@ -93,9 +96,9 @@ class TestCase
      *
      * @return Promise
      */
-    final protected function post($uri, $headers = [], $body = null, $version = '1.1')
+    final protected function post($uri, $headers = [], $body = null, $version = '1.1'): Promise
     {
-        return $this->sendRequest($this->requestFactory->createRequest('POST', $uri, $headers, $body, $version));
+        return $this->sendRequest($this->messageFactory->createRequest('POST', $uri, $headers, $body, $version));
     }
 
     /**
@@ -106,9 +109,9 @@ class TestCase
      *
      * @return Promise
      */
-    final protected function patch($uri, $headers = [], $body = null, $version = '1.1')
+    final protected function patch($uri, $headers = [], $body = null, $version = '1.1'): Promise
     {
-        return $this->sendRequest($this->requestFactory->createRequest('PATCH', $uri, $headers, $body, $version));
+        return $this->sendRequest($this->messageFactory->createRequest('PATCH', $uri, $headers, $body, $version));
     }
 
     /**
@@ -121,7 +124,7 @@ class TestCase
      */
     final protected function put($uri, $headers = [], $body = null, $version = '1.1')
     {
-        return $this->sendRequest($this->requestFactory->createRequest('PUT', $uri, $headers, $body, $version));
+        return $this->sendRequest($this->messageFactory->createRequest('PUT', $uri, $headers, $body, $version));
     }
 
     /**
@@ -132,9 +135,9 @@ class TestCase
      *
      * @return Promise
      */
-    final protected function delete($uri, $headers = [], $body = null, $version = '1.1')
+    final protected function delete($uri, $headers = [], $body = null, $version = '1.1'): Promise
     {
-        return $this->sendRequest($this->requestFactory->createRequest('DELETE', $uri, $headers, $body, $version));
+        return $this->sendRequest($this->messageFactory->createRequest('DELETE', $uri, $headers, $body, $version));
     }
 
     /**
@@ -145,8 +148,8 @@ class TestCase
      *
      * @return Promise
      */
-    final protected function options($uri, $headers = [], $body = null, $version = '1.1')
+    final protected function options($uri, $headers = [], $body = null, $version = '1.1'): Promise
     {
-        return $this->sendRequest($this->requestFactory->createRequest('OPTIONS', $uri, $headers, $body, $version));
+        return $this->sendRequest($this->messageFactory->createRequest('OPTIONS', $uri, $headers, $body, $version));
     }
 }
