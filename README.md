@@ -35,11 +35,9 @@ class ApiTest extends TestCase
 {
     public function testGet()
     {
-        $this->get('http://my-site-web')->shouldResolve(function (ResponseInterface $response) {
-            if ($response->getStatusCode() != 200) {
-                throw \Exception('bad status code');
-            }
-        });
+        $response = yield $this->get('http://my-site-web');
+
+        self::assertStatusCode(200, $response);
     }
 }
 ```
@@ -65,53 +63,13 @@ and can also be used to override the http client.
 ```php
 
 use Asynit\TestCase;
-use Http\Client\HttpAsyncClient;
+use Amp\Artax\Client;
 
 class ApiTest extends TestCase
 {
-    public function setUp(HttpAsyncClient $asyncClient)
+    public function setUp(Client $asyncClient): Client
     {
         return $asyncClient;
-    }
-}
-```
-
-The underlying client is a React one respecting the HTTPlug Async interface. So you can use any library that is compatible with this standard. As an example you can add the BaseUri plugin to prefix all your requests with a specific url:
-
-
-```php
-
-use Asynit\TestCase;
-use Http\Client\Common\Plugin\BaseUriPlugin;
-use Http\Client\Common\PluginClient;
-use Http\Client\HttpAsyncClient;
-use Http\Message\UriFactory\GuzzleUriFactory;
-
-class ApiTest extends TestCase
-{
-    public function setUp(HttpAsyncClient $asyncClient)
-    {
-        return new PluginClient($asyncClient, [
-            new BaseUriPlugin((new GuzzleUriFactory())->createUri('http://my-site-web')),
-        ]);
-    }
-    
-    public function testGetHome()
-    {
-        $this->get('/')->shouldResolve(function (ResponseInterface $response) {
-            if ($response->getStatusCode() != 200) {
-                throw \Exception('bad status code');
-            }
-        });
-    }
-    
-    public function testPostContact()
-    {
-        $this->post('/contact')->shouldResolve(function (ResponseInterface $response) {
-            if ($response->getStatusCode() != 200) {
-                throw \Exception('bad status code');
-            }
-        });
     }
 }
 ```
@@ -139,26 +97,13 @@ use Http\Message\UriFactory\GuzzleUriFactory;
 
 class SecurityTest extends TestCase
 {
-    public function setUp(HttpAsyncClient $asyncClient)
+    public function testLogin()
     {
-        return new PluginClient($asyncClient, [
-            new BaseUriPlugin((new GuzzleUriFactory())->createUri('http://my-site-web')),
-        ]);
-    }
-    
-    public function &testLogin()
-    {
-        $token = null;
-    
-        $this->post('/', [], '{ "username": "user", "password": "pass" }')->shouldResolve(function (ResponseInterface $response) use(&$token) {
-            if ($response->getStatusCode() != 200) {
-                throw \Exception('bad status code');
-            }
-            
-            $token = $response->getBody()->getContents();
-        });
-        
-        return $token;
+        $response = yield $this->post('/', [], '{ "username": "user", "password": "pass" }');
+
+        self::assertStatusCode(200, $response);
+
+        return $response->getBody()->getContents();
     }
     
     /**
@@ -166,11 +111,9 @@ class SecurityTest extends TestCase
      */
     public function testAuthenticatedRequest($token)
     {
-        $this->get('/api', ['X-Auth-Token' => $token])->shouldResolve(function (ResponseInterface $response) {
-            if ($response->getStatusCode() != 200) {
-                throw \Exception('bad status code');
-            }
-        });
+        $response = yield $this->get('/api', ['X-Auth-Token' => $token]);
+
+        self::assertStatusCode(200, $response);
     }
 }
 ```
@@ -186,11 +129,9 @@ class PostTest
      */
     public function testGet($token)
     {
-        $this->get('/posts', ['X-Auth-Token' => $token])->shouldResolve(function (ResponseInterface $response) {
-            if ($response->getStatusCode() != 200) {
-                throw \Exception('bad status code');
-            }
-        });
+        $response = yield $this->get('/posts', ['X-Auth-Token' => $token]);
+
+        self::assertStatusCode(200, $response);
     }
 }
 ```

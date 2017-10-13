@@ -18,7 +18,9 @@ class HttpbinTest extends \Asynit\TestCase
 
     public function testFoo()
     {
-        yield $this->get('http://httpbin.org/delay/3');
+        $response = yield $this->get('http://httpbin.org/delay/3');
+
+        self::assertStatusCode(200, $response);
     }
 
     public function testFoo2()

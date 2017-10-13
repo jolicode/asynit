@@ -34,7 +34,7 @@ class TestCase
      *
      * @return Client
      */
-    public function setUp(Client $asyncClient)
+    public function setUp(Client $asyncClient): Client
     {
         return $asyncClient;
     }
