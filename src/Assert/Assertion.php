@@ -52,7 +52,8 @@ class Assertion extends BaseAssertion
     {
         parent::evaluate($predicate, $description);
 
-        static::$currentTest->addAssertion($this->describeSuccess($predicate, $description));
+        // @TODO : How to get the current test ?
+        // static::$currentTest->addAssertion($this->describeSuccess($predicate, $description));
 
         return true;
     }

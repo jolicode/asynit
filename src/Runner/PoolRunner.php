@@ -9,10 +9,7 @@ use Asynit\Output\OutputInterface;
 use Asynit\Test;
 use Asynit\TestCase;
 use Asynit\Pool;
-use Http\Client\Exception;
-use Http\Client\HttpAsyncClient;
 use Http\Message\RequestFactory;
-use Psr\Http\Message\ResponseInterface;
 
 class PoolRunner
 {
@@ -20,9 +17,6 @@ class PoolRunner
 
     /** @var OutputInterface */
     private $output;
-
-    /** @var HttpAsyncClient */
-    private $httpClient;
 
     /** @var FutureHttpPool */
     private $futureHttpPool;
@@ -44,6 +38,7 @@ class PoolRunner
     public function loop(Pool $pool)
     {
         return \Amp\call(function () use($pool) {
+            ob_start();
             $promises = [];
 
             while (!$pool->isEmpty()) {
@@ -56,13 +51,17 @@ class PoolRunner
                     continue;
                 }
 
-                $promises[] = $this->run($test);
+                $promises[$test->getIdentifier()] = $this->run($test);
+                $promises[$test->getIdentifier()]->onResolve(function () use (&$promises, $test) {
+                    unset($promises[$test->getIdentifier()]);
+                });
             }
 
             // No more test wait for all remaining run
             yield $promises;
 
             Loop::stop();
+            ob_end_flush();
         });
     }
 
@@ -73,6 +72,10 @@ class PoolRunner
     protected function run(Test $test): Promise
     {
         return \Amp\call(function () use($test) {
+            $debugOutput = ob_get_contents();
+            ob_clean();
+
+            $this->output->outputStep($test, $debugOutput);
             $test->setState(Test::STATE_RUNNING);
 
             $testCase = $this->getTestObject($test);
@@ -81,100 +84,25 @@ class PoolRunner
             $method = $test->getMethod()->getName();
             $args = $test->getArguments();
 
-            echo "Running " . $test->getIdentifier() . "\n";
             try {
                 $result = yield \Amp\call(function () use($testCase, $method, $args) { return $testCase->$method(...$args); });
-                echo "Finished " . $test->getIdentifier() . "\n";
 
                 foreach ($test->getChildren() as $childTest) {
                     $childTest->addArgument($result, $test);
                 }
 
+                $debugOutput = ob_get_contents();
+                ob_clean();
+                $this->output->outputSuccess($test, $debugOutput);
                 $test->setState(Test::STATE_SUCCESS);
             } catch (\Throwable $error) {
-                echo "Failure " . $test->getIdentifier() . " " . $error->getMessage() . "\n";
+                $debugOutput = ob_get_contents();
+                ob_clean();
+
+                $this->output->outputFailure($test, $debugOutput, $error);
                 $test->setState(Test::STATE_FAILURE);
             }
         });
-    }
-
-    /**
-     * Add a new request to the running pool if available
-     *
-     * @param Pool $pool
-     */
-    protected function passHttp(Pool $pool)
-    {
-        $futureHttp = $pool->passRunningHttp();
-
-        if (null !== $futureHttp) {
-            $request = $futureHttp->getRequest();
-            $httpClient = $futureHttp->getTest()->getHttpClient();
-            $httpClient->sendAsyncRequest($request)->then(
-                function (ResponseInterface $response) use ($pool, $futureHttp) {
-                    $test = $futureHttp->getTest();
-
-                    $test->getFutureHttpPool()->removeElement($futureHttp);
-                    $pool->passFinishHttp($futureHttp);
-
-                    $this->executeTestStep(function () use ($response, $futureHttp) {
-                        $assertCallback = $futureHttp->getResolveCallback();
-                        $assertCallback($response);
-                    }, $test, $pool);
-
-                    return $response;
-                },
-                function (Exception $exception) use ($pool, $futureHttp) {
-                    $test = $futureHttp->getTest();
-
-                    $test->getFutureHttpPool()->removeElement($futureHttp);
-                    $pool->passFinishHttp($futureHttp);
-
-                    $this->executeTestStep(function () use ($exception) {
-                        throw $exception;
-                    }, $test, $pool);
-
-                    throw $exception;
-                }
-            );
-        }
-    }
-
-    /**
-     * Add a new test to the running pool
-     *
-     * @param Pool $pool
-     *
-     * @return bool
-     */
-    protected function passTest(Pool $pool)
-    {
-        $test = $pool->passRunningTest();
-
-        if (null !== $test) {
-            // Prepare test callback
-            $testCase = $this->getTestObject($test);
-            $testCase->initialize();
-
-            $method = $test->getMethod()->getName();
-            $args = $test->getArguments();
-
-            if ($test->getMethod()->returnsReference()) {
-                $executeCallback = function &() use ($testCase, $method, $args) {
-                    return $testCase->$method(...$args);
-                };
-            } else {
-                $executeCallback = function () use ($testCase, $method, $args) {
-                    return $testCase->$method(...$args);
-                };
-            }
-
-            if (!$this->executeTestStep($executeCallback, $test, $pool, true)) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     /**
@@ -206,7 +134,6 @@ class PoolRunner
 
             $this->futureHttpPool->flush();
             $pool->passFinishTest($test);
-            $this->output->outputFailure($test, $debugOutput, $exception);
 
             return false;
         } catch (\Exception $exception) {
@@ -265,7 +192,7 @@ class PoolRunner
      *
      * @return TestCase
      */
-    protected function getTestObject(Test $test)
+    private function getTestObject(Test $test): TestCase
     {
         $class = $test->getMethod()->getDeclaringClass()->getName();
 

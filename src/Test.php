@@ -69,7 +69,7 @@ class Test
         }
 
         foreach ($this->getParents() as $test) {
-            if ($test->isRunning() || $test->isPending()) {
+            if (!$test->isCompleted()) {
                 return false;
             }
         }
@@ -106,7 +106,7 @@ class Test
     /**
      * @return \ReflectionMethod
      */
-    public function getMethod()
+    public function getMethod(): \ReflectionMethod
     {
         return $this->method;
     }

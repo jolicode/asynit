@@ -58,11 +58,14 @@ class HttpbinTest extends \Asynit\TestCase
 
     public function testFoo9()
     {
-        yield $this->get('http://httpbin.org/delay/1');
-        yield $this->get('http://httpbin.org/delay/1');
-        yield $this->get('http://httpbin.org/delay/1');
-        yield $this->get('http://httpbin.org/delay/1');
-        yield $this->get('http://httpbin.org/delay/1');
+        $promises = [];
+        $promises[] = $this->get('http://httpbin.org/delay/1');
+        $promises[] = $this->get('http://httpbin.org/delay/1');
+        $promises[] = $this->get('http://httpbin.org/delay/1');
+        $promises[] = $this->get('http://httpbin.org/delay/1');
+        $promises[] = $this->get('http://httpbin.org/delay/1');
+
+        yield \Amp\Promise\all($promises);
     }
 
     /**

@@ -59,12 +59,9 @@ class TestCase
             $req = $req->withHeaders($request->getHeaders());
             $req = $req->withBody((string) $request->getBody());
 
-            echo "YOLO";
             /** @var Response $response */
             $response = yield $this->client->request($req);
-            echo "YOLO2";
             $content = yield $response->getBody()->read();
-            echo "YOLO3";
 
             return $this->messageFactory->createResponse(
                 $response->getStatus(),
