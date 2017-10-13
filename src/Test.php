@@ -11,6 +11,12 @@ use Http\Client\HttpAsyncClient;
  */
 class Test
 {
+    const STATE_PENDING = 'pending';
+    const STATE_RUNNING = 'running';
+    const STATE_SUCCESS = 'success';
+    const STATE_FAILURE = 'failure';
+    const STATE_IGNORED = 'ignored';
+
     /** @var Test[] */
     private $parents = [];
 
@@ -23,26 +29,68 @@ class Test
     /** @var \ReflectionMethod */
     private $method;
 
-    /** @var FutureHttpPool */
-    private $futureHttpPool;
-
-    /** @var HttpAsyncClient */
-    private $httpClient;
-
     private $assertions = [];
 
     private $identifier;
+
+    private $state;
 
     public function __construct(\ReflectionMethod $reflectionMethod, $identifier = null)
     {
         $this->method = $reflectionMethod;
         $this->arguments = [];
-        $this->futureHttpPool = new FutureHttpPool();
         $this->identifier = $identifier ?: sprintf(
             '%s::%s',
             $this->method->getDeclaringClass()->getName(),
             $this->method->getName()
         );
+        $this->state = self::STATE_PENDING;
+    }
+
+    public function isCompleted(): bool
+    {
+        return in_array($this->state, [self::STATE_SUCCESS, self::STATE_FAILURE, self::STATE_IGNORED], true);
+    }
+
+    public function isRunning(): bool
+    {
+        return $this->state === self::STATE_RUNNING;
+    }
+
+    public function isPending(): bool
+    {
+        return $this->state === self::STATE_PENDING;
+    }
+
+    public function canBeRun(): bool
+    {
+        if ($this->isCompleted() || $this->isRunning()) {
+            return false;
+        }
+
+        foreach ($this->getParents() as $test) {
+            if ($test->isRunning() || $test->isPending()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @return string
+     */
+    public function getState(): string
+    {
+        return $this->state;
+    }
+
+    /**
+     * @param string $state
+     */
+    public function setState(string $state)
+    {
+        $this->state = $state;
     }
 
     /**
@@ -50,17 +98,9 @@ class Test
      *
      * @return string
      */
-    public function getIdentifier()
+    public function getIdentifier():string
     {
         return $this->identifier;
-    }
-
-    /**
-     * @return FutureHttpPool
-     */
-    public function getFutureHttpPool()
-    {
-        return $this->futureHttpPool;
     }
 
     /**
@@ -81,14 +121,9 @@ class Test
         $this->parents[] = $test;
     }
 
-    public function addArgumentWithoutRef($argument, Test $test)
+    public function addArgument($argument, Test $test)
     {
         $this->arguments[$test->getIdentifier()] = $argument;
-    }
-
-    public function addArgument(&$argument, Test $test)
-    {
-        $this->arguments[$test->getIdentifier()] = &$argument;
     }
 
     public function addAssertion($assertion)

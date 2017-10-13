@@ -2,6 +2,8 @@
 
 namespace Asynit\Runner;
 
+use Amp\Loop;
+use Amp\Promise;
 use Asynit\Assert\Assertion;
 use Asynit\Output\OutputInterface;
 use Asynit\Test;
@@ -11,7 +13,6 @@ use Http\Client\Exception;
 use Http\Client\HttpAsyncClient;
 use Http\Message\RequestFactory;
 use Psr\Http\Message\ResponseInterface;
-use React\EventLoop\LoopInterface;
 
 class PoolRunner
 {
@@ -29,52 +30,72 @@ class PoolRunner
     /** @var int */
     private $concurrency;
 
-    /** @var LoopInterface */
-    private $loop;
-
     /** @var RequestFactory */
     private $requestFactory;
 
-    public function __construct(RequestFactory $requestFactory, HttpAsyncClient $httpAsyncClient, LoopInterface $loop, OutputInterface $output, $concurrency = 10)
+    public function __construct(RequestFactory $requestFactory, OutputInterface $output, $concurrency = 10)
     {
         $this->requestFactory = $requestFactory;
-        $this->httpClient = $httpAsyncClient;
-        $this->loop = $loop;
         $this->output = $output;
         $this->concurrency = $concurrency;
         $this->futureHttpPool = new FutureHttpPool();
     }
 
+    public function loop(Pool $pool)
+    {
+        return \Amp\call(function () use($pool) {
+            $promises = [];
+
+            while (!$pool->isEmpty()) {
+                $test = $pool->getTestToRun();
+
+                if ($test === null) {
+                    // Wait for one the current test to finish @TODO Need to check when there is no more promise to resolve
+                    yield \Amp\Promise\first($promises);
+
+                    continue;
+                }
+
+                $promises[] = $this->run($test);
+            }
+
+            // No more test wait for all remaining run
+            yield $promises;
+
+            Loop::stop();
+        });
+    }
+
     /**
      * Run a test pool.
      *
-     * @param Pool $pool
-     *
-     * @return int The number of failed tests
      */
-    public function run(Pool $pool)
+    protected function run(Test $test): Promise
     {
-        $failedTest = 0;
-        ob_start();
+        return \Amp\call(function () use($test) {
+            $test->setState(Test::STATE_RUNNING);
 
-        while (!$pool->isEmpty()) {
-            while ($pool->countRunningHttp() >= $this->concurrency) {
-                $this->loop->tick();
+            $testCase = $this->getTestObject($test);
+            $testCase->initialize();
+
+            $method = $test->getMethod()->getName();
+            $args = $test->getArguments();
+
+            echo "Running " . $test->getIdentifier() . "\n";
+            try {
+                $result = yield \Amp\call(function () use($testCase, $method, $args) { return $testCase->$method(...$args); });
+                echo "Finished " . $test->getIdentifier() . "\n";
+
+                foreach ($test->getChildren() as $childTest) {
+                    $childTest->addArgument($result, $test);
+                }
+
+                $test->setState(Test::STATE_SUCCESS);
+            } catch (\Throwable $error) {
+                echo "Failure " . $test->getIdentifier() . " " . $error->getMessage() . "\n";
+                $test->setState(Test::STATE_FAILURE);
             }
-
-            if (!$this->passTest($pool)) {
-                ++$failedTest;
-            }
-
-            $this->passHttp($pool);
-
-            $this->loop->tick();
-        }
-
-        // Output remaining
-        ob_end_flush();
-
-        return $failedTest;
+        });
     }
 
     /**
@@ -133,8 +154,9 @@ class PoolRunner
         if (null !== $test) {
             // Prepare test callback
             $testCase = $this->getTestObject($test);
+            $testCase->initialize();
+
             $method = $test->getMethod()->getName();
-            $test->setHttpClient($testCase->setUp($this->httpClient));
             $args = $test->getArguments();
 
             if ($test->getMethod()->returnsReference()) {

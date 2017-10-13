@@ -2,12 +2,16 @@
 
 namespace Asynit;
 
+use Amp\Artax\Client;
+use Amp\Artax\DefaultClient;
+use Amp\Loop;
+use Amp\Promise;
 use Asynit\Assert\AssertWebCaseTrait;
 use Asynit\Runner\FutureHttp;
 use Asynit\Runner\FutureHttpPool;
-use Http\Client\HttpAsyncClient;
 use Http\Message\RequestFactory;
 use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 class TestCase
 {
@@ -18,6 +22,9 @@ class TestCase
 
     /** @var FutureHttpPool */
     private $futureHttpPool;
+
+    /** @var Client */
+    private $client;
 
     final public function __construct(RequestFactory $requestFactory, FutureHttpPool $pool)
     {
@@ -38,13 +45,18 @@ class TestCase
      *
      * Allow to set default services and context, and also decorate the http async client.
      *
-     * @param HttpAsyncClient $asyncClient
+     * @param Client $asyncClient
      *
-     * @return HttpAsyncClient
+     * @return Client
      */
-    public function setUp(HttpAsyncClient $asyncClient)
+    public function setUp(Client $asyncClient)
     {
         return $asyncClient;
+    }
+
+    final public function initialize()
+    {
+        $this->client = $this->setUp(new DefaultClient());
     }
 
     /**
@@ -52,14 +64,13 @@ class TestCase
      *
      * @param RequestInterface $requestInterface
      *
-     * @return FutureHttp
+     * @return Promise
      */
-    final protected function sendRequest(RequestInterface $requestInterface)
+    final protected function sendRequest(RequestInterface $request)
     {
-        $runner = new FutureHttp($requestInterface);
-        $this->futureHttpPool->add($runner);
-
-        return $runner;
+        return \Amp\call(function () use($request) {
+            yield $this->client->request($request);
+        });
     }
 
     /**
@@ -68,7 +79,7 @@ class TestCase
      * @param null   $body
      * @param string $version
      *
-     * @return FutureHttp
+     * @return Promise
      */
     final protected function get($uri, $headers = [], $body = null, $version = '1.1')
     {
@@ -80,7 +91,7 @@ class TestCase
      * @param null   $body
      * @param string $version
      *
-     * @return FutureHttp
+     * @return Promise
      */
     final protected function post($uri, $headers = [], $body = null, $version = '1.1')
     {
@@ -93,7 +104,7 @@ class TestCase
      * @param null   $body
      * @param string $version
      *
-     * @return FutureHttp
+     * @return Promise
      */
     final protected function patch($uri, $headers = [], $body = null, $version = '1.1')
     {
@@ -106,7 +117,7 @@ class TestCase
      * @param null   $body
      * @param string $version
      *
-     * @return FutureHttp
+     * @return Promise
      */
     final protected function put($uri, $headers = [], $body = null, $version = '1.1')
     {
@@ -119,7 +130,7 @@ class TestCase
      * @param null   $body
      * @param string $version
      *
-     * @return FutureHttp
+     * @return Promise
      */
     final protected function delete($uri, $headers = [], $body = null, $version = '1.1')
     {
@@ -132,7 +143,7 @@ class TestCase
      * @param null   $body
      * @param string $version
      *
-     * @return FutureHttp
+     * @return Promise
      */
     final protected function options($uri, $headers = [], $body = null, $version = '1.1')
     {

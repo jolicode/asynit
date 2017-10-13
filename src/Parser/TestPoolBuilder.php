@@ -37,7 +37,7 @@ class TestPoolBuilder
             $annotations = $this->reader->getMethodAnnotations($test->getMethod());
 
             if (count($annotations) === 0) {
-                $pool->queueTest($test);
+                $pool->addTest($test);
 
                 continue;
             }

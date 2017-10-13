@@ -56,17 +56,16 @@ class Factory
     }
 
     /**
-     * @param LoopInterface $loop
      * @param null          $forceTty
      * @param null          $forceNoTty
      *
      * @return array
      */
-    public static function createOutput(LoopInterface $loop, $forceTty = null, $forceNoTty = null)
+    public static function createOutput($forceTty = null, $forceNoTty = null)
     {
         $countOutput = new Count();
         $chainOutput = new Chain();
-        $chainOutput->addOutput((new Detector($loop))->detect($forceTty, $forceNoTty));
+        $chainOutput->addOutput((new Detector())->detect($forceTty, $forceNoTty));
         $chainOutput->addOutput($countOutput);
 
         return [$chainOutput, $countOutput];

@@ -2,6 +2,7 @@
 
 namespace Asynit\Runner;
 
+use Amp\CoroutineResult;
 use Asynit\Test;
 use Psr\Http\Message\RequestInterface;
 

@@ -9,13 +9,6 @@ use React\EventLoop\LoopInterface;
  */
 class Detector
 {
-    private $loop;
-
-    public function __construct(LoopInterface $loop)
-    {
-        $this->loop = $loop;
-    }
-
     /**
      * Return the output to use given the current environment.
      *
@@ -24,7 +17,7 @@ class Detector
     public function detect($forceTty = false, $forceNoTty = false)
     {
         if ($forceTty) {
-            return new Tty($this->loop);
+            return new Tty();
         }
 
         if ($forceNoTty) {
@@ -42,6 +35,6 @@ class Detector
         }
 
         // Return tty output when STDOUT is a tty
-        return new Tty($this->loop);
+        return new Tty();
     }
 }
