@@ -25,37 +25,6 @@ use Http\Adapter\React\Client as ReactAdapter;
 class Factory
 {
     /**
-     * @param LoopInterface $loop
-     * @param string        $dns
-     * @param bool          $allowSelfSigned
-     * @param null          $baseHost
-     *
-     * @return HttpAsyncClient
-     */
-    public static function createClient(LoopInterface $loop, $dns = '8.8.8.8', $allowSelfSigned = false, $baseHost = null)
-    {
-        $requestFactory = new GuzzleMessageFactory();
-        $uriFactory = new GuzzleUriFactory();
-        $dnsResolver = (new ResolverFactory())->createCached($dns, $loop);
-        $connector = new DnsConnector(new TcpConnector($loop), $dnsResolver);
-
-        // Build the HTTP Client
-        $reactClient = new ReactAdapter($requestFactory, $loop, new ReactClient($connector, new SecureConnector($connector, $loop, [
-            'allow_self_signed' => $allowSelfSigned,
-        ])));
-
-        $plugins = [
-            new ContentLengthPlugin(),
-        ];
-
-        if (null !== $baseHost) {
-            $plugins[] = new AddHostPlugin($uriFactory->createUri($baseHost));
-        }
-
-        return new PluginClient($reactClient, $plugins);
-    }
-
-    /**
      * @param null          $forceTty
      * @param null          $forceNoTty
      *
