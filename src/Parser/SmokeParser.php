@@ -19,7 +19,7 @@ class SmokeParser
         foreach ($data as $url => $expected) {
             $test = new Test(new \ReflectionMethod(SmokerTestCase::class, 'smokeTest'), $url);
             $argument = [$url, $expected];
-            $test->addArgumentWithoutRef($argument, $test);
+            $test->addArgument($argument, $test);
 
             $methods[$url] = $test;
         }

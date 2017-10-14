@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Asynit\Command;
 
+use Amp\Loop;
 use Asynit\Factory;
 use Asynit\Parser\SmokeParser;
 use Asynit\Parser\TestPoolBuilder;
@@ -15,7 +16,6 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use React\EventLoop\Factory as EventLoopFactory;
 
 class SmokerRun extends Command
 {
@@ -40,22 +40,21 @@ class SmokerRun extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        // Build the event loop
-        $loop = EventLoopFactory::create();
-
         // Build the client
-        $client = Factory::createClient($loop, $input->getOption('dns'), $input->getOption('allow-self-signed-certificate'), $input->getOption('host'));
-        list($chainOutput, $countOutput) = Factory::createOutput($loop, $input->getOption('tty'), $input->getOption('no-tty'));
+        list($chainOutput, $countOutput) = Factory::createOutput($input->getOption('tty'), $input->getOption('no-tty'));
 
         $parser = new SmokeParser();
         $builder = new TestPoolBuilder(new AnnotationReader());
-        $runner = new PoolRunner(new GuzzleMessageFactory(), $client, $loop, $chainOutput);
+        $runner = new PoolRunner(new GuzzleMessageFactory(), $chainOutput);
 
         $testMethods = $parser->parse($input->getArgument('file'));
         $pool = $builder->build($testMethods);
 
         // Run the list of tests
-        $runner->run($pool);
+
+        Loop::run(function () use ($runner, $pool) {
+            $runner->loop($pool);
+        });
 
         // Return the number of failed tests
         return $countOutput->getFailed();
