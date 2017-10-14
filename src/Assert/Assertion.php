@@ -24,17 +24,23 @@ class Assertion extends BaseAssertion
     private $exporter;
 
     /**
+     * @var Test
+     */
+    private $test;
+
+    /**
      * constructor
      *
      * @param  mixed                                 $value
      * @param  \SebastianBergmann\Exporter\Exporter  $exporter
      */
-    public function __construct($value, Exporter $exporter)
+    public function __construct($value, Exporter $exporter, Test $test)
     {
         parent::__construct($value, $exporter);
 
-        $this->value    = $value;
+        $this->value = $value;
         $this->exporter = $exporter;
+        $this->test = $test;
     }
 
     /** @var Test */
@@ -48,14 +54,10 @@ class Assertion extends BaseAssertion
      */
     public function evaluate(Predicate $predicate, string $description = null): bool
     {
-        parent::evaluate($predicate, $description);
+        $result = parent::evaluate($predicate, $description);
+        $this->test->addAssertion($this->describeSuccess($predicate, $description));
 
-        // @TODO : How to get the current test ?
-        if (static::$currentTest) {
-            static::$currentTest->addAssertion($this->describeSuccess($predicate, $description));
-        }
-
-        return true;
+        return $result;
     }
 
     /**

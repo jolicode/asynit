@@ -8,7 +8,6 @@ use Amp\Artax\Response;
 use Amp\Parallel\Sync\Lock;
 use Amp\Parallel\Sync\Semaphore;
 use Amp\Promise;
-use Asynit\Assert\Assertion;
 use Asynit\Assert\AssertWebCaseTrait;
 use Http\Message\MessageFactory;
 use Psr\Http\Message\RequestInterface;
@@ -26,10 +25,14 @@ class TestCase
     /** @var Client */
     private $client;
 
-    final public function __construct(MessageFactory $messageFactory, Semaphore $semaphore)
+    /** @var Test $test */
+    private $test;
+
+    final public function __construct(MessageFactory $messageFactory, Semaphore $semaphore, Test $test)
     {
         $this->messageFactory = $messageFactory;
         $this->semaphore = $semaphore;
+        $this->test = $test;
     }
 
     /**
@@ -60,8 +63,7 @@ class TestCase
      */
     final protected function sendRequest(RequestInterface $request): Promise
     {
-        $test = Assertion::$currentTest;
-        $promise = \Amp\call(function () use($request) {
+        return \Amp\call(function () use($request) {
             /** @var Lock $lock */
             $lock = yield $this->semaphore->acquire();
 
@@ -83,12 +85,6 @@ class TestCase
                 $response->getProtocolVersion()
             );
         });
-
-        $promise->onResolve(function () use ($test) {
-            Assertion::$currentTest = $test;
-        });
-
-        return $promise;
     }
 
     /**

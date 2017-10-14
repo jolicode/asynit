@@ -20,7 +20,7 @@ class HttpbinTest extends \Asynit\TestCase
     {
         $response = yield $this->get('http://httpbin.org/delay/3');
 
-        self::assertStatusCode(200, $response);
+        $this->assertStatusCode(200, $response);
     }
 
     public function testFoo2()
@@ -77,11 +77,11 @@ class HttpbinTest extends \Asynit\TestCase
     {
         yield $this->get('http://httpbin.org');
 
-        self::assertEquals('foo', $token);
+        $this->assertEquals('foo', $token);
 
         yield $this->get('http://httpbin.org');
 
-        self::assertEquals('meinheld/0.6.1', $token);
+        $this->assertEquals('meinheld/0.6.1', $token);
     }
 
     /**
@@ -90,7 +90,7 @@ class HttpbinTest extends \Asynit\TestCase
      */
     public function testDummy1($token)
     {
-        self::assertEquals('meinheld/0.6.1', $token);
+        $this->assertEquals('meinheld/0.6.1', $token);
 
         $this->get('http://httpbin.org');
     }
@@ -101,7 +101,7 @@ class HttpbinTest extends \Asynit\TestCase
      */
     public function testDummy2($token, $return)
     {
-        self::assertEquals('tata', $return);
-        self::assertEquals('meinheld/0.6.1', $token);
+        $this->assertEquals('tata', $return);
+        $this->assertEquals('meinheld/0.6.1', $token);
     }
 }

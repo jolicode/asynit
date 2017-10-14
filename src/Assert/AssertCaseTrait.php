@@ -49,6 +49,8 @@ use bovigo\assert\predicate\Predicate;
 
 trait AssertCaseTrait
 {
+    private $test;
+
     /**
      * Asserts that an array has a specified key.
      *
@@ -56,9 +58,9 @@ trait AssertCaseTrait
      * @param array|\ArrayAccess $array
      * @param string            $message
      */
-    public static function assertArrayHasKey($key, $array, $message = null)
+    public function assertArrayHasKey($key, $array, $message = null)
     {
-        self::assert($array, hasKey($key), $message);
+        $this->assert($array, hasKey($key), $message);
     }
 
     /**
@@ -68,9 +70,9 @@ trait AssertCaseTrait
      * @param array|\ArrayAccess $array
      * @param string            $message
      */
-    public static function assertArrayNotHasKey($key, $array, $message = null)
+    public function assertArrayNotHasKey($key, $array, $message = null)
     {
-        self::assert($array, doesNotHaveKey($key), $message);
+        $this->assert($array, doesNotHaveKey($key), $message);
     }
 
     /**
@@ -84,9 +86,9 @@ trait AssertCaseTrait
      * @param mixed  $haystack
      * @param string $message
      */
-    public static function assertContains($needle, $haystack, $message = null)
+    public function assertContains($needle, $haystack, $message = null)
     {
-        self::assert($haystack, contains($needle), $message);
+        $this->assert($haystack, contains($needle), $message);
     }
 
     /**
@@ -100,9 +102,9 @@ trait AssertCaseTrait
      * @param mixed  $haystack
      * @param string $message
      */
-    public static function assertNotContains($needle, $haystack, $message = null)
+    public function assertNotContains($needle, $haystack, $message = null)
     {
-        self::assert($haystack, doesNotContain($needle), $message);
+        $this->assert($haystack, doesNotContain($needle), $message);
     }
 
     /**
@@ -114,16 +116,16 @@ trait AssertCaseTrait
      * @param  string             $message
      * @since  1.1.0
      */
-    public static function assertContainsOnly($type, $haystack, $isNativeType = null, $message = null)
+    public function assertContainsOnly($type, $haystack, $isNativeType = null, $message = null)
     {
         if (null === $isNativeType) {
             $isNativeType = self::isNativeType($type);
         }
 
         if (false === $isNativeType) {
-            self::assertContainsOnlyInstancesOf($type, $haystack, $message);
+            $this->assertContainsOnlyInstancesOf($type, $haystack, $message);
         } else {
-            self::assert($haystack, each(isOfType($type)), $message);
+            $this->assert($haystack, each(isOfType($type)), $message);
         }
     }
 
@@ -135,9 +137,9 @@ trait AssertCaseTrait
      * @param  string            $message
      * @since  1.1.0
      */
-    public static function assertContainsOnlyInstancesOf($classname, $haystack, $message = null)
+    public function assertContainsOnlyInstancesOf($classname, $haystack, $message = null)
     {
-        self::assert($haystack, each(isInstanceOf($classname)), $message);
+        $this->assert($haystack, each(isInstanceOf($classname)), $message);
     }
 
     /**
@@ -149,13 +151,13 @@ trait AssertCaseTrait
      * @param  string             $message
      * @since  1.1.0
      */
-    public static function assertNotContainsOnly($type, $haystack, $isNativeType = null, $message = null)
+    public function assertNotContainsOnly($type, $haystack, $isNativeType = null, $message = null)
     {
         if (null === $isNativeType) {
             $isNativeType = self::isNativeType($type);
         }
 
-        self::assert(
+        $this->assert(
             $haystack,
             each(false === $isNativeType ? isNotInstanceOf($type) : isNotOfType($type)),
             $message
@@ -169,9 +171,9 @@ trait AssertCaseTrait
      * @param mixed  $haystack
      * @param string $message
      */
-    public static function assertCount($expectedCount, $haystack, $message = null)
+    public function assertCount($expectedCount, $haystack, $message = null)
     {
-        self::assert($haystack, isOfSize($expectedCount), $message);
+        $this->assert($haystack, isOfSize($expectedCount), $message);
     }
 
     /**
@@ -181,9 +183,9 @@ trait AssertCaseTrait
      * @param mixed  $haystack
      * @param string $message
      */
-    public static function assertNotCount($expectedCount, $haystack, $message = null)
+    public function assertNotCount($expectedCount, $haystack, $message = null)
     {
-        self::assert($haystack, isNotOfSize($expectedCount), $message);
+        $this->assert($haystack, isNotOfSize($expectedCount), $message);
     }
 
     /**
@@ -197,9 +199,9 @@ trait AssertCaseTrait
      * @param string $message
      * @param float  $delta
      */
-    public static function assertEquals($expected, $actual, $message = null, $delta = 0.0)
+    public function assertEquals($expected, $actual, $message = null, $delta = 0.0)
     {
-        self::assert($actual, equals($expected, $delta), $message);
+        $this->assert($actual, equals($expected, $delta), $message);
     }
 
     /**
@@ -213,9 +215,9 @@ trait AssertCaseTrait
      * @param string $message
      * @param float  $delta
      */
-    public static function assertNotEquals($expected, $actual, $message = null, $delta = 0.0)
+    public function assertNotEquals($expected, $actual, $message = null, $delta = 0.0)
     {
-        self::assert($actual, isNotEqualTo($expected, $delta), $message);
+        $this->assert($actual, isNotEqualTo($expected, $delta), $message);
     }
 
     /**
@@ -224,9 +226,9 @@ trait AssertCaseTrait
      * @param mixed  $actual
      * @param string $message
      */
-    public static function assertEmpty($actual, $message = null)
+    public function assertEmpty($actual, $message = null)
     {
-        self::assert($actual, isEmpty(), $message);
+        $this->assert($actual, isEmpty(), $message);
     }
 
     /**
@@ -235,9 +237,9 @@ trait AssertCaseTrait
      * @param mixed  $actual
      * @param string $message
      */
-    public static function assertNotEmpty($actual, $message = null)
+    public function assertNotEmpty($actual, $message = null)
     {
-        self::assert($actual, isNotEmpty(), $message);
+        $this->assert($actual, isNotEmpty(), $message);
     }
 
     /**
@@ -247,9 +249,9 @@ trait AssertCaseTrait
      * @param mixed  $actual
      * @param string $message
      */
-    public static function assertGreaterThan($expected, $actual, $message = null)
+    public function assertGreaterThan($expected, $actual, $message = null)
     {
-        self::assert($actual, isGreaterThan($expected), $message);
+        $this->assert($actual, isGreaterThan($expected), $message);
     }
 
     /**
@@ -259,9 +261,9 @@ trait AssertCaseTrait
      * @param mixed  $actual
      * @param string $message
      */
-    public static function assertGreaterThanOrEqual($expected, $actual, $message = null)
+    public function assertGreaterThanOrEqual($expected, $actual, $message = null)
     {
-        self::assert($actual, isGreaterThanOrEqualTo($expected), $message);
+        $this->assert($actual, isGreaterThanOrEqualTo($expected), $message);
     }
 
     /**
@@ -271,9 +273,9 @@ trait AssertCaseTrait
      * @param mixed  $actual
      * @param string $message
      */
-    public static function assertLessThan($expected, $actual, $message = null)
+    public function assertLessThan($expected, $actual, $message = null)
     {
-        self::assert($actual, isLessThan($expected), $message);
+        $this->assert($actual, isLessThan($expected), $message);
     }
 
     /**
@@ -283,9 +285,9 @@ trait AssertCaseTrait
      * @param mixed  $actual
      * @param string $message
      */
-    public static function assertLessThanOrEqual($expected, $actual, $message = null)
+    public function assertLessThanOrEqual($expected, $actual, $message = null)
     {
-        self::assert($actual, isLessThanOrEqualTo($expected), $message);
+        $this->assert($actual, isLessThanOrEqualTo($expected), $message);
     }
 
     /**
@@ -294,9 +296,9 @@ trait AssertCaseTrait
      * @param string $filename
      * @param string $message
      */
-    public static function assertFileExists($filename, $message = null)
+    public function assertFileExists($filename, $message = null)
     {
-        self::assert($filename, isExistingFile()->or(isExistingDirectory()), $message);
+        $this->assert($filename, isExistingFile()->or(isExistingDirectory()), $message);
     }
 
     /**
@@ -305,9 +307,9 @@ trait AssertCaseTrait
      * @param string $filename
      * @param string $message
      */
-    public static function assertFileNotExists($filename, $message = null)
+    public function assertFileNotExists($filename, $message = null)
     {
-        self::assert($filename, isNonExistingFile()->and(isNonExistingDirectory()), $message);
+        $this->assert($filename, isNonExistingFile()->and(isNonExistingDirectory()), $message);
     }
 
     /**
@@ -316,9 +318,9 @@ trait AssertCaseTrait
      * @param bool   $condition
      * @param string $message
      */
-    public static function assertTrue($condition, $message = null)
+    public function assertTrue($condition, $message = null)
     {
-        self::assert($condition, isTrue(), $message);
+        $this->assert($condition, isTrue(), $message);
     }
 
     /**
@@ -327,9 +329,9 @@ trait AssertCaseTrait
      * @param bool   $condition
      * @param string $message
      */
-    public static function assertFalse($condition, $message = null)
+    public function assertFalse($condition, $message = null)
     {
-        self::assert($condition, isFalse(), $message);
+        $this->assert($condition, isFalse(), $message);
     }
 
     /**
@@ -338,9 +340,9 @@ trait AssertCaseTrait
      * @param mixed  $actual
      * @param string $message
      */
-    public static function assertNotNull($actual, $message = null)
+    public function assertNotNull($actual, $message = null)
     {
-        self::assert($actual, isNotNull(), $message);
+        $this->assert($actual, isNotNull(), $message);
     }
 
     /**
@@ -349,9 +351,9 @@ trait AssertCaseTrait
      * @param mixed  $actual
      * @param string $message
      */
-    public static function assertNull($actual, $message = null)
+    public function assertNull($actual, $message = null)
     {
-        self::assert($actual, isNull(), $message);
+        $this->assert($actual, isNull(), $message);
     }
 
     /**
@@ -359,11 +361,10 @@ trait AssertCaseTrait
      *
      * @param  mixed   $actual
      * @param  string  $message
-     * @since  1.1.0
      */
-    public static function assertFinite($actual, $message = null)
+    public function assertFinite($actual, $message = null)
     {
-        self::assert($actual, 'is_finite', $message);
+        $this->assert($actual, 'is_finite', $message);
     }
 
     /**
@@ -371,11 +372,10 @@ trait AssertCaseTrait
      *
      * @param  mixed   $actual
      * @param  string  $message
-     * @since  1.1.0
      */
-    public static function assertInfinite($actual, $message = null)
+    public function assertInfinite($actual, $message = null)
     {
-        self::assert($actual, 'is_infinite', $message);
+        $this->assert($actual, 'is_infinite', $message);
     }
 
     /**
@@ -383,11 +383,10 @@ trait AssertCaseTrait
      *
      * @param  mixed   $actual
      * @param  string  $message
-     * @since  1.1.0
      */
-    public static function assertNan($actual, $message = null)
+    public function assertNan($actual, $message = null)
     {
-        self::assert($actual, 'is_nan', $message);
+        $this->assert($actual, 'is_nan', $message);
     }
 
     /**
@@ -399,9 +398,9 @@ trait AssertCaseTrait
      * @param mixed  $actual
      * @param string $message
      */
-    public static function assertSame($expected, $actual, $message = null)
+    public function assertSame($expected, $actual, $message = null)
     {
-        self::assert($actual, isSameAs($expected), $message);
+        $this->assert($actual, isSameAs($expected), $message);
     }
 
     /**
@@ -413,9 +412,9 @@ trait AssertCaseTrait
      * @param mixed  $actual
      * @param string $message
      */
-    public static function assertNotSame($expected, $actual, $message = null)
+    public function assertNotSame($expected, $actual, $message = null)
     {
-        self::assert($actual, isNotSameAs($expected), $message);
+        $this->assert($actual, isNotSameAs($expected), $message);
     }
 
     /**
@@ -425,9 +424,9 @@ trait AssertCaseTrait
      * @param mixed  $actual
      * @param string $message
      */
-    public static function assertInstanceOf($expected, $actual, $message = null)
+    public function assertInstanceOf($expected, $actual, $message = null)
     {
-        self::assert($actual, isInstanceOf($expected), $message);
+        $this->assert($actual, isInstanceOf($expected), $message);
     }
 
     /**
@@ -437,9 +436,9 @@ trait AssertCaseTrait
      * @param mixed  $actual
      * @param string $message
      */
-    public static function assertNotInstanceOf($expected, $actual, $message = null)
+    public function assertNotInstanceOf($expected, $actual, $message = null)
     {
-        self::assert($actual, isNotInstanceOf($expected), $message);
+        $this->assert($actual, isNotInstanceOf($expected), $message);
     }
 
     /**
@@ -449,9 +448,9 @@ trait AssertCaseTrait
      * @param mixed  $actual
      * @param string $message
      */
-    public static function assertInternalType($expected, $actual, $message = null)
+    public function assertInternalType($expected, $actual, $message = null)
     {
-        self::assert($actual, isOfType($expected), $message);
+        $this->assert($actual, isOfType($expected), $message);
     }
 
     /**
@@ -461,9 +460,9 @@ trait AssertCaseTrait
      * @param mixed  $actual
      * @param string $message
      */
-    public static function assertNotInternalType($expected, $actual, $message = null)
+    public function assertNotInternalType($expected, $actual, $message = null)
     {
-        self::assert($actual, isNotOfType($expected), $message);
+        $this->assert($actual, isNotOfType($expected), $message);
     }
 
     /**
@@ -473,9 +472,9 @@ trait AssertCaseTrait
      * @param string $string
      * @param string $message
      */
-    public static function assertRegExp($pattern, $string, $message = null)
+    public function assertRegExp($pattern, $string, $message = null)
     {
-        self::assert($string, matches($pattern), $message);
+        $this->assert($string, matches($pattern), $message);
     }
 
     /**
@@ -485,9 +484,9 @@ trait AssertCaseTrait
      * @param string $string
      * @param string $message
      */
-    public static function assertNotRegExp($pattern, $string, $message = null)
+    public function assertNotRegExp($pattern, $string, $message = null)
     {
-        self::assert($string, doesNotMatch($pattern), $message);
+        $this->assert($string, doesNotMatch($pattern), $message);
     }
 
     /**
@@ -496,11 +495,10 @@ trait AssertCaseTrait
      * @param  string  $prefix
      * @param  string  $string
      * @param  string  $message
-     * @since  1.1.0
      */
-    public static function assertStringStartsWith($prefix, $string, $message = null)
+    public function assertStringStartsWith($prefix, $string, $message = null)
     {
-        self::assert($string, startsWith($prefix), $message);
+        $this->assert($string, startsWith($prefix), $message);
     }
 
     /**
@@ -509,11 +507,10 @@ trait AssertCaseTrait
      * @param  string  $prefix
      * @param  string  $string
      * @param  string  $message
-     * @since  1.1.0
      */
-    public static function assertStringStartsNotWith($prefix, $string, $message = null)
+    public function assertStringStartsNotWith($prefix, $string, $message = null)
     {
-        self::assert($string, doesNotStartWith($prefix), $message);
+        $this->assert($string, doesNotStartWith($prefix), $message);
     }
 
     /**
@@ -522,11 +519,10 @@ trait AssertCaseTrait
      * @param  string  $suffix
      * @param  string  $string
      * @param  string  $message
-     * @since  1.1.0
      */
-    public static function assertStringEndsWith($suffix, $string, $message = null)
+    public function assertStringEndsWith($suffix, $string, $message = null)
     {
-        self::assert($string, endsWith($suffix), $message);
+        $this->assert($string, endsWith($suffix), $message);
     }
 
     /**
@@ -535,11 +531,10 @@ trait AssertCaseTrait
      * @param  string  $suffix
      * @param  string  $string
      * @param  string  $message
-     * @since  1.1.0
      */
-    public static function assertStringEndsNotWith($suffix, $string, $message = null)
+    public function assertStringEndsNotWith($suffix, $string, $message = null)
     {
-        self::assert($string, doesNotEndWith($suffix), $message);
+        $this->assert($string, doesNotEndWith($suffix), $message);
     }
 
     /**
@@ -549,9 +544,9 @@ trait AssertCaseTrait
      *
      * @return bool
      */
-    public static function assert($value, callable $predicate, string $description = null): bool
+    public function assert($value, callable $predicate, string $description = null): bool
     {
-        return (new Assertion($value, exporter()))
+        return (new Assertion($value, exporter(), $this->test))
             ->evaluate(counting(Predicate::castFrom($predicate)), $description);
     }
 

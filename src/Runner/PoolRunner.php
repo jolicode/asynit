@@ -14,8 +14,6 @@ use Http\Message\RequestFactory;
 
 class PoolRunner
 {
-    private $testObjects = [];
-
     /** @var OutputInterface */
     private $output;
 
@@ -76,7 +74,6 @@ class PoolRunner
             $args = $test->getArguments();
 
             try {
-                Assertion::$currentTest = $test;
                 $result = yield \Amp\call(function () use($testCase, $method, $args) { return $testCase->$method(...$args); });
 
                 foreach ($test->getChildren() as $childTest) {
@@ -106,12 +103,6 @@ class PoolRunner
      */
     private function getTestObject(Test $test): TestCase
     {
-        $class = $test->getMethod()->getDeclaringClass()->getName();
-
-        if (!array_key_exists($class, $this->testObjects)) {
-            $this->testObjects[$class] = $test->getMethod()->getDeclaringClass()->newInstance($this->requestFactory, $this->semaphore);
-        }
-
-        return $this->testObjects[$class];
+        return $test->getMethod()->getDeclaringClass()->newInstance($this->requestFactory, $this->semaphore, $test);
     }
 }
