@@ -5,6 +5,7 @@ namespace Asynit\Runner;
 use Amp\Loop;
 use Amp\Parallel\Sync\Semaphore;
 use Amp\Promise;
+use Asynit\Assert\Assertion;
 use Asynit\Output\OutputInterface;
 use Asynit\Test;
 use Asynit\TestCase;
@@ -77,6 +78,7 @@ class PoolRunner
             $args = $test->getArguments();
 
             try {
+                Assertion::$currentTest = $test;
                 $result = yield \Amp\call(function () use($testCase, $method, $args) { return $testCase->$method(...$args); });
 
                 foreach ($test->getChildren() as $childTest) {

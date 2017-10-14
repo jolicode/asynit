@@ -37,10 +37,8 @@ class Assertion extends BaseAssertion
         $this->exporter = $exporter;
     }
 
-    /**
-     * @var Test
-     */
-    static public $currentTest;
+    /** @var Test */
+    public static $currentTest;
 
     /**
      * @param Predicate   $predicate
@@ -53,7 +51,9 @@ class Assertion extends BaseAssertion
         parent::evaluate($predicate, $description);
 
         // @TODO : How to get the current test ?
-        // static::$currentTest->addAssertion($this->describeSuccess($predicate, $description));
+        if (static::$currentTest) {
+            static::$currentTest->addAssertion($this->describeSuccess($predicate, $description));
+        }
 
         return true;
     }
