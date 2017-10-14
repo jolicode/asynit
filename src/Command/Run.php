@@ -9,7 +9,6 @@ use Asynit\Parser\TestPoolBuilder;
 use Asynit\Runner\PoolRunner;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Http\Message\MessageFactory\GuzzleMessageFactory;
-use React\EventLoop\Factory as EventLoopFactory;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;

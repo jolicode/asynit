@@ -62,16 +62,16 @@ class TestCase
     {
         $test = Assertion::$currentTest;
         $promise = \Amp\call(function () use($request) {
+            /** @var Lock $lock */
+            $lock = yield $this->semaphore->acquire();
+
             $req = new \Amp\Artax\Request($request->getUri(), $request->getMethod());
             $req = $req->withProtocolVersions([$request->getProtocolVersion()]);
             $req = $req->withHeaders($request->getHeaders());
             $req = $req->withBody((string) $request->getBody());
-
-            /** @var Lock $lock */
-            $lock = yield $this->semaphore->acquire();
             /** @var Response $response */
             $response = yield $this->client->request($req);
-            $content = yield $response->getBody()->read();
+            $content = yield $response->getBody();
 
             $lock->release();
 

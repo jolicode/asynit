@@ -24,7 +24,7 @@ class Test
     private $children = [];
 
     /** @var array */
-    private $arguments;
+    private $arguments = [];
 
     /** @var \ReflectionMethod */
     private $method;
@@ -38,7 +38,6 @@ class Test
     public function __construct(\ReflectionMethod $reflectionMethod, $identifier = null)
     {
         $this->method = $reflectionMethod;
-        $this->arguments = [];
         $this->identifier = $identifier ?: sprintf(
             '%s::%s',
             $this->method->getDeclaringClass()->getName(),
@@ -98,7 +97,7 @@ class Test
      *
      * @return string
      */
-    public function getIdentifier():string
+    public function getIdentifier(): string
     {
         return $this->identifier;
     }
@@ -142,7 +141,7 @@ class Test
     /**
      * @return Test[]
      */
-    public function getParents()
+    public function getParents(): array
     {
         return $this->parents;
     }
@@ -150,7 +149,7 @@ class Test
     /**
      * @return Test[]
      */
-    public function getChildren()
+    public function getChildren(): array
     {
         return $this->children;
     }
@@ -158,7 +157,7 @@ class Test
     /**
      * @return array
      */
-    public function getArguments()
+    public function getArguments(): array
     {
         $args = [];
         $arguments = $this->arguments;
@@ -169,34 +168,5 @@ class Test
         }
 
         return array_merge($args, array_values($arguments));
-    }
-
-    /**
-     * @param FutureHttp[] $futureHttps
-     * @param Test         $test
-     */
-    public function mergeFutureHttp($futureHttps, Test $test)
-    {
-        foreach ($futureHttps as $futureHttp) {
-            $futureHttp->setTest($test);
-        }
-
-        $this->futureHttpPool->merge($futureHttps);
-    }
-
-    /**
-     * @return HttpAsyncClient
-     */
-    public function getHttpClient()
-    {
-        return $this->httpClient;
-    }
-
-    /**
-     * @param HttpAsyncClient $httpClient
-     */
-    public function setHttpClient($httpClient)
-    {
-        $this->httpClient = $httpClient;
     }
 }

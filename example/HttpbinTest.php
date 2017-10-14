@@ -67,7 +67,7 @@ class HttpbinTest extends \Asynit\TestCase
         $promises[] = $this->get('http://httpbin.org/delay/1');
         $promises[] = $this->get('http://httpbin.org/delay/1');
 
-        yield \Amp\Promise\all($promises);
+        yield $promises;
     }
 
     /**
@@ -86,6 +86,7 @@ class HttpbinTest extends \Asynit\TestCase
 
     /**
      * @\Asynit\Annotation\Depend("testGet")
+     * @\Asynit\Annotation\Depend("testFoo")
      */
     public function testDummy1($token)
     {

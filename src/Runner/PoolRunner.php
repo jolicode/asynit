@@ -42,7 +42,6 @@ class PoolRunner
                 $test = $pool->getTestToRun();
 
                 if ($test === null) {
-                    // Wait for one the current test to finish @TODO Need to check when there is no more promise to resolve
                     yield \Amp\Promise\first($promises);
 
                     continue;
@@ -54,7 +53,6 @@ class PoolRunner
                 });
             }
 
-            // No more test wait for all remaining run
             yield $promises;
 
             Loop::stop();
