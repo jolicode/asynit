@@ -63,13 +63,20 @@ and can also be used to override the http client.
 ```php
 
 use Asynit\TestCase;
-use Amp\Artax\Client;
+use Http\Client\Common\PluginClient;
+use Http\Client\Common\Plugin\BaseUriPlugin;
+use Http\Client\HttpAsyncClient;
+use Http\Message\UriFactory\GuzzleUriFactory;
 
 class ApiTest extends TestCase
 {
     public function setUp(HttpAsyncClient $asyncClient): HttpAsyncClient
     {
-        return $asyncClient;
+        $uri = (new GuzzleUriFactory())->createUri('http://httpbin.org');
+
+        return new PluginClient($asyncClient, [
+            new BaseUriPlugin($uri)
+        ]);
     }
 }
 ```
