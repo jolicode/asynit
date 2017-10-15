@@ -5,12 +5,14 @@ namespace Asynit\HttpClient;
 
 use Amp\Artax;
 use Amp\CancellationTokenSource;
-use Http\Adapter\Artax\Internal\ResponseStream;
 use Http\Client\Exception\RequestException;
 use Http\Client\HttpAsyncClient;
 use Http\Message\ResponseFactory;
 use Psr\Http\Message\RequestInterface;
 
+/**
+ * @TODO Replace with php-http adapter when async version available
+ */
 class ArtaxAsyncAdapter implements HttpAsyncClient
 {
     private $client;
@@ -53,7 +55,7 @@ class ArtaxAsyncAdapter implements HttpAsyncClient
                 $response->getStatus(),
                 $response->getReason(),
                 $response->getHeaders(),
-                new ResponseStream($response->getBody()->getInputStream(), $cancellationTokenSource),
+                yield $response->getBody(),
                 $response->getProtocolVersion()
             );
         }));
