@@ -42,12 +42,10 @@ class ApiTest extends TestCase
 }
 ```
 
-Here we tell the test to do a GET request on `http://my-site-web` then we pass it a callback that will be called when 
-the response will be available. Having this API allows to launch multiple requests in parallels without blocking.
+Here we tell the test to do a GET request on `http://my-site-web` then we get the response by using the `yield` operator.
+This operator must but understand like an `await` in other language (C# / Javascript) which is feasible by using the amp framework.
 
-You can also note that there is no assert, this library doesn't provide that, instead it uses exception to detect failure.
-A failed test is a test that throws an exception. If you want to use assertion there is numerous library that
-can handle this use case.
+Some assertions are given by this lib, but you can use your own as long as it's throw an exception on failure.
 
 For running this test you will only need to use the PHP file provided by this project:
 
