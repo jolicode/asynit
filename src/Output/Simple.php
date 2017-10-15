@@ -29,6 +29,11 @@ class Simple implements OutputInterface
         $this->outputMessage($test, $this->formatter->formatSuccessTest($test), $debugOutput);
     }
 
+    public function outputSkipped(Test $test, $debugOutput)
+    {
+        $this->outputMessage($test, $this->formatter->formatSkippedTest($test), $debugOutput);
+    }
+
     protected function outputMessage(Test $test, $message, $debugOutput, $temp = false)
     {
         if (!$temp) {

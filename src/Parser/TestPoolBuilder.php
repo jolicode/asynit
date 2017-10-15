@@ -36,12 +36,6 @@ class TestPoolBuilder
             /** @var Depend[]|null $depends */
             $annotations = $this->reader->getMethodAnnotations($test->getMethod());
 
-            if (count($annotations) === 0) {
-                $pool->queueTest($test);
-
-                continue;
-            }
-
             foreach ($annotations as $annotation) {
                 if ($annotation instanceof Depend) {
                     $dependency = $annotation->getDependency();
@@ -64,6 +58,8 @@ class TestPoolBuilder
                     $test->addParent($dependentTest);
                 }
             }
+
+            $pool->addTest($test);
         }
 
         return $pool;

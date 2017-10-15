@@ -9,18 +9,24 @@ use Symfony\Component\Console\Formatter\OutputFormatterStyle;
 
 class Formatter
 {
+    private $outputFormatFail;
+    private $outputFormatPending;
+    private $outputFormatSuccess;
+    private $outputFormatSkipped;
+
     public function __construct()
     {
         $this->outputFormatFail = new OutputFormatterStyle('white', 'red', ['bold']);
         $this->outputFormatPending = new OutputFormatterStyle('black', 'yellow', ['bold']);
         $this->outputFormatSuccess = new OutputFormatterStyle('black', 'green', ['bold']);
+        $this->outputFormatSkipped = new OutputFormatterStyle('black', 'cyan', ['bold']);
     }
 
     public function formatStepTest(Test $test)
     {
         return sprintf(
             "%s %s%s\n",
-            $this->outputFormatPending->apply('Pending'),
+            $this->outputFormatPending->apply('Running'),
             $test->getIdentifier(),
             $this->createAssertionMessage($test)
         );
@@ -42,6 +48,16 @@ class Formatter
         return sprintf(
             "%s %s%s\n",
             $this->outputFormatSuccess->apply('Success'),
+            $test->getIdentifier(),
+            $this->createAssertionMessage($test)
+        );
+    }
+
+    public function formatSkippedTest(Test $test)
+    {
+        return sprintf(
+            "%s %s%s\n",
+            $this->outputFormatSkipped->apply('Skipped'),
             $test->getIdentifier(),
             $this->createAssertionMessage($test)
         );

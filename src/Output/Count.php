@@ -10,6 +10,7 @@ class Count implements OutputInterface
 {
     private $succeed = 0;
     private $failed = 0;
+    private $skipped = 0;
 
     /**
      * {@inheritdoc}
@@ -32,6 +33,14 @@ class Count implements OutputInterface
     public function outputSuccess(Test $test, $debugOutput)
     {
         $this->succeed++;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function outputSkipped(Test $test, $debugOutput)
+    {
+        $this->skipped++;
     }
 
     /**

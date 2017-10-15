@@ -2,13 +2,14 @@
 
 namespace Asynit\Command;
 
+use Amp\Loop;
 use Asynit\Factory;
 use Asynit\Parser\Discovery;
 use Asynit\Parser\TestPoolBuilder;
 use Asynit\Runner\PoolRunner;
+use Asynit\TestWorkflow;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Http\Message\MessageFactory\GuzzleMessageFactory;
-use React\EventLoop\Factory as EventLoopFactory;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -39,24 +40,21 @@ class Run extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        // Build the event loop
-        $loop = EventLoopFactory::create();
-
         // Build the client
-        $client = Factory::createClient($loop, $input->getOption('dns'), $input->getOption('allow-self-signed-certificate'), $input->getOption('host'));
-        list($chainOutput, $countOutput) = Factory::createOutput($loop, $input->getOption('tty'), $input->getOption('no-tty'));
+        list($chainOutput, $countOutput) = Factory::createOutput($input->getOption('tty'), $input->getOption('no-tty'));
 
         // Build service for parsing and running tests
         $discovery = new Discovery();
         $builder = new TestPoolBuilder(new AnnotationReader());
-        $runner = new PoolRunner(new GuzzleMessageFactory(), $client, $loop, $chainOutput, $input->getOption('concurrency'));
+        $runner = new PoolRunner(new GuzzleMessageFactory(), new TestWorkflow($chainOutput), $input->getOption('concurrency'));
 
         // Build a list of tests from the directory
         $testMethods = $discovery->discover($input->getArgument('directory'));
         $pool = $builder->build($testMethods);
 
-        // Run the list of tests
-        $runner->run($pool);
+        Loop::run(function () use ($runner, $pool) {
+            $runner->loop($pool);
+        });
 
         // Return the number of failed tests
         return $countOutput->getFailed();

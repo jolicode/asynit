@@ -2,15 +2,11 @@
 
 namespace Asynit\Output;
 
+use Amp\Loop;
 use Asynit\Test;
-use MKraemer\ReactPCNTL\PCNTL;
-use React\EventLoop\LoopInterface;
 
 class Tty extends Simple
 {
-    /** @var LoopInterface  */
-    private $loop;
-
     /** @var int */
     private $rows = 30;
 
@@ -20,16 +16,14 @@ class Tty extends Simple
     /** @var TestOutput[] */
     private $testOutputs = [];
 
-    public function __construct(LoopInterface $loop)
+    public function __construct()
     {
         parent::__construct();
 
-        $this->loop = $loop;
         $this->setTerminalSize();
 
-        if (function_exists('pcntl_signal')) {
-            $pcntl = new PCNTL($loop);
-            $pcntl->on(SIGWINCH, function () {
+        if (\extension_loaded("pcntl")) {
+            Loop::onSignal(SIGWINCH, function () {
                 $this->setTerminalSize();
             });
         }

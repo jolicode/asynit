@@ -7,106 +7,67 @@ class HttpbinTest extends \Asynit\TestCase
         return 'tata';
     }
 
-    public function &testGet()
+    public function testGet()
     {
         $server = null;
 
-        $this->get('http://httpbin.org')->shouldResolve(
-            function (\Psr\Http\Message\ResponseInterface $response) use (&$server) {
-                $server = $response->getHeaderLine('Server');
-            }
-        );
+        $response = yield $this->get('http://httpbin.org');
 
-
-        return $server;
+        return $response->getHeaderLine('Server');
     }
 
     public function testFoo()
     {
-        $this->get('http://httpbin.org/delay/3')->shouldResolve(
-            function (\Psr\Http\Message\ResponseInterface $response) {
-            }
-        );
+        $response = yield $this->get('http://httpbin.org/delay/3');
+
+        $this->assertStatusCode(200, $response);
     }
 
     public function testFoo2()
     {
-        $this->get('http://httpbin.org/delay/3')->shouldResolve(
-            function (\Psr\Http\Message\ResponseInterface $response) {
-            }
-        );
+        yield $this->get('http://httpbin.org/delay/3');
     }
 
     public function testFoo3()
     {
-        $this->get('http://httpbin.org/delay/2')->shouldResolve(
-            function (\Psr\Http\Message\ResponseInterface $response) {
-            }
-        );
+        yield $this->get('http://httpbin.org/delay/2');
     }
 
-    public function testFoo4()
-    {
-        $this->get('http://httpbin.org/delay/7')->shouldResolve(
-            function (\Psr\Http\Message\ResponseInterface $response) {
-            }
-        );
-    }
+//    public function testFoo4()
+//    {
+//        yield $this->get('http://httpbin.org/delay/7');
+//    }
 
     public function testFoo5()
     {
-        $this->get('http://httpbin.org/delay/1')->shouldResolve(
-            function (\Psr\Http\Message\ResponseInterface $response) {
-            }
-        );
+        yield $this->get('http://httpbin.org/delay/1');
     }
 
     public function testFoo6()
     {
-        $this->get('http://httpbin.org/delay/1')->shouldResolve(
-            function (\Psr\Http\Message\ResponseInterface $response) {
-            }
-        );
+        yield $this->get('http://httpbin.org/delay/1');
     }
 
     public function testFoo7()
     {
-        $this->get('http://httpbin.org/delay/1')->shouldResolve(
-            function (\Psr\Http\Message\ResponseInterface $response) {
-            }
-        );
+        yield $this->get('http://httpbin.org/delay/1');
     }
 
     public function testFoo8()
     {
-        $this->get('http://httpbin.org/delay/1')->shouldResolve(
-            function (\Psr\Http\Message\ResponseInterface $response) {
-            }
-        );
+        yield $this->get('http://httpbin.org/delay/1');
     }
 
     public function testFoo9()
     {
-        $this->get('http://httpbin.org/delay/1')->shouldResolve(
-            function (\Psr\Http\Message\ResponseInterface $response) {
-            }
-        );
-        $this->get('http://httpbin.org/delay/1')->shouldResolve(
-            function (\Psr\Http\Message\ResponseInterface $response) {
-            }
-        );
-        $this->get('http://httpbin.org/delay/1')->shouldResolve(
-            function (\Psr\Http\Message\ResponseInterface $response) {
-            }
-        );
-        $this->get('http://httpbin.org/delay/1')->shouldResolve(
-            function (\Psr\Http\Message\ResponseInterface $response) {
-            }
-        );
-        $this->get('http://httpbin.org/delay/1')->shouldResolve(
-            function (\Psr\Http\Message\ResponseInterface $response) {
-            }
-        );
+        $promises = [];
+        $promises[] = $this->get('http://httpbin.org/delay/1');
+        $promises[] = $this->get('http://httpbin.org/delay/1');
+        $promises[] = $this->get('http://httpbin.org/delay/1');
+        $promises[] = $this->get('http://httpbin.org/delay/1');
+        $promises[] = $this->get('http://httpbin.org/delay/1');
+
+        yield $promises;
     }
 
     /**
@@ -114,30 +75,32 @@ class HttpbinTest extends \Asynit\TestCase
      */
     public function testDummy($token)
     {
-        $this->get('http://httpbin.org')->shouldResolve(
-            function (\Psr\Http\Message\ResponseInterface $response) use ($token) {
-                self::assertEquals('foo', $token);
-            }
-        );
+        yield $this->get('http://httpbin.org');
 
-        $this->get('http://httpbin.org')->shouldResolve(
-            function (\Psr\Http\Message\ResponseInterface $response)  use ($token) {
-                self::assertEquals('meinheld/0.6.1', $token);
-            }
-        );
+        $this->assertEquals('foo', $token);
+
+        yield $this->get('http://httpbin.org');
+
+        $this->assertEquals('meinheld/0.6.1', $token);
+    }
+
+    /**
+     * @\Asynit\Annotation\Depend("testDummy")
+     */
+    public function testIgnored()
+    {
+        throw new \Exception();
     }
 
     /**
      * @\Asynit\Annotation\Depend("testGet")
+     * @\Asynit\Annotation\Depend("testFoo")
      */
     public function testDummy1($token)
     {
-        self::assertEquals('meinheld/0.6.1', $token);
+        $this->assertEquals('meinheld/0.6.1', $token);
 
-        $this->get('http://httpbin.org')->shouldResolve(
-            function (\Psr\Http\Message\ResponseInterface $response) {
-            }
-        );
+        $this->get('http://httpbin.org');
     }
 
     /**
@@ -146,7 +109,7 @@ class HttpbinTest extends \Asynit\TestCase
      */
     public function testDummy2($token, $return)
     {
-        self::assertEquals('tata', $return);
-        self::assertEquals('meinheld/0.6.1', $token);
+        $this->assertEquals('tata', $return);
+        $this->assertEquals('meinheld/0.6.1', $token);
     }
 }
