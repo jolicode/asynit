@@ -50,4 +50,14 @@ class Chain implements OutputInterface
             $output->outputSuccess($test, $debugOutput);
         }
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function outputSkipped(Test $test, $debugOutput)
+    {
+        foreach ($this->outputs as $output) {
+            $output->outputSkipped($test, $debugOutput);
+        }
+    }
 }

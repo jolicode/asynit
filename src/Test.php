@@ -15,7 +15,7 @@ class Test
     const STATE_RUNNING = 'running';
     const STATE_SUCCESS = 'success';
     const STATE_FAILURE = 'failure';
-    const STATE_IGNORED = 'ignored';
+    const STATE_SKIPPED = 'skipped';
 
     /** @var Test[] */
     private $parents = [];
@@ -48,7 +48,7 @@ class Test
 
     public function isCompleted(): bool
     {
-        return in_array($this->state, [self::STATE_SUCCESS, self::STATE_FAILURE, self::STATE_IGNORED], true);
+        return in_array($this->state, [self::STATE_SUCCESS, self::STATE_FAILURE, self::STATE_SKIPPED], true);
     }
 
     public function isRunning(): bool
@@ -163,8 +163,10 @@ class Test
         $arguments = $this->arguments;
 
         foreach ($this->getParents() as $parent) {
-            $args[] = $arguments[$parent->getIdentifier()];
-            unset($arguments[$parent->getIdentifier()]);
+            if (array_key_exists($parent->getIdentifier(), $arguments)) {
+                $args[] = $arguments[$parent->getIdentifier()];
+                unset($arguments[$parent->getIdentifier()]);
+            }
         }
 
         return array_merge($args, array_values($arguments));

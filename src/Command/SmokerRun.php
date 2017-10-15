@@ -9,6 +9,7 @@ use Asynit\Factory;
 use Asynit\Parser\SmokeParser;
 use Asynit\Parser\TestPoolBuilder;
 use Asynit\Runner\PoolRunner;
+use Asynit\TestWorkflow;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Http\Message\MessageFactory\GuzzleMessageFactory;
 use Symfony\Component\Console\Command\Command;
@@ -32,6 +33,7 @@ class SmokerRun extends Command
             ->addOption('dns', null, InputOption::VALUE_OPTIONAL, 'DNS Ip to use', '8.8.8.8')
             ->addOption('tty', null, InputOption::VALUE_NONE, 'Force to use tty output')
             ->addOption('no-tty', null, InputOption::VALUE_NONE, 'Force to use no tty output')
+            ->addOption('concurrency', null, InputOption::VALUE_OPTIONAL, 'Max number of parallels requests', 10)
         ;
     }
 
@@ -45,7 +47,7 @@ class SmokerRun extends Command
 
         $parser = new SmokeParser();
         $builder = new TestPoolBuilder(new AnnotationReader());
-        $runner = new PoolRunner(new GuzzleMessageFactory(), $chainOutput);
+        $runner = new PoolRunner(new GuzzleMessageFactory(), new TestWorkflow($chainOutput), $input->getOption('concurrency'));
 
         $testMethods = $parser->parse($input->getArgument('file'));
         $pool = $builder->build($testMethods);

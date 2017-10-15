@@ -7,6 +7,7 @@ use Asynit\Factory;
 use Asynit\Parser\Discovery;
 use Asynit\Parser\TestPoolBuilder;
 use Asynit\Runner\PoolRunner;
+use Asynit\TestWorkflow;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Http\Message\MessageFactory\GuzzleMessageFactory;
 use Symfony\Component\Console\Command\Command;
@@ -45,7 +46,7 @@ class Run extends Command
         // Build service for parsing and running tests
         $discovery = new Discovery();
         $builder = new TestPoolBuilder(new AnnotationReader());
-        $runner = new PoolRunner(new GuzzleMessageFactory(), $chainOutput, $input->getOption('concurrency'));
+        $runner = new PoolRunner(new GuzzleMessageFactory(), new TestWorkflow($chainOutput), $input->getOption('concurrency'));
 
         // Build a list of tests from the directory
         $testMethods = $discovery->discover($input->getArgument('directory'));

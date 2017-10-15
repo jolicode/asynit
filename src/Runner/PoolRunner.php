@@ -5,17 +5,16 @@ namespace Asynit\Runner;
 use Amp\Loop;
 use Amp\Parallel\Sync\Semaphore;
 use Amp\Promise;
-use Asynit\Assert\Assertion;
-use Asynit\Output\OutputInterface;
 use Asynit\Test;
 use Asynit\TestCase;
 use Asynit\Pool;
+use Asynit\TestWorkflow;
 use Http\Message\RequestFactory;
 
 class PoolRunner
 {
-    /** @var OutputInterface */
-    private $output;
+    /** @var TestWorkflow */
+    private $workflow;
 
     /** @var RequestFactory */
     private $requestFactory;
@@ -23,10 +22,10 @@ class PoolRunner
     /** @var Semaphore */
     private $semaphore;
 
-    public function __construct(RequestFactory $requestFactory, OutputInterface $output, $concurrency = 10)
+    public function __construct(RequestFactory $requestFactory, TestWorkflow $workflow, $concurrency = 10)
     {
         $this->requestFactory = $requestFactory;
-        $this->output = $output;
+        $this->workflow = $workflow;
         $this->semaphore = new SimpleSemaphore($concurrency);
     }
 
@@ -61,11 +60,7 @@ class PoolRunner
     protected function run(Test $test): Promise
     {
         return \Amp\call(function () use($test) {
-            $debugOutput = ob_get_contents();
-            ob_clean();
-
-            $this->output->outputStep($test, $debugOutput);
-            $test->setState(Test::STATE_RUNNING);
+            $this->workflow->markTestAsRunning($test);
 
             $testCase = $this->getTestObject($test);
             $testCase->initialize();
@@ -80,16 +75,9 @@ class PoolRunner
                     $childTest->addArgument($result, $test);
                 }
 
-                $debugOutput = ob_get_contents();
-                ob_clean();
-                $this->output->outputSuccess($test, $debugOutput);
-                $test->setState(Test::STATE_SUCCESS);
+                $this->workflow->markTestAsSuccess($test);
             } catch (\Throwable $error) {
-                $debugOutput = ob_get_contents();
-                ob_clean();
-
-                $this->output->outputFailure($test, $debugOutput, $error);
-                $test->setState(Test::STATE_FAILURE);
+                $this->workflow->markTestAsFailed($test, $error);
             }
         });
     }

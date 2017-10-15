@@ -21,4 +21,6 @@ interface OutputInterface
     public function outputFailure(Test $test, $debugOutput, $failure);
 
     public function outputSuccess(Test $test, $debugOutput);
+
+    public function outputSkipped(Test $test, $debugOutput);
 }

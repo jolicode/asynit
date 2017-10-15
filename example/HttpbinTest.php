@@ -85,6 +85,14 @@ class HttpbinTest extends \Asynit\TestCase
     }
 
     /**
+     * @\Asynit\Annotation\Depend("testDummy")
+     */
+    public function testIgnored()
+    {
+        throw new \Exception();
+    }
+
+    /**
      * @\Asynit\Annotation\Depend("testGet")
      * @\Asynit\Annotation\Depend("testFoo")
      */

@@ -25,9 +25,6 @@ class TestCase
     /** @var Client */
     private $client;
 
-    /** @var Test $test */
-    private $test;
-
     final public function __construct(MessageFactory $messageFactory, Semaphore $semaphore, Test $test)
     {
         $this->messageFactory = $messageFactory;
