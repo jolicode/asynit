@@ -67,12 +67,14 @@ use Amp\Artax\Client;
 
 class ApiTest extends TestCase
 {
-    public function setUp(Client $asyncClient): Client
+    public function setUp(HttpAsyncClient $asyncClient): HttpAsyncClient
     {
         return $asyncClient;
     }
 }
 ```
+
+You should always decorate the client and not trying to return a new one (unless you know what you are doing).
 
 #### Dependency between tests
 
