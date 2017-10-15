@@ -9,6 +9,8 @@ use Amp\Parallel\Sync\Lock;
 use Amp\Parallel\Sync\Semaphore;
 use Amp\Promise;
 use Asynit\Assert\AssertWebCaseTrait;
+use Asynit\HttpClient\ArtaxAsyncAdapter;
+use Http\Client\HttpAsyncClient;
 use Http\Message\MessageFactory;
 use Psr\Http\Message\RequestInterface;
 
@@ -22,7 +24,7 @@ class TestCase
     /** @var Semaphore */
     private $semaphore;
 
-    /** @var Client */
+    /** @var HttpAsyncClient */
     private $client;
 
     final public function __construct(MessageFactory $messageFactory, Semaphore $semaphore, Test $test)
@@ -37,18 +39,18 @@ class TestCase
      *
      * Allow to set default services and context, and also decorate the http async client.
      *
-     * @param Client $asyncClient
+     * @param HttpAsyncClient $asyncClient
      *
-     * @return Client
+     * @return HttpAsyncClient
      */
-    public function setUp(Client $asyncClient): Client
+    public function setUp(HttpAsyncClient $asyncClient): HttpAsyncClient
     {
         return $asyncClient;
     }
 
     final public function initialize()
     {
-        $this->client = $this->setUp(new DefaultClient());
+        $this->client = $this->setUp(new ArtaxAsyncAdapter($this->messageFactory, new DefaultClient()));
     }
 
     /**
@@ -63,24 +65,11 @@ class TestCase
         return \Amp\call(function () use($request) {
             /** @var Lock $lock */
             $lock = yield $this->semaphore->acquire();
-
-            $req = new \Amp\Artax\Request($request->getUri(), $request->getMethod());
-            $req = $req->withProtocolVersions([$request->getProtocolVersion()]);
-            $req = $req->withHeaders($request->getHeaders());
-            $req = $req->withBody((string) $request->getBody());
-            /** @var Response $response */
-            $response = yield $this->client->request($req);
-            $content = yield $response->getBody();
+            $response = yield $this->client->sendAsyncRequest($request);
 
             $lock->release();
 
-            return $this->messageFactory->createResponse(
-                $response->getStatus(),
-                $response->getReason(),
-                $response->getHeaders(),
-                $content,
-                $response->getProtocolVersion()
-            );
+            return $response;
         });
     }
 
