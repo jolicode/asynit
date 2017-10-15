@@ -18,16 +18,16 @@ class HttpClientOverrideTest extends \Asynit\TestCase
 
     public function testFoo3()
     {
-        yield $this->get('/delay/2');
+        yield $this->get('/delay/3');
     }
 
     public function testFoo4()
     {
-        yield $this->get('/delay/7');
+        yield $this->get('/delay/3');
     }
 
     public function testFoo5()
     {
-        yield $this->get('/delay/1');
+        yield $this->get('/delay/3');
     }
 }

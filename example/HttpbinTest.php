@@ -33,10 +33,10 @@ class HttpbinTest extends \Asynit\TestCase
         yield $this->get('http://httpbin.org/delay/2');
     }
 
-    public function testFoo4()
-    {
-        yield $this->get('http://httpbin.org/delay/7');
-    }
+//    public function testFoo4()
+//    {
+//        yield $this->get('http://httpbin.org/delay/7');
+//    }
 
     public function testFoo5()
     {
