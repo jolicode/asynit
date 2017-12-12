@@ -46,7 +46,7 @@ class TestPoolBuilder
 
                     if (!array_key_exists($dependency, $tests)) {
                         throw new \RuntimeException(sprintf(
-                            'Failed to build test pool %s dependency is not resolvable for %s::%s',
+                            'Failed to build test pool "%s" dependency is not resolvable for "%s::%s".',
                             $annotation->getDependency(),
                             $test->getMethod()->getDeclaringClass()->getName(),
                             $test->getMethod()->getName()
