@@ -5,21 +5,10 @@ namespace Asynit\Parser;
 use Asynit\Test;
 use Asynit\TestCase;
 use Symfony\Component\Finder\Finder;
-use Symfony\Component\Finder\SplFileInfo;
 
-/**
- * Discover test class.
- */
 class Discovery
 {
-    /**
-     * Return a list of test method.
-     *
-     * @param $directory
-     *
-     * @return Test[]
-     */
-    public function discover($path)
+    public function discover(string $path): array
     {
         if (\is_file($path)) {
             return $this->doDiscover([$path]);
@@ -35,7 +24,7 @@ class Discovery
         return $this->doDiscover($finder);
     }
 
-    protected function doDiscover(iterable $fileIterator)
+    protected function doDiscover($fileIterator): array
     {
         $methods = [];
 
