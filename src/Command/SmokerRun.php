@@ -30,7 +30,6 @@ class SmokerRun extends Command
             ->addArgument('file', InputArgument::REQUIRED, 'Configuration file for smoker')
             ->addOption('host', null, InputOption::VALUE_OPTIONAL, 'Base host to use', null)
             ->addOption('allow-self-signed-certificate', null, InputOption::VALUE_NONE, 'Allow self signed ssl certificate')
-            ->addOption('dns', null, InputOption::VALUE_OPTIONAL, 'DNS Ip to use', '8.8.8.8')
             ->addOption('tty', null, InputOption::VALUE_NONE, 'Force to use tty output')
             ->addOption('no-tty', null, InputOption::VALUE_NONE, 'Force to use no tty output')
             ->addOption('concurrency', null, InputOption::VALUE_OPTIONAL, 'Max number of parallels requests', 10)
