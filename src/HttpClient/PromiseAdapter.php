@@ -32,6 +32,10 @@ class PromiseAdapter implements HttpPromise, AmpPromise
         $this->promise = $promise;
         $this->promise->onResolve(function ($error, $result) {
             if ($error !== null) {
+                if (!$error instanceof Exception) {
+                    $error = new Exception\TransferException($error->getMessage(), $error->getCode(), $error);
+                }
+
                 $this->reject($error);
             } else {
                 $this->resolve($result);
@@ -57,6 +61,8 @@ class PromiseAdapter implements HttpPromise, AmpPromise
                 $deferred->resolve($onFulfilled($response));
             } catch (Exception $exception) {
                 $deferred->fail($exception);
+            } catch (\Throwable $error) {
+                $deferred->fail(new Exception\TransferException($error->getMessage(), $error->getCode(), $error));
             }
         };
         $this->onRejected = function (Exception $exception) use ($onRejected, $deferred) {
@@ -64,6 +70,8 @@ class PromiseAdapter implements HttpPromise, AmpPromise
                 $deferred->resolve($onRejected($exception));
             } catch (Exception $exception) {
                 $deferred->fail($exception);
+            } catch (\Throwable $error) {
+                $deferred->fail(new Exception\TransferException($error->getMessage(), $error->getCode(), $error));
             }
         };
 
