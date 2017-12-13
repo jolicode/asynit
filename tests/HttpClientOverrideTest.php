@@ -13,7 +13,7 @@ class HttpClientOverrideTest extends TestCase
 {
     public function setUp(HttpAsyncClient $asyncClient): HttpAsyncClient
     {
-        $uri = (new GuzzleUriFactory())->createUri('http://httpbin.org');
+        $uri = (new GuzzleUriFactory())->createUri('http://127.0.0.1:8081');
 
         return new PluginClient($asyncClient, [
             new BaseUriPlugin($uri)

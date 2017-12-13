@@ -25,7 +25,7 @@ class Run extends Command
     {
         $this
             ->setName('run')
-            ->addArgument('directory', InputArgument::REQUIRED, 'Path to the test directory')
+            ->addArgument('target', InputArgument::REQUIRED, 'File or directory to test')
             ->addOption('host', null, InputOption::VALUE_REQUIRED, 'Base host to use', null)
             ->addOption('allow-self-signed-certificate', null, InputOption::VALUE_NONE, 'Allow self signed ssl certificate')
             ->addOption('tty', null, InputOption::VALUE_NONE, 'Force to use tty output')
@@ -48,7 +48,7 @@ class Run extends Command
         $runner = new PoolRunner(new GuzzleMessageFactory(), new TestWorkflow($chainOutput), $input->getOption('concurrency'));
 
         // Build a list of tests from the directory
-        $testMethods = $discovery->discover($input->getArgument('directory'));
+        $testMethods = $discovery->discover($input->getArgument('target'));
         $pool = $builder->build($testMethods);
 
         Loop::run(function () use ($runner, $pool) {

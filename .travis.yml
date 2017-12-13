@@ -1,6 +1,9 @@
 language: php
 
-sudo: false
+sudo: required
+
+services:
+    - docker
 
 cache:
     directories:
@@ -19,6 +22,8 @@ matrix:
 
 before_install:
     - travis_retry composer self-update
+    - docker build -t httpbin .
+    - docker run -d -p 8080:80 httpbin
 
 install:
     - travis_retry composer update ${COMPOSER_FLAGS} --prefer-dist --no-interaction

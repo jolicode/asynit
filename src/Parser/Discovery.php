@@ -5,6 +5,7 @@ namespace Asynit\Parser;
 use Asynit\Test;
 use Asynit\TestCase;
 use Symfony\Component\Finder\Finder;
+use Symfony\Component\Finder\SplFileInfo;
 
 /**
  * Discover test class.
@@ -18,20 +19,35 @@ class Discovery
      *
      * @return Test[]
      */
-    public function discover($directory)
+    public function discover($path)
     {
-        $methods = [];
+        if (\is_file($path)) {
+            return $this->doDiscover([$path]);
+        }
+
         $finder = new Finder();
         $finder
             ->files()
             ->name('*.php')
-            ->in($directory)
+            ->in($path)
         ;
 
-        foreach ($finder as $file) {
-            $existingClasses = get_declared_classes();
+        return $this->doDiscover($finder);
+    }
 
-            require_once $file->getRealPath();
+    protected function doDiscover(iterable $fileIterator)
+    {
+        $methods = [];
+
+        foreach ($fileIterator as $file) {
+            $existingClasses = get_declared_classes();
+            $path = $file;
+
+            if ($path instanceof \SplFileInfo) {
+                $path = $path->getRealPath();
+            }
+
+            require_once $path;
 
             $newClasses = array_diff(get_declared_classes(), $existingClasses);
 

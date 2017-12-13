@@ -16,7 +16,7 @@ class FunctionalTests extends TestCase
 
     public function testGet()
     {
-        $response = yield $this->get('http://httpbin.org');
+        $response = yield $this->get('http://127.0.0.1:8081');
 
         $this->assertInstanceOf(ResponseInterface::class, $response);
         $this->assertStatusCode(200, $response);
@@ -52,22 +52,22 @@ class FunctionalTests extends TestCase
 
     public function testParallel1()
     {
-        yield $this->get('http://httpbin.org/delay/7');
+        yield $this->get('http://127.0.0.1:8081/delay/7');
     }
 
     public function testParallel2()
     {
-        yield $this->get('http://httpbin.org/delay/7');
+        yield $this->get('http://127.0.0.1:8081/delay/7');
     }
 
     public function testParallel3()
     {
-        yield $this->get('http://httpbin.org/delay/7');
+        yield $this->get('http://127.0.0.1:8081/delay/7');
     }
 
     public function testParallel4()
     {
-        yield $this->get('http://httpbin.org/delay/7');
+        yield $this->get('http://127.0.0.1:8081/delay/7');
     }
 
     /**
