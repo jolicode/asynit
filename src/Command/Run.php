@@ -28,7 +28,6 @@ class Run extends Command
             ->addArgument('directory', InputArgument::REQUIRED, 'Path to the test directory')
             ->addOption('host', null, InputOption::VALUE_REQUIRED, 'Base host to use', null)
             ->addOption('allow-self-signed-certificate', null, InputOption::VALUE_NONE, 'Allow self signed ssl certificate')
-            ->addOption('dns', null, InputOption::VALUE_REQUIRED, 'DNS Ip to use', '8.8.8.8')
             ->addOption('tty', null, InputOption::VALUE_NONE, 'Force to use tty output')
             ->addOption('no-tty', null, InputOption::VALUE_NONE, 'Force to use no tty output')
             ->addOption('concurrency', null, InputOption::VALUE_REQUIRED, 'Max number of parallels requests', 10)
