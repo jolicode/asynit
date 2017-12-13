@@ -4,6 +4,7 @@ namespace Asynit\Tests;
 
 use Asynit\Annotation\Depend;
 use Asynit\TestCase;
+use Http\Client\Exception;
 use Psr\Http\Message\ResponseInterface;
 
 class FunctionalTests extends TestCase
@@ -21,6 +22,19 @@ class FunctionalTests extends TestCase
         $this->assertStatusCode(200, $response);
 
         return 'foo';
+    }
+
+    public function testError()
+    {
+        $exception = null;
+
+        try {
+            $response = yield $this->get('http://something-is-not-reachable');
+        } catch (Exception $e) {
+            $exception = $e;
+        }
+
+        $this->assertNotNull($exception, 'Not null exception');
     }
 
     /**
