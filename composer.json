@@ -18,6 +18,11 @@
             "Asynit\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Asynit\\Tests\\": "tests/"
+        }
+    },
     "require": {
         "php": "^7.0",
         "amphp/artax": "^3.0",
