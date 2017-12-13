@@ -1,0 +1,27 @@
+language: php
+
+sudo: false
+
+cache:
+    directories:
+        - $HOME/.composer/cache/files
+
+php:
+    - 7.0
+    - 7.1
+    - 7.2
+
+matrix:
+    fast_finish: true
+    include:
+        - php: 7.0
+          env: COMPOSER_FLAGS="--prefer-stable --prefer-lowest"
+
+before_install:
+    - travis_retry composer self-update
+
+install:
+    - travis_retry composer update ${COMPOSER_FLAGS} --prefer-dist --no-interaction
+
+script:
+    - composer test

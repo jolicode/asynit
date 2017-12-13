@@ -23,6 +23,9 @@
             "Asynit\\Tests\\": "tests/"
         }
     },
+    "scripts": {
+        "test": "bin/asynit tests/"
+    },
     "require": {
         "php": "^7.0",
         "amphp/artax": "^3.0",
