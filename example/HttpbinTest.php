@@ -2,6 +2,9 @@
 
 class HttpbinTest extends \Asynit\TestCase
 {
+    /**
+     * @\Asynit\Annotation\DisplayName("Test a super display name")
+     */
     public function testReturn()
     {
         return 'tata';

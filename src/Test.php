@@ -35,6 +35,8 @@ class Test
 
     private $state;
 
+    private $displayName;
+
     public function __construct(\ReflectionMethod $reflectionMethod, $identifier = null)
     {
         $this->method = $reflectionMethod;
@@ -43,6 +45,7 @@ class Test
             $this->method->getDeclaringClass()->getName(),
             $this->method->getName()
         );
+        $this->displayName = $this->identifier;
         $this->state = self::STATE_PENDING;
     }
 
@@ -170,5 +173,21 @@ class Test
         }
 
         return array_merge($args, array_values($arguments));
+    }
+
+    /**
+     * @return string
+     */
+    public function getDisplayName(): string
+    {
+        return $this->displayName;
+    }
+
+    /**
+     * @param string $displayName
+     */
+    public function setDisplayName(string $displayName)
+    {
+        $this->displayName = $displayName;
     }
 }

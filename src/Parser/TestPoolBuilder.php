@@ -3,6 +3,7 @@
 namespace Asynit\Parser;
 
 use Asynit\Annotation\Depend;
+use Asynit\Annotation\DisplayName;
 use Asynit\Test;
 use Asynit\Pool;
 use Doctrine\Common\Annotations\AnnotationReader;
@@ -56,6 +57,10 @@ class TestPoolBuilder
                     $dependentTest = $tests[$dependency];
                     $dependentTest->addChildren($test);
                     $test->addParent($dependentTest);
+                }
+
+                if ($annotation instanceof DisplayName) {
+                    $test->setDisplayName($annotation->getName());
                 }
             }
 

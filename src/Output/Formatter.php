@@ -27,7 +27,7 @@ class Formatter
         return sprintf(
             "%s %s%s\n",
             $this->outputFormatPending->apply('Running'),
-            $test->getIdentifier(),
+            $test->getDisplayName(),
             $this->createAssertionMessage($test)
         );
     }
@@ -37,7 +37,7 @@ class Formatter
         return sprintf(
             "%s %s\n\t\u{2715} %s%s\n",
             $this->outputFormatFail->apply('Failure'),
-            $test->getIdentifier(),
+            $test->getDisplayName(),
             $failure->getMessage(),
             $this->createAssertionMessage($test)
         );
@@ -48,7 +48,7 @@ class Formatter
         return sprintf(
             "%s %s%s\n",
             $this->outputFormatSuccess->apply('Success'),
-            $test->getIdentifier(),
+            $test->getDisplayName(),
             $this->createAssertionMessage($test)
         );
     }
@@ -58,7 +58,7 @@ class Formatter
         return sprintf(
             "%s %s%s\n",
             $this->outputFormatSkipped->apply('Skipped'),
-            $test->getIdentifier(),
+            $test->getDisplayName(),
             $this->createAssertionMessage($test)
         );
     }
