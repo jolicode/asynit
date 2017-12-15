@@ -19,9 +19,13 @@ $url = 'ws://127.0.0.1:9222/devtools/browser/b1c46ece-85c4-48b5-850d-687296d0566
             /** @var \Asynit\Extension\Chrome\Page $page */
             $page = yield $session->createPage();
             $result = yield $page->navigate('https://jolicode.com/');
-            $test = yield $page->evaluate('document.documentElement.innerHTML');
-//            $screen = yield $page->getDom();
-            var_dump($test);
+            $test = yield $page->evaluate('window.location');
+            $screen = yield $page->getDom();
+            $data = yield $page->screenshot();
+
+//            var_dump($data);
+
+            file_put_contents('test.png', $data['data']);
 
             $browser->close();
         }

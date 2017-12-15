@@ -61,6 +61,10 @@ class Browser extends EventEmitter
                 $this->logger->info('Receive message ' . $data);
                 $decoded = @json_decode($data, true);
 
+                if (!$decoded) {
+                    $this->logger->error('Cannot decode message ' . $data);
+                }
+
                 if ($decoded !== false && isset($decoded['id'])) {
                     $messageId = $decoded['id'] ?? null;
 
