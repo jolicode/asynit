@@ -30,6 +30,7 @@
         "php": "^7.0",
         "amphp/artax": "^3.0.13",
         "amphp/sync": "^1.0",
+        "amphp/websocket": "dev-master",
         "bovigo/assert": "^2.1",
         "doctrine/annotations": "^1.2",
         "doctrine/collections": "^1.3",
