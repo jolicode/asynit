@@ -39,14 +39,8 @@ class Browser extends EventEmitter
     public function connect()
     {
         return \Amp\call(function () {
-            try {
-                $this->connection = yield connect($this->endpoint);
-                $this->loop();
-
-                return true;
-            } catch (\Throwable $exception) {
-                return false;
-            }
+            $this->connection = yield connect($this->endpoint);
+            $this->loop();
         });
     }
 

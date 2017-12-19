@@ -9,6 +9,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
     try {
         $process = new \Amp\Process\Process(
             [
+                "exec",
                 "google-chrome-stable",
                 "--headless",
                 "--disable-gpu",
@@ -45,14 +46,11 @@ require_once __DIR__ . '/../vendor/autoload.php';
             $page = yield $session->createPage();
             $result = yield $page->navigate('https://jolicode.com/');
             $test = yield $page->evaluate('document.documentElement.outerHTML');
-
-            var_dump($test);
         }
 
-        $process->kill();
+        $pid = yield $process->getPid();
 
-        // @TODO Process is not killed :/
-        posix_kill($process->getPid(), SIGTERM);
+        posix_kill($pid, SIGTERM);
     } catch (\Amp\Websocket\ClosedException $exception) {
         return;
     } catch (\Throwable $e) {

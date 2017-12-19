@@ -7,6 +7,7 @@ namespace Asynit\Command;
 use Amp\Loop;
 use Asynit\Parser\SmokeParser;
 use Asynit\Parser\TestPoolBuilder;
+use Asynit\Runner\LazyChromeBrowser;
 use Asynit\Runner\PoolRunner;
 use Asynit\TestWorkflow;
 use Doctrine\Common\Annotations\AnnotationReader;
@@ -45,7 +46,7 @@ class SmokerCommand extends Command
 
         $parser = new SmokeParser();
         $builder = new TestPoolBuilder(new AnnotationReader());
-        $runner = new PoolRunner(new GuzzleMessageFactory(), new TestWorkflow($chainOutput), $input->getOption('concurrency'));
+        $runner = new PoolRunner(new GuzzleMessageFactory(), new TestWorkflow($chainOutput), new LazyChromeBrowser(), $input->getOption('concurrency'));
 
         $testMethods = $parser->parse($input->getArgument('file'));
         $pool = $builder->build($testMethods);
