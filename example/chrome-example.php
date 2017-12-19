@@ -4,12 +4,37 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-// @TODO Change me
-$url = 'ws://127.0.0.1:9222/devtools/browser/b1c46ece-85c4-48b5-850d-687296d0566e';
 
-\Amp\Loop::run(function () use($url) {
+\Amp\Loop::run(function () {
     try {
-        $logger = new \Symfony\Component\Console\Logger\ConsoleLogger(new \Symfony\Component\Console\Output\ConsoleOutput(\Symfony\Component\Console\Output\OutputInterface::VERBOSITY_NORMAL));
+        $process = new \Amp\Process\Process(
+            [
+                "google-chrome-stable",
+                "--headless",
+                "--disable-gpu",
+                "--remote-debugging-port=9222",
+                "about:blank"
+            ]
+        );
+
+        $process->start();
+        $found = false;
+        $url = "";
+
+        while (!$found && $process->isRunning()) {
+            $readed = yield $process->getStderr()->read();
+
+            if (preg_match("/DevTools listening on (ws\:\/\/.+?)\n/", $readed, $matches)) {
+                $found = true;
+                $url = $matches[1];
+            }
+        }
+
+        $logger = new \Symfony\Component\Console\Logger\ConsoleLogger(
+            new \Symfony\Component\Console\Output\ConsoleOutput(
+                \Symfony\Component\Console\Output\OutputInterface::VERBOSITY_NORMAL
+            )
+        );
         $browser = new \Asynit\Extension\Chrome\Browser($url, $logger);
         $isConnected = yield $browser->connect();
 
@@ -19,16 +44,17 @@ $url = 'ws://127.0.0.1:9222/devtools/browser/b1c46ece-85c4-48b5-850d-687296d0566
             /** @var \Asynit\Extension\Chrome\Page $page */
             $page = yield $session->createPage();
             $result = yield $page->navigate('https://jolicode.com/');
-            $test = yield $page->evaluate('window.location');
-            $screen = yield $page->getDom();
-            $data = yield $page->screenshot();
+            $test = yield $page->evaluate('document.documentElement.outerHTML');
 
-//            var_dump($data);
-
-            file_put_contents('test.png', $data['data']);
-
-            $browser->close();
+            var_dump($test);
         }
+
+        $process->kill();
+
+        // @TODO Process is not killed :/
+        posix_kill($process->getPid(), SIGTERM);
+    } catch (\Amp\Websocket\ClosedException $exception) {
+        return;
     } catch (\Throwable $e) {
 
         var_dump($e->getMessage());

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Asynit\Extension\Chrome;
 
 use Amp\Promise;
+use Amp\Websocket\ClosedException;
 use function Amp\Websocket\connect;
 use Amp\Websocket\Connection;
 use Amp\Websocket\Message;
@@ -51,42 +52,38 @@ class Browser extends EventEmitter
 
     protected function loop()
     {
-        return \Amp\call(function () {
-            $error = false;
+        return \Amp\asyncCall(function () {
+            try {
+                while ($message = yield $this->connection->receive()) {
+                    /** @var Message $message */
+                    $data = yield $message->buffer();
+                    $this->logger->info('Receive message ' . $data);
+                    $decoded = @json_decode($data, true);
 
-            while ($this->connection !== null && $this->connection->valid()) {
-                /** @var Message $message */
-                $message = $this->connection->current();
-                $data = yield $message->read();
-                $this->logger->info('Receive message ' . $data);
-                $decoded = @json_decode($data, true);
+                    if (!$decoded) {
+                        $this->logger->error('Cannot decode message ' . $data);
+                    }
 
-                if (!$decoded) {
-                    $this->logger->error('Cannot decode message ' . $data);
-                }
+                    if ($decoded !== false && isset($decoded['id'])) {
+                        $messageId = $decoded['id'] ?? null;
 
-                if ($decoded !== false && isset($decoded['id'])) {
-                    $messageId = $decoded['id'] ?? null;
+                        if (array_key_exists($messageId, $this->registry)) {
+                            $deferred = $this->registry[$messageId];
+                            unset($this->registry[$messageId]);
 
-                    if (array_key_exists($messageId, $this->registry)) {
-                        $deferred = $this->registry[$messageId];
-                        unset($this->registry[$messageId]);
+                            $deferred->resolve($decoded['result']);
+                        }
+                    }
 
-                        $deferred->resolve($decoded['result']);
+                    if (array_key_exists('method', $decoded)) {
+                        $method = $decoded['method'];
+                        $params = $decoded['params'];
+
+                        $this->emit($method, $params);
                     }
                 }
-
-                if (array_key_exists('method', $decoded)) {
-                    $method = $decoded['method'];
-                    $params = $decoded['params'];
-
-                    $this->emit($method, $params);
-                }
-
-                $this->connection->next();
+            } catch (ClosedException $exception) {
             }
-
-            return $error;
         });
     }
 
