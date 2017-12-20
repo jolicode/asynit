@@ -6,6 +6,7 @@ namespace Asynit\Assert;
 
 use Asynit\Test;
 use bovigo\assert\Assertion as BaseAssertion;
+use bovigo\assert\AssertionFailure;
 use bovigo\assert\predicate\Predicate;
 use SebastianBergmann\Exporter\Exporter;
 
@@ -54,7 +55,24 @@ class Assertion extends BaseAssertion
      */
     public function evaluate(Predicate $predicate, string $description = null): bool
     {
-        $result = parent::evaluate($predicate, $description);
+        try {
+            $result = parent::evaluate($predicate, $description);
+        } catch (AssertionFailure $e) {
+            $message = $e->getMessage();
+
+            foreach ($e->getTrace() as $call) {
+                if (false === strpos($call['file'], 'vendor')) {
+                    break;
+                }
+            }
+
+            $file = ltrim(str_replace(getcwd(), '', $call['file']), '/');
+
+            $message .= sprintf(" in %s:%d", $file, $call['line']);
+
+            throw new AssertionFailure($message);
+        }
+
         $this->test->addAssertion($this->describeSuccess($predicate, $description));
 
         return $result;
