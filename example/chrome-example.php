@@ -4,60 +4,56 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+$logger = new \Symfony\Component\Console\Logger\ConsoleLogger(
+    new \Symfony\Component\Console\Output\ConsoleOutput(
+\Symfony\Component\Console\Output\OutputInterface::VERBOSITY_NORMAL
+    )
+);
 
-\Amp\Loop::run(function () {
-    try {
-        $process = new \Amp\Process\Process(
-            [
-                "exec",
-                "google-chrome-stable",
-                "--headless",
-                "--disable-gpu",
-                "--remote-debugging-port=9222",
-                "about:blank"
-            ]
-        );
+$browser = new \Asynit\Runner\LazyChromeBrowser($logger);
 
-        $process->start();
-        $found = false;
-        $url = "";
+try {
+    \Amp\Loop::run(function () use($browser) {
+        \Amp\asyncCall(function () use($browser) {
+            try {
+                /** @var \Asynit\Extension\Chrome\Session $session */
+                $session = yield $browser->getSession('test');
 
-        while (!$found && $process->isRunning()) {
-            $readed = yield $process->getStderr()->read();
+                /** @var \Asynit\Extension\Chrome\Page $page */
+                $page = yield $session->createPage();
+                yield $page->navigate('https://www.afflelou.com/');
+                yield $page->evaluate('document.documentElement.outerHTML');
 
-            if (preg_match("/DevTools listening on (ws\:\/\/.+?)\n/", $readed, $matches)) {
-                $found = true;
-                $url = $matches[1];
+                yield $page->waitForLoadEvent();
+
+                yield $page->screenshot();
+
+                $image1 = yield $page->screenshot(false, 1700, 4600);
+                file_put_contents('test1.png', $image1);
+                $image1Obj = new imagick('test1.png');
+
+                // Wait for some ms (animated header)
+                yield (new \Amp\Delayed(100, 'yolo'));
+
+                $image2 = yield $page->screenshot(false, 1700, 4600);
+                file_put_contents('test2.png', $image2);
+                $image2Obj = new imagick('test2.png');
+
+                $result = $image1Obj->compareImages($image2Obj, Imagick::METRIC_PEAKABSOLUTEERROR);
+                $compared = $result[0];
+                $compared->setImageFormat("png");
+                $compared->writeImage('compared.png');
+            } catch (\Throwable $e) {
+                var_dump($e->getMessage());
+
+                throw $e;
+            } finally {
+                $browser->shutdown();
             }
-        }
-
-        $logger = new \Symfony\Component\Console\Logger\ConsoleLogger(
-            new \Symfony\Component\Console\Output\ConsoleOutput(
-                \Symfony\Component\Console\Output\OutputInterface::VERBOSITY_NORMAL
-            )
-        );
-        $browser = new \Asynit\Extension\Chrome\Browser($url, $logger);
-        $isConnected = yield $browser->connect();
-
-        if ($isConnected) {
-            /** @var \Asynit\Extension\Chrome\Session $session */
-            $session = yield $browser->createSession();
-            /** @var \Asynit\Extension\Chrome\Page $page */
-            $page = yield $session->createPage();
-            $result = yield $page->navigate('https://jolicode.com/');
-            $test = yield $page->evaluate('document.documentElement.outerHTML');
-        }
-
-        $pid = yield $process->getPid();
-
-        posix_kill($pid, SIGTERM);
-    } catch (\Amp\Websocket\ClosedException $exception) {
-        return;
-    } catch (\Throwable $e) {
-
-        var_dump($e->getMessage());
-        throw $e;
-    }
-});
+        });
+    });
+} finally {
+    $browser->shutdown();
+}
 
 

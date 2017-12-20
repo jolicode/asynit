@@ -10,6 +10,7 @@ use function Amp\Websocket\connect;
 use Amp\Websocket\Connection;
 use Amp\Websocket\Message;
 use Amp\Deferred;
+use Amp\Websocket\Options;
 use Psr\Log\LoggerInterface;
 
 class Browser extends EventEmitter
@@ -30,16 +31,22 @@ class Browser extends EventEmitter
     /** @var LoggerInterface */
     private $logger;
 
+    private $options;
+
     public function __construct(string $endpoint, LoggerInterface $logger)
     {
         $this->endpoint = $endpoint;
         $this->logger = $logger;
+        $this->options = (new Options())
+            ->withMaximumMessageSize(32 * 1024 * 1024) // 32MB
+            ->withMaximumFrameSize(32 * 1024 * 1024) // 32MB
+            ->withValidateUtf8(true);
     }
 
     public function connect()
     {
         return \Amp\call(function () {
-            $this->connection = yield connect($this->endpoint);
+            $this->connection = yield connect($this->endpoint, null, null, $this->options);
             $this->loop();
         });
     }

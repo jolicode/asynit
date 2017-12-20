@@ -33,6 +33,15 @@ class EventEmitter
         return $id;
     }
 
+    public function onOneTime(string $eventName, \Closure $callback)
+    {
+        $eventId = $this->on($eventName, function ($event) use ($callback, &$eventId) {
+            if ($callback($event)) {
+                $this->remove($eventId);
+            }
+        });
+    }
+
     public function remove($event)
     {
         if ($event instanceof \Closure) {

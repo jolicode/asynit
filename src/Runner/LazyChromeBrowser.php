@@ -37,9 +37,12 @@ class LazyChromeBrowser
     /** @var Mutex */
     private $loadLock;
 
-    public function __construct()
+    private $logger;
+
+    public function __construct($logger = null)
     {
         $this->loadLock = new LocalMutex();
+        $this->logger = $logger ?? new NullLogger();
     }
 
     protected function load(): Promise
@@ -65,7 +68,7 @@ class LazyChromeBrowser
                     "google-chrome-stable",
                     "--disable-gpu",
                     "--remote-debugging-port=9222",
-                    "about:blank"
+                    "--headless",
                 ]
             );
 
@@ -84,7 +87,7 @@ class LazyChromeBrowser
 
 
             $this->pid = yield $this->process->getPid();
-            $this->browser = new Browser($url, new NullLogger());
+            $this->browser = new Browser($url, $this->logger);
 
             yield $this->browser->connect();
 
@@ -130,6 +133,8 @@ class LazyChromeBrowser
             $this->process = null;
             $this->pid = null;
             $this->sessions = [];
+            $this->locks = [];
+            $this->mutex = [];
         }
     }
 }

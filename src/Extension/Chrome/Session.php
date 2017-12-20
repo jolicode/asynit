@@ -99,7 +99,11 @@ class Session extends EventEmitter
                 $frameTree = yield $this->send('Page.getResourceTree');
             }
 
-            return new Page($this, $frameTree['frameTree']);
+            $page = new Page($this, $frameTree['frameTree']);
+
+            yield $page->setViewport(1600, 1200);
+
+            return $page;
         });
     }
 }
