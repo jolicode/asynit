@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Asynit\Output;
 
@@ -24,7 +24,7 @@ class Count implements OutputInterface
      */
     public function outputFailure(Test $test, $debugOutput, $failure)
     {
-        $this->failed++;
+        ++$this->failed;
     }
 
     /**
@@ -32,7 +32,7 @@ class Count implements OutputInterface
      */
     public function outputSuccess(Test $test, $debugOutput)
     {
-        $this->succeed++;
+        ++$this->succeed;
     }
 
     /**
@@ -40,7 +40,7 @@ class Count implements OutputInterface
      */
     public function outputSkipped(Test $test, $debugOutput)
     {
-        $this->skipped++;
+        ++$this->skipped;
     }
 
     /**

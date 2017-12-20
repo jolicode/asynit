@@ -15,6 +15,7 @@ class Application extends BaseApplication
     {
         return 'run';
     }
+
     /**
      * {@inheritdoc}
      */
@@ -25,6 +26,7 @@ class Application extends BaseApplication
 
         return $defaultCommands;
     }
+
     /**
      * {@inheritdoc}
      */

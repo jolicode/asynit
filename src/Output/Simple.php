@@ -3,7 +3,6 @@
 namespace Asynit\Output;
 
 use Asynit\Test;
-use Symfony\Component\Console\Formatter\OutputFormatterStyle;
 
 class Simple implements OutputInterface
 {

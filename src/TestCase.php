@@ -4,7 +4,6 @@ namespace Asynit;
 
 use Amp\Artax\Client;
 use Amp\Artax\DefaultClient;
-use Amp\Artax\Response;
 use Amp\Parallel\Sync\Lock;
 use Amp\Parallel\Sync\Semaphore;
 use Amp\Promise;
@@ -62,7 +61,7 @@ class TestCase
      */
     final protected function sendRequest(RequestInterface $request): Promise
     {
-        return \Amp\call(function () use($request) {
+        return \Amp\call(function () use ($request) {
             /** @var Lock $lock */
             $lock = yield $this->semaphore->acquire();
             $response = yield $this->client->sendAsyncRequest($request);
@@ -85,6 +84,7 @@ class TestCase
     {
         return $this->sendRequest($this->messageFactory->createRequest('GET', $uri, $headers, $body, $version));
     }
+
     /**
      * @param        $uri
      * @param array  $headers

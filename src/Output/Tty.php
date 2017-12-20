@@ -22,7 +22,7 @@ class Tty extends Simple
 
         $this->setTerminalSize();
 
-        if (\extension_loaded("pcntl")) {
+        if (\extension_loaded('pcntl')) {
             Loop::onSignal(SIGWINCH, function () {
                 $this->setTerminalSize();
             });
@@ -30,7 +30,7 @@ class Tty extends Simple
     }
 
     /**
-     * Set the terminal size by using stty -a
+     * Set the terminal size by using stty -a.
      */
     protected function setTerminalSize()
     {
@@ -105,7 +105,7 @@ class Tty extends Simple
         $lines = $testOutput->getOutput();
 
         foreach ($lines as $key => $debugOutput) {
-            fwrite(STDOUT, "\r\e[K" . $debugOutput);
+            fwrite(STDOUT, "\r\e[K".$debugOutput);
 
             if (count($lines) > $key + 1) {
                 fwrite(STDOUT, "\n");

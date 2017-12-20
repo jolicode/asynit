@@ -27,7 +27,6 @@ class TestWorkflow
         $this->output->outputStep($test, $debugOutput);
     }
 
-
     public function markTestAsSuccess(Test $test)
     {
         if ($test->isCompleted()) {

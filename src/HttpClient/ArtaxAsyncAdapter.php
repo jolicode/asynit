@@ -2,7 +2,6 @@
 
 namespace Asynit\HttpClient;
 
-
 use Amp\Artax;
 use Amp\CancellationTokenSource;
 use Http\Client\Exception\RequestException;

@@ -31,14 +31,14 @@ class PoolRunner
 
     public function loop(Pool $pool)
     {
-        return \Amp\call(function () use($pool) {
+        return \Amp\call(function () use ($pool) {
             ob_start();
             $promises = [];
 
             while (!$pool->isEmpty()) {
                 $test = $pool->getTestToRun();
 
-                if ($test === null) {
+                if (null === $test) {
                     yield \Amp\Promise\first($promises);
 
                     continue;
@@ -59,7 +59,7 @@ class PoolRunner
 
     protected function run(Test $test): Promise
     {
-        return \Amp\call(function () use($test) {
+        return \Amp\call(function () use ($test) {
             $this->workflow->markTestAsRunning($test);
 
             $testCase = $this->getTestObject($test);
@@ -69,7 +69,7 @@ class PoolRunner
             $args = $test->getArguments();
 
             try {
-                $result = yield \Amp\call(function () use($testCase, $method, $args) { return $testCase->$method(...$args); });
+                $result = yield \Amp\call(function () use ($testCase, $method, $args) { return $testCase->$method(...$args); });
 
                 foreach ($test->getChildren() as $childTest) {
                     $childTest->addArgument($result, $test);

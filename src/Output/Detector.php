@@ -2,8 +2,6 @@
 
 namespace Asynit\Output;
 
-use React\EventLoop\LoopInterface;
-
 /**
  * Allow to detect current environment and choose an way of output that correspond.
  */

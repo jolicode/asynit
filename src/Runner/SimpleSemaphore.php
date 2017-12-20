@@ -32,6 +32,7 @@ class SimpleSemaphore implements Semaphore
         } else {
             $this->queue[] = $deferred;
         }
+
         return $deferred->promise();
     }
 

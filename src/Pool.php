@@ -2,9 +2,6 @@
 
 namespace Asynit;
 
-use Amp\Promise;
-use Asynit\Runner\FutureHttp;
-use Asynit\Runner\FutureHttpPool;
 use Doctrine\Common\Collections\ArrayCollection;
 
 /**
@@ -12,7 +9,7 @@ use Doctrine\Common\Collections\ArrayCollection;
  */
 class Pool
 {
-    /** @var Test[]|ArrayCollection  */
+    /** @var Test[]|ArrayCollection */
     private $tests;
 
     public function __construct()
@@ -32,9 +29,9 @@ class Pool
 
     public function isEmpty(): bool
     {
-        return $this->tests->filter(function (Test $test) {
+        return 0 === $this->tests->filter(function (Test $test) {
             return !$test->isCompleted();
-        })->count() === 0;
+        })->count();
     }
 
     public function getTests()

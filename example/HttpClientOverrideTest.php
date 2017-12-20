@@ -7,7 +7,7 @@ class HttpClientOverrideTest extends \Asynit\TestCase
         $uri = (new \Http\Message\UriFactory\GuzzleUriFactory())->createUri('http://httpbin.org');
 
         return new \Http\Client\Common\PluginClient($asyncClient, [
-            new \Http\Client\Common\Plugin\BaseUriPlugin($uri)
+            new \Http\Client\Common\Plugin\BaseUriPlugin($uri),
         ]);
     }
 

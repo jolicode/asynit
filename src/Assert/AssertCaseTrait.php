@@ -54,9 +54,9 @@ trait AssertCaseTrait
     /**
      * Asserts that an array has a specified key.
      *
-     * @param mixed             $key
+     * @param mixed              $key
      * @param array|\ArrayAccess $array
-     * @param string            $message
+     * @param string             $message
      */
     public function assertArrayHasKey($key, $array, $message = null)
     {
@@ -66,9 +66,9 @@ trait AssertCaseTrait
     /**
      * Asserts that an array does not have a specified key.
      *
-     * @param mixed             $key
+     * @param mixed              $key
      * @param array|\ArrayAccess $array
-     * @param string            $message
+     * @param string             $message
      */
     public function assertArrayNotHasKey($key, $array, $message = null)
     {
@@ -110,10 +110,11 @@ trait AssertCaseTrait
     /**
      * Asserts that a haystack contains only values of a given type.
      *
-     * @param  string             $type
-     * @param  array|\Traversable  $haystack
-     * @param  bool               $isNativeType
-     * @param  string             $message
+     * @param string             $type
+     * @param array|\Traversable $haystack
+     * @param bool               $isNativeType
+     * @param string             $message
+     *
      * @since  1.1.0
      */
     public function assertContainsOnly($type, $haystack, $isNativeType = null, $message = null)
@@ -130,11 +131,12 @@ trait AssertCaseTrait
     }
 
     /**
-     * Asserts that a haystack contains only instances of a given classname
+     * Asserts that a haystack contains only instances of a given classname.
      *
-     * @param  string            $classname
-     * @param  array|\Traversable $haystack
-     * @param  string            $message
+     * @param string             $classname
+     * @param array|\Traversable $haystack
+     * @param string             $message
+     *
      * @since  1.1.0
      */
     public function assertContainsOnlyInstancesOf($classname, $haystack, $message = null)
@@ -145,10 +147,11 @@ trait AssertCaseTrait
     /**
      * Asserts that a haystack does not contain only values of a given type.
      *
-     * @param  string             $type
-     * @param  array|\Traversable  $haystack
-     * @param  bool               $isNativeType
-     * @param  string             $message
+     * @param string             $type
+     * @param array|\Traversable $haystack
+     * @param bool               $isNativeType
+     * @param string             $message
+     *
      * @since  1.1.0
      */
     public function assertNotContainsOnly($type, $haystack, $isNativeType = null, $message = null)
@@ -359,8 +362,8 @@ trait AssertCaseTrait
     /**
      * Asserts that a variable is finite.
      *
-     * @param  mixed   $actual
-     * @param  string  $message
+     * @param mixed  $actual
+     * @param string $message
      */
     public function assertFinite($actual, $message = null)
     {
@@ -370,8 +373,8 @@ trait AssertCaseTrait
     /**
      * Asserts that a variable is infinite.
      *
-     * @param  mixed   $actual
-     * @param  string  $message
+     * @param mixed  $actual
+     * @param string $message
      */
     public function assertInfinite($actual, $message = null)
     {
@@ -381,8 +384,8 @@ trait AssertCaseTrait
     /**
      * Asserts that a variable is nan.
      *
-     * @param  mixed   $actual
-     * @param  string  $message
+     * @param mixed  $actual
+     * @param string $message
      */
     public function assertNan($actual, $message = null)
     {
@@ -492,9 +495,9 @@ trait AssertCaseTrait
     /**
      * Asserts that a string starts with a given prefix.
      *
-     * @param  string  $prefix
-     * @param  string  $string
-     * @param  string  $message
+     * @param string $prefix
+     * @param string $string
+     * @param string $message
      */
     public function assertStringStartsWith($prefix, $string, $message = null)
     {
@@ -504,9 +507,9 @@ trait AssertCaseTrait
     /**
      * Asserts that a string starts not with a given prefix.
      *
-     * @param  string  $prefix
-     * @param  string  $string
-     * @param  string  $message
+     * @param string $prefix
+     * @param string $string
+     * @param string $message
      */
     public function assertStringStartsNotWith($prefix, $string, $message = null)
     {
@@ -516,9 +519,9 @@ trait AssertCaseTrait
     /**
      * Asserts that a string ends with a given suffix.
      *
-     * @param  string  $suffix
-     * @param  string  $string
-     * @param  string  $message
+     * @param string $suffix
+     * @param string $string
+     * @param string $message
      */
     public function assertStringEndsWith($suffix, $string, $message = null)
     {
@@ -528,9 +531,9 @@ trait AssertCaseTrait
     /**
      * Asserts that a string ends not with a given suffix.
      *
-     * @param  string  $suffix
-     * @param  string  $string
-     * @param  string  $message
+     * @param string $suffix
+     * @param string $string
+     * @param string $message
      */
     public function assertStringEndsNotWith($suffix, $string, $message = null)
     {
@@ -550,7 +553,7 @@ trait AssertCaseTrait
             ->evaluate(counting(Predicate::castFrom($predicate)), $description);
     }
 
-    private static function isNativeType($type) : bool
+    private static function isNativeType($type): bool
     {
         return \in_array(
             $type,
@@ -566,7 +569,7 @@ trait AssertCaseTrait
                 'array',
                 'object',
                 'resource',
-                'scalar'
+                'scalar',
             ],
             true
         );

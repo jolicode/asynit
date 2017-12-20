@@ -2,10 +2,6 @@
 
 namespace Asynit;
 
-use Asynit\Runner\FutureHttp;
-use Asynit\Runner\FutureHttpPool;
-use Http\Client\HttpAsyncClient;
-
 /**
  * A test.
  */
@@ -56,12 +52,12 @@ class Test
 
     public function isRunning(): bool
     {
-        return $this->state === self::STATE_RUNNING;
+        return self::STATE_RUNNING === $this->state;
     }
 
     public function isPending(): bool
     {
-        return $this->state === self::STATE_PENDING;
+        return self::STATE_PENDING === $this->state;
     }
 
     public function canBeRun(): bool

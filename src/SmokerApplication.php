@@ -2,7 +2,6 @@
 
 namespace Asynit;
 
-use Asynit\Command\Run;
 use Asynit\Command\SmokerRun;
 use Symfony\Component\Console\Application as BaseApplication;
 use Symfony\Component\Console\Input\InputInterface;
@@ -16,6 +15,7 @@ class SmokerApplication extends BaseApplication
     {
         return 'smoke';
     }
+
     /**
      * {@inheritdoc}
      */
@@ -26,6 +26,7 @@ class SmokerApplication extends BaseApplication
 
         return $defaultCommands;
     }
+
     /**
      * {@inheritdoc}
      */
