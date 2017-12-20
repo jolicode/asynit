@@ -1,14 +1,23 @@
 #!/usr/bin/env php
 <?php
 
+use Asynit\Command\AsynitCommand;
+use Doctrine\Common\Annotations\AnnotationRegistry;
+use Symfony\Component\Console\Application;
+
 if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
     $loader = require(__DIR__ . '/../vendor/autoload.php');
 } elseif (file_exists(__DIR__ . '/../../../../vendor/autoload.php')) {
     $loader = require(__DIR__ . '/../../../../vendor/autoload.php');
 } else {
-    throw new \Exception('Unable to load autoloader');
+    throw new \RuntimeException('Unable to load autoloader.');
 }
 
-\Doctrine\Common\Annotations\AnnotationRegistry::registerLoader([$loader, 'loadClass']);
+AnnotationRegistry::registerLoader([$loader, 'loadClass']);
 
-return (new \Asynit\SmokerApplication())->run();
+(new Application('smoke'))
+    ->add(new SmokerCommand())
+    ->getApplication()
+    ->setDefaultCommand('smoke', true)
+    ->run()
+;

@@ -18,7 +18,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class SmokerRun extends Command
+class SmokerCommand extends Command
 {
     /**
      * {@inheritdoc}
@@ -42,7 +42,7 @@ class SmokerRun extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         // Build the client
-        list($chainOutput, $countOutput) = Factory::createOutput($input->getOption('tty'), $input->getOption('no-tty'));
+        list($chainOutput, $countOutput) = (new OuputFactory())::buildOutput($input->getOption('tty'), $input->getOption('no-tty'));
 
         $parser = new SmokeParser();
         $builder = new TestPoolBuilder(new AnnotationReader());

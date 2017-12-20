@@ -6,29 +6,26 @@ use Asynit\Test;
 use Asynit\TestCase;
 use Symfony\Component\Finder\Finder;
 
-class Discovery
+class TestsFinder
 {
-    public function discover(string $path): array
+    public function findTests(string $path): array
     {
         if (\is_file($path)) {
-            return $this->doDiscover([$path]);
+            return $this->doFindTests([$path]);
         }
 
-        $finder = new Finder();
-        $finder
+        $finder = Finder::create()
             ->files()
             ->name('*.php')
             ->in($path)
         ;
 
-        return $this->doDiscover($finder);
+        return $this->doFindTests($finder);
     }
 
-    protected function doDiscover($fileIterator): array
+    private function doFindTests($files): array
     {
-        $methods = [];
-
-        foreach ($fileIterator as $file) {
+        foreach ($files as $file) {
             $existingClasses = get_declared_classes();
             $path = $file;
 
@@ -41,13 +38,17 @@ class Discovery
             $newClasses = array_diff(get_declared_classes(), $existingClasses);
 
             foreach ($newClasses as $class) {
-                if (is_subclass_of($class, TestCase::class)) {
-                    foreach (get_class_methods($class) as $method) {
-                        if (preg_match('/^test(.+)$/', $method)) {
-                            $test = new Test(new \ReflectionMethod($class, $method));
-                            $methods[$test->getIdentifier()] = $test;
-                        }
+                if (!is_subclass_of($class, TestCase::class)) {
+                    continue;
+                }
+
+                foreach (get_class_methods($class) as $method) {
+                    if (!preg_match('/^test(.+)$/', $method)) {
+                        continue;
                     }
+
+                    $test = new Test(new \ReflectionMethod($class, $method));
+                    $methods[$test->getIdentifier()] = $test;
                 }
             }
         }
