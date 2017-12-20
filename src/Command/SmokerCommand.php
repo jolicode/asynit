@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Asynit\Command;
 
 use Amp\Loop;
-use Asynit\Factory;
 use Asynit\Parser\SmokeParser;
 use Asynit\Parser\TestPoolBuilder;
 use Asynit\Runner\PoolRunner;

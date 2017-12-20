@@ -68,7 +68,7 @@ class Assertion extends BaseAssertion
 
             $file = ltrim(str_replace(getcwd(), '', $call['file']), '/');
 
-            $message .= sprintf(" in %s:%d", $file, $call['line']);
+            $message .= sprintf(' in %s:%d', $file, $call['line']);
 
             throw new AssertionFailure($message);
         }
