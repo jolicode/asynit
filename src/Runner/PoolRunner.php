@@ -3,6 +3,7 @@
 namespace Asynit\Runner;
 
 use Amp\Loop;
+use Amp\Sync\LocalSemaphore;
 use Amp\Sync\Semaphore;
 use Amp\Promise;
 use Asynit\Test;
@@ -26,7 +27,7 @@ class PoolRunner
     {
         $this->requestFactory = $requestFactory;
         $this->workflow = $workflow;
-        $this->semaphore = new SimpleSemaphore($concurrency);
+        $this->semaphore = new LocalSemaphore($concurrency);
     }
 
     public function loop(Pool $pool)
