@@ -16,7 +16,7 @@ class HttpClientOverrideTest extends TestCase
         $uri = (new GuzzleUriFactory())->createUri('http://127.0.0.1:8081');
 
         return new PluginClient($asyncClient, [
-            new BaseUriPlugin($uri)
+            new BaseUriPlugin($uri),
         ]);
     }
 

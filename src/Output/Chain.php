@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Asynit\Output;
 
@@ -12,7 +12,7 @@ class Chain implements OutputInterface
     private $outputs = [];
 
     /**
-     * Add output to the chain
+     * Add output to the chain.
      *
      * @param OutputInterface $output
      */

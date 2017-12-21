@@ -13,14 +13,14 @@ use SebastianBergmann\Exporter\Exporter;
 class Assertion extends BaseAssertion
 {
     /**
-     * value to do the assertion on
+     * value to do the assertion on.
      *
-     * @type  mixed
+     * @var mixed
      */
     private $value;
 
     /**
-     * @type  \SebastianBergmann\Exporter\Exporter
+     * @var \SebastianBergmann\Exporter\Exporter
      */
     private $exporter;
 
@@ -30,10 +30,10 @@ class Assertion extends BaseAssertion
     private $test;
 
     /**
-     * constructor
+     * constructor.
      *
-     * @param  mixed                                 $value
-     * @param  \SebastianBergmann\Exporter\Exporter  $exporter
+     * @param mixed                                $value
+     * @param \SebastianBergmann\Exporter\Exporter $exporter
      */
     public function __construct($value, Exporter $exporter, Test $test)
     {
@@ -68,7 +68,7 @@ class Assertion extends BaseAssertion
 
             $file = ltrim(str_replace(getcwd(), '', $call['file']), '/');
 
-            $message .= sprintf(" in %s:%d", $file, $call['line']);
+            $message .= sprintf(' in %s:%d', $file, $call['line']);
 
             throw new AssertionFailure($message);
         }
@@ -79,11 +79,12 @@ class Assertion extends BaseAssertion
     }
 
     /**
-     * creates failure description when value failed the test with given predicate
+     * creates failure description when value failed the test with given predicate.
      *
-     * @param   \bovigo\assert\predicate\Predicate  $predicate    predicate that failed
-     * @param   string                              $description  additional description for failure message
-     * @return  string
+     * @param \bovigo\assert\predicate\Predicate $predicate   predicate that failed
+     * @param string                             $description additional description for failure message
+     *
+     * @return string
      */
     private function describeSuccess(Predicate $predicate, string $description = null): string
     {
@@ -96,7 +97,7 @@ class Assertion extends BaseAssertion
             'Asserting that %s %s%s',
             $predicate->describeValue($this->exporter, $this->value),
             $predicateText,
-            strpos($predicateText, "\n") !== false ? '' : '.'
+            false !== strpos($predicateText, "\n") ? '' : '.'
         );
 
         return $description;

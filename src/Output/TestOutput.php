@@ -27,7 +27,7 @@ class TestOutput
 
     public function decrementIndex()
     {
-        $this->index--;
+        --$this->index;
     }
 
     /**
@@ -63,7 +63,7 @@ class TestOutput
     }
 
     /**
-     * Get the size of the output given a terminal size
+     * Get the size of the output given a terminal size.
      *
      * @param $columns
      *
@@ -102,7 +102,7 @@ class TestOutput
      */
     public function getOutput()
     {
-        $message = $this->message . $this->debugOutput;
+        $message = $this->message.$this->debugOutput;
 
         return preg_split('/\n|\r/', $message);
     }
@@ -110,7 +110,7 @@ class TestOutput
     protected function getDisplayLength(string $text)
     {
         $parsed = preg_replace('#\\x1b[[][^A-Za-z]*[A-Za-z]#', '', $text);
-        $parsed = str_replace("\t", "        ", $parsed);
+        $parsed = str_replace("\t", '        ', $parsed);
 
         return strlen($parsed);
     }

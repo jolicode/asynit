@@ -3,7 +3,8 @@
 namespace Asynit\Runner;
 
 use Amp\Loop;
-use Amp\Parallel\Sync\Semaphore;
+use Amp\Sync\LocalSemaphore;
+use Amp\Sync\Semaphore;
 use Amp\Promise;
 use Asynit\Test;
 use Asynit\TestCase;
@@ -26,19 +27,19 @@ class PoolRunner
     {
         $this->requestFactory = $requestFactory;
         $this->workflow = $workflow;
-        $this->semaphore = new SimpleSemaphore($concurrency);
+        $this->semaphore = new LocalSemaphore($concurrency);
     }
 
     public function loop(Pool $pool)
     {
-        return \Amp\call(function () use($pool) {
+        return \Amp\call(function () use ($pool) {
             ob_start();
             $promises = [];
 
             while (!$pool->isEmpty()) {
                 $test = $pool->getTestToRun();
 
-                if ($test === null) {
+                if (null === $test) {
                     yield \Amp\Promise\first($promises);
 
                     continue;
@@ -59,17 +60,17 @@ class PoolRunner
 
     protected function run(Test $test): Promise
     {
-        return \Amp\call(function () use($test) {
-            $this->workflow->markTestAsRunning($test);
-
-            $testCase = $this->getTestObject($test);
-            $testCase->initialize();
-
-            $method = $test->getMethod()->getName();
-            $args = $test->getArguments();
-
+        return \Amp\call(function () use ($test) {
             try {
-                $result = yield \Amp\call(function () use($testCase, $method, $args) { return $testCase->$method(...$args); });
+                $this->workflow->markTestAsRunning($test);
+
+                $testCase = $this->getTestObject($test);
+                $testCase->initialize();
+
+                $method = $test->getMethod()->getName();
+                $args = $test->getArguments();
+
+                $result = yield \Amp\call(function () use ($testCase, $method, $args) { return $testCase->$method(...$args); });
 
                 foreach ($test->getChildren() as $childTest) {
                     $childTest->addArgument($result, $test);

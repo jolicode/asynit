@@ -65,7 +65,7 @@ class Formatter
 
     private function createAssertionMessage(Test $test)
     {
-        $text = "";
+        $text = '';
 
         foreach ($test->getAssertions() as $assertion) {
             $text .= sprintf("\n\t\u{2714} %s", $assertion);
