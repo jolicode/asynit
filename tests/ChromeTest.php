@@ -7,6 +7,7 @@ namespace Asynit\Tests;
 use Asynit\Annotation\ChromeTab;
 use Asynit\TestCase;
 use Psr\Http\Message\ResponseInterface;
+use Symfony\Component\DomCrawler\Crawler;
 
 class ChromeTest extends TestCase
 {
@@ -20,11 +21,11 @@ class ChromeTest extends TestCase
         /** @var ResponseInterface $response */
         $response = yield $client->request('https://jolicode.com/');
         /** @var \Symfony\Component\DomCrawler\Crawler $crawler */
-        $crawler = yield $client->getCrawler();
+        $crawler = new Crawler((string) $response->getBody());
+        $title = $crawler->filter('body > header > div > h1');
 
-        $title = $crawler->filter('body > header > div > h1')->text();
 
         $this->assertStatusCode(200, $response);
-        $this->assertContains('Envie de goodies', $title);
+        $this->assertContains('Envie de goodies', $title->text());
     }
 }

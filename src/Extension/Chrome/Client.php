@@ -23,30 +23,24 @@ class Client
     public function request($url): Promise
     {
         return call(function () use ($url) {
-            $responseData =  yield $this->tab->navigate($url);
+            $body = null;
+
+            $responseData = yield $this->tab->navigate($url);
+            $evaluateData = yield $this->evaluate('document.documentElement.outerHTML');
+
+            if (array_key_exists('result', $evaluateData) && array_key_exists('value', $evaluateData['result'])) {
+                $body = $evaluateData['result']['value'];
+            }
 
             $response = $this->responseFactory->createResponse(
                 $responseData['status'],
                 $responseData['statusText'],
                 $responseData['headers'],
-                null,
+                $body,
                 $responseData['protocol']
             );
 
             return $response;
-        });
-    }
-
-    public function getCrawler(): Promise
-    {
-        return call(function () {
-            $evaluateData = yield $this->evaluate('document.documentElement.outerHTML');
-
-            if (array_key_exists('result', $evaluateData) && array_key_exists('value', $evaluateData['result'])) {
-                return new Crawler($evaluateData['result']['value']);
-            }
-
-            throw new \RuntimeException('Cannot get crawler for the current page');
         });
     }
 
