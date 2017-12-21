@@ -3,7 +3,7 @@
 namespace Asynit\Runner;
 
 use Amp\Loop;
-use Amp\Parallel\Sync\Semaphore;
+use Amp\Sync\Semaphore;
 use Amp\Promise;
 use Asynit\Test;
 use Asynit\TestCase;

@@ -2,10 +2,9 @@
 
 namespace Asynit;
 
-use Amp\Artax\Client;
 use Amp\Artax\DefaultClient;
-use Amp\Parallel\Sync\Lock;
-use Amp\Parallel\Sync\Semaphore;
+use Amp\Sync\Lock;
+use Amp\Sync\Semaphore;
 use Amp\Promise;
 use Asynit\Assert\AssertWebCaseTrait;
 use Asynit\HttpClient\ArtaxAsyncAdapter;

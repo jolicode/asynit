@@ -3,8 +3,8 @@
 namespace Asynit\Runner;
 
 use Amp\Deferred;
-use Amp\Parallel\Sync\Lock;
-use Amp\Parallel\Sync\Semaphore;
+use Amp\Sync\Lock;
+use Amp\Sync\Semaphore;
 use Amp\Promise;
 
 /**
@@ -40,7 +40,7 @@ class SimpleSemaphore implements Semaphore
     {
         ++$this->locks;
 
-        return new Lock(function () {
+        return new Lock(0, function () {
             --$this->locks;
 
             if ($this->queue) {
