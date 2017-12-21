@@ -6,21 +6,21 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 $logger = new \Symfony\Component\Console\Logger\ConsoleLogger(
     new \Symfony\Component\Console\Output\ConsoleOutput(
-\Symfony\Component\Console\Output\OutputInterface::VERBOSITY_NORMAL
+\Symfony\Component\Console\Output\OutputInterface::VERBOSITY_DEBUG
     )
 );
 
-$browser = new \Asynit\Runner\LazyChromeBrowser($logger);
+$browser = new \Asynit\Runner\LazyChromeBrowser('/usr/bin/chromium',null, $logger);
 
 try {
     \Amp\Loop::run(function () use($browser) {
         \Amp\asyncCall(function () use($browser) {
             try {
-                /** @var \Asynit\Extension\Chrome\Session $session */
+                /** @var \Asynit\Extension\Chrome\Target $session */
                 $session = yield $browser->getSession('test');
 
-                /** @var \Asynit\Extension\Chrome\Page $page */
-                $page = yield $session->createPage();
+                /** @var \Asynit\Extension\Chrome\Tab $page */
+                $page = yield $session->createTab();
                 yield $page->navigate('https://www.afflelou.com/');
                 yield $page->evaluate('document.documentElement.outerHTML');
 

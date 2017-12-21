@@ -8,7 +8,10 @@ use Amp\Deferred;
 use Amp\Promise;
 use Psr\Log\LoggerInterface;
 
-class Session extends EventEmitter
+/**
+ * Internal class that allows to communicate with a specific target (tab)
+ */
+class Target extends EventEmitter
 {
     private $browser;
 
@@ -81,7 +84,7 @@ class Session extends EventEmitter
         return $deffered->promise();
     }
 
-    public function createPage(): Promise
+    public function createTab(): Promise
     {
         return \Amp\call(function () {
             yield $this->send('Page.enable');
@@ -99,11 +102,12 @@ class Session extends EventEmitter
                 $frameTree = yield $this->send('Page.getResourceTree');
             }
 
-            $page = new Page($this, $frameTree['frameTree']);
+            $tab = new Tab($this, $frameTree['frameTree']);
 
-            yield $page->setViewport(1600, 1200);
+            // @TODO Need to allow user to set a custom default viewport
+            yield $tab->setViewport(1600, 1200);
 
-            return $page;
+            return $tab;
         });
     }
 }

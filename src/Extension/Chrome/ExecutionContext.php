@@ -8,7 +8,7 @@ use Amp\Promise;
 
 class ExecutionContext
 {
-    private $session;
+    private $target;
 
     private $id;
 
@@ -16,9 +16,9 @@ class ExecutionContext
 
     private $frameId;
 
-    public function __construct(Session $session, $context)
+    public function __construct(Target $target, $context)
     {
-        $this->session = $session;
+        $this->target = $target;
         $this->id = $context['id'];
         $this->isDefault = true;
 
@@ -46,7 +46,7 @@ class ExecutionContext
     public function evaluate($expression): Promise
     {
         return \Amp\call(function () use ($expression) {
-            $evaluateResponse = yield $this->session->send('Runtime.evaluate', [
+            $evaluateResponse = yield $this->target->send('Runtime.evaluate', [
                 'expression' => $expression,
                 'contextId' => $this->id,
                 'returnByValue' => false,

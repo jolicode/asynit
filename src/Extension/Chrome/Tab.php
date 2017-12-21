@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace Asynit\Extension\Chrome;
 
-use function Amp\asyncCall;
 use function Amp\call;
 use Amp\Deferred;
-use Amp\LazyPromise;
 use Amp\Promise;
 
-class Page
+/**
+ * Represent a chrome tab (page)
+ */
+class Tab
 {
-    private $session;
+    private $target;
 
     private $networkManager;
 
@@ -22,22 +23,22 @@ class Page
 
     private $loadTime;
 
-    public function __construct(Session $session, $frameTree)
+    public function __construct(Target $target, $frameTree)
     {
-        $this->session = $session;
+        $this->target = $target;
 
-        $this->networkManager = new NetworkManager($session);
-        $this->frameManager = new FrameManager($session, $frameTree, $this);
+        $this->networkManager = new NetworkManager($target);
+        $this->frameManager = new FrameManager($target, $frameTree, $this);
         $this->loadFired = new Deferred();
 
-        $this->session->on('Runtime.consoleAPICalled', (new \ReflectionMethod($this, 'onConsoleAPI'))->getClosure($this));
-        $this->session->on('Page.javascriptDialogOpening', (new \ReflectionMethod($this, 'onDialog'))->getClosure($this));
-        $this->session->on('Runtime.exceptionThrown', (new \ReflectionMethod($this, 'onExceptionThrown'))->getClosure($this));
-        $this->session->on('Security.certificateError', (new \ReflectionMethod($this, 'onCertificateError'))->getClosure($this));
-        $this->session->on('Inspector.targetCrashed', (new \ReflectionMethod($this, 'onTargetCrashed'))->getClosure($this));
-        $this->session->on('Performance.metrics', (new \ReflectionMethod($this, 'onMetrics'))->getClosure($this));
+        $this->target->on('Runtime.consoleAPICalled', (new \ReflectionMethod($this, 'onConsoleAPI'))->getClosure($this));
+        $this->target->on('Page.javascriptDialogOpening', (new \ReflectionMethod($this, 'onDialog'))->getClosure($this));
+        $this->target->on('Runtime.exceptionThrown', (new \ReflectionMethod($this, 'onExceptionThrown'))->getClosure($this));
+        $this->target->on('Security.certificateError', (new \ReflectionMethod($this, 'onCertificateError'))->getClosure($this));
+        $this->target->on('Inspector.targetCrashed', (new \ReflectionMethod($this, 'onTargetCrashed'))->getClosure($this));
+        $this->target->on('Performance.metrics', (new \ReflectionMethod($this, 'onMetrics'))->getClosure($this));
 
-        $this->session->onOneTime('Page.loadEventFired', function ($event) {
+        $this->target->onOneTime('Page.loadEventFired', function ($event) {
             $this->loadFired->resolve($event['timestamp']);
             $this->loadFired = null;
 
@@ -80,25 +81,25 @@ class Page
     {
     }
 
-    public function navigate(string $url)
+    public function navigate(string $url): Promise
     {
         $responses = [];
 
         $deferred = new Deferred();
 
         // First we receive response from the network (we can have redirection etc ...) each response is attached to a frame
-        $responseListener = $this->session->on('Network.responseReceived', function ($event) use (&$responses) {
+        $responseListener = $this->target->on('Network.responseReceived', function ($event) use (&$responses) {
             $responses[$event['frameId']] = $event['response'];
         });
 
         // Once the good response has been receive the frame will be navigated to it, so here we add an other listener, as we want the frame to be ready
         // Need more counter measure if we navigate too fast may be bloated here
         // Pupetter does a check on the url, but not on the passed one, more on the one attached to the frame (we use frameId, may be a bad idea)
-        $this->session->onOneTime('Page.frameNavigated', function ($event) use ($deferred, &$responses, &$responseListener, $url) {
+        $this->target->onOneTime('Page.frameNavigated', function ($event) use ($deferred, &$responses, &$responseListener, $url) {
             $frame = $event['frame'];
 
             if (array_key_exists($frame['id'], $responses)) {
-                $this->session->remove($responseListener);
+                $this->target->remove($responseListener);
                 $deferred->resolve($responses[$frame['id']]);
 
                 return true;
@@ -107,7 +108,7 @@ class Page
             return false;
         });
 
-        $this->session->send('Page.navigate', [
+        $this->target->send('Page.navigate', [
             'url' => $url
         ]);
 
@@ -135,7 +136,7 @@ class Page
             ];
 
             if ($fullPage) {
-                $metrics = yield $this->session->send('Page.getLayoutMetrics');
+                $metrics = yield $this->target->send('Page.getLayoutMetrics');
                 $clip = [
                     'width' => ceil($metrics['contentSize']['width']),
                     'height' => ceil($metrics['contentSize']['height']),
@@ -146,7 +147,7 @@ class Page
             }
 
             // @TODO Allow other options - We should have a view port object
-            yield $this->session->send('Emulation.setDeviceMetricsOverride', [
+            yield $this->target->send('Emulation.setDeviceMetricsOverride', [
                 'mobile' => false,
                 'width' => $clip['width'],
                 'height' => $clip['height'],
@@ -157,7 +158,7 @@ class Page
                 ],
             ]);
 
-            $screenData = yield $this->session->send('Page.captureScreenshot', [
+            $screenData = yield $this->target->send('Page.captureScreenshot', [
                 'format' => 'png',
                 'clip' => $clip,
             ]);
@@ -168,7 +169,7 @@ class Page
 
     public function getDom(): Promise
     {
-        return $this->session->send('DOM.getDocument');
+        return $this->target->send('DOM.getDocument');
     }
 
     public function setViewport(int $width, int $height, bool $isMobile = false, int $deviceScaleFactor = 1, bool $isLandscape = false, bool $enableTouch = false): Promise
@@ -183,14 +184,14 @@ class Page
             ];
 
             yield [
-                $this->session->send('Emulation.setDeviceMetricsOverride', [
+                $this->target->send('Emulation.setDeviceMetricsOverride', [
                     'mobile' => $isMobile,
                     'width' => $width,
                     'height' => $height,
                     'deviceScaleFactor' => $deviceScaleFactor,
                     'screenOrientation' => $screenOrientation
                 ]),
-                $this->session->send('Emulation.setTouchEmulationEnabled', [
+                $this->target->send('Emulation.setTouchEmulationEnabled', [
                     'enabled' => $enableTouch,
                     'configuration' => $isMobile ? 'mobile' : 'desktop',
                 ]),

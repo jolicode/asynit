@@ -9,32 +9,26 @@ use Amp\Promise;
 
 trait ChromeTestCaseTrait
 {
-    protected $session;
+    protected $target;
 
-    public function setSession(Session $session)
+    public function setTarget(Target $target)
     {
-        $this->session = $session;
+        $this->target = $target;
     }
 
-    public function getSession(): Session
+    private function getTarget(): Target
     {
-        if ($this->session === null) {
-            throw new \RuntimeException('No session available, please use the according annotation to have it');
+        if ($this->target === null) {
+            throw new \RuntimeException('No target available, please use the ChromeTab annotation to have it');
         }
 
-        return $this->session;
+        return $this->target;
     }
 
-    public function navigate($uri): Promise
+    public function createChromeClient(): Promise
     {
-        return call(function () use($uri) {
-            $session = $this->getSession();
-            /** @var page $page */
-            $page = yield $session->createPage();
-
-            yield $page->navigate($uri);
-
-            return $page;
+        return call(function () {
+            return new Client(yield $this->getTarget()->createTab());
         });
     }
 }

@@ -8,7 +8,7 @@ namespace Asynit\Annotation;
  * @Annotation
  * @Target({"METHOD"})
  */
-class ChromeSession
+class ChromeTab
 {
     private $name;
 

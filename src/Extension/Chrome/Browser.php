@@ -25,8 +25,8 @@ class Browser extends EventEmitter
     /** @var Deferred[] */
     private $registry = [];
 
-    /** @var Session[] */
-    private $sessions = [];
+    /** @var Target[] */
+    private $targets = [];
 
     /** @var LoggerInterface */
     private $logger;
@@ -126,7 +126,7 @@ class Browser extends EventEmitter
         return $deferred->promise();
     }
 
-    public function createSession(): Promise
+    public function createTarget(): Promise
     {
         return \Amp\call(function () {
             $targetData = yield $this->send('Target.createTarget', [
@@ -138,11 +138,11 @@ class Browser extends EventEmitter
                 'targetId' => $targetId
             ]);
 
-            $session = new Session($this, $targetId, $sessionData['sessionId'], $this->logger);
+            $target = new Target($this, $targetId, $sessionData['sessionId'], $this->logger);
 
-            $this->sessions[$sessionData['sessionId']] = $session;
+            $this->targets[$sessionData['sessionId']] = $target;
 
-            return $session;
+            return $target;
         });
     }
 }

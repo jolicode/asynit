@@ -6,17 +6,17 @@ namespace Asynit\Extension\Chrome;
 
 class NetworkManager
 {
-    private $session;
+    private $target;
 
-    public function __construct(Session $session)
+    public function __construct(Target $target)
     {
-        $this->session = $session;
+        $this->target = $target;
 
-        $this->session->on('Network.requestWillBeSent', (new \ReflectionMethod($this, 'onRequestWillBeSent'))->getClosure($this));
-        $this->session->on('Network.requestIntercepted', (new \ReflectionMethod($this, 'onRequestIntercepted'))->getClosure($this));
-        $this->session->on('Network.responseReceived', (new \ReflectionMethod($this, 'onResponseReceived'))->getClosure($this));
-        $this->session->on('Network.loadingFinished', (new \ReflectionMethod($this, 'onLoadingFinished'))->getClosure($this));
-        $this->session->on('Network.loadingFailed', (new \ReflectionMethod($this, 'onLoadingFailed'))->getClosure($this));
+        $this->target->on('Network.requestWillBeSent', (new \ReflectionMethod($this, 'onRequestWillBeSent'))->getClosure($this));
+        $this->target->on('Network.requestIntercepted', (new \ReflectionMethod($this, 'onRequestIntercepted'))->getClosure($this));
+        $this->target->on('Network.responseReceived', (new \ReflectionMethod($this, 'onResponseReceived'))->getClosure($this));
+        $this->target->on('Network.loadingFinished', (new \ReflectionMethod($this, 'onLoadingFinished'))->getClosure($this));
+        $this->target->on('Network.loadingFailed', (new \ReflectionMethod($this, 'onLoadingFailed'))->getClosure($this));
     }
 
     private function onRequestWillBeSent($event)

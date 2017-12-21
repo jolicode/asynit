@@ -6,7 +6,7 @@ namespace Asynit\Extension\Chrome;
 
 class FrameManager
 {
-    private $session;
+    private $target;
 
     /** @var Frame[] */
     private $frames = [];
@@ -14,20 +14,20 @@ class FrameManager
     /** @var Frame */
     private $mainFrame;
 
-    private $page;
+    private $tab;
 
-    public function __construct(Session $session, $frameTree, Page $page)
+    public function __construct(Target $target, $frameTree, Tab $tab)
     {
-        $this->session = $session;
-        $this->page = $page;
+        $this->target = $target;
+        $this->tab = $tab;
 
-        $this->session->on('Page.frameAttached', (new \ReflectionMethod($this, 'onFrameAttached'))->getClosure($this));
-        $this->session->on('Page.frameNavigated', (new \ReflectionMethod($this, 'onFrameNavigated'))->getClosure($this));
-        $this->session->on('Page.frameDetached', (new \ReflectionMethod($this, 'onFrameDetached'))->getClosure($this));
-        $this->session->on('Runtime.executionContextCreated', (new \ReflectionMethod($this, 'onExecutionContextCreated'))->getClosure($this));
-        $this->session->on('Runtime.executionContextDestroyed', (new \ReflectionMethod($this, 'onExecutionContextDestroyed'))->getClosure($this));
-        $this->session->on('Runtime.executionContextsCleared', (new \ReflectionMethod($this, 'onExecutionContextsCleared'))->getClosure($this));
-        $this->session->on('Page.lifecycleEvent', (new \ReflectionMethod($this, 'onLifecycleEvent'))->getClosure($this));
+        $this->target->on('Page.frameAttached', (new \ReflectionMethod($this, 'onFrameAttached'))->getClosure($this));
+        $this->target->on('Page.frameNavigated', (new \ReflectionMethod($this, 'onFrameNavigated'))->getClosure($this));
+        $this->target->on('Page.frameDetached', (new \ReflectionMethod($this, 'onFrameDetached'))->getClosure($this));
+        $this->target->on('Runtime.executionContextCreated', (new \ReflectionMethod($this, 'onExecutionContextCreated'))->getClosure($this));
+        $this->target->on('Runtime.executionContextDestroyed', (new \ReflectionMethod($this, 'onExecutionContextDestroyed'))->getClosure($this));
+        $this->target->on('Runtime.executionContextsCleared', (new \ReflectionMethod($this, 'onExecutionContextsCleared'))->getClosure($this));
+        $this->target->on('Page.lifecycleEvent', (new \ReflectionMethod($this, 'onLifecycleEvent'))->getClosure($this));
 
         $this->handleFrameTree($frameTree);
     }
@@ -64,7 +64,7 @@ class FrameManager
         }
 
         if ($isMainFrame) {
-            $this->mainFrame = new Frame($this->session, $this->page, $frameData['id']);
+            $this->mainFrame = new Frame($this->target, $this->tab, $frameData['id']);
             $this->frames[$frameData['id']] = $this->mainFrame;
         }
     }
@@ -76,7 +76,7 @@ class FrameManager
         }
 
         $parentFrame = $this->frames[$frameParentId];
-        $this->frames[$frameId] = new Frame($this->session, $this->page, $frameId, $parentFrame);
+        $this->frames[$frameId] = new Frame($this->target, $this->tab, $frameId, $parentFrame);
     }
 
     private function onFrameAttached($event)
@@ -96,7 +96,7 @@ class FrameManager
 
     private function onExecutionContextCreated($event)
     {
-        $context = new ExecutionContext($this->session, $event['context']);
+        $context = new ExecutionContext($this->target, $event['context']);
 
         if ($context->isDefault() && array_key_exists($context->getFrameId(), $this->frames)) {
             $frame = $this->frames[$context->getFrameId()];

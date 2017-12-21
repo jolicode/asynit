@@ -76,12 +76,12 @@ class PoolRunner
                 $method = $test->getMethod()->getName();
                 $args = $test->getArguments();
 
-                $result = yield \Amp\call(function () use ($testCase, $method, $args) { return $testCase->$method(...$args); });
-
                 if ($test->hasChromeSession()) {
                     $session = yield $this->lazyChromeBrowser->getSession($test->getChromeSession());
                     $testCase->setSession($session);
                 }
+
+                $result = yield \Amp\call(function () use ($testCase, $method, $args) { return $testCase->$method(...$args); });
 
                 foreach ($test->getChildren() as $childTest) {
                     $childTest->addArgument($result, $test);
@@ -92,7 +92,6 @@ class PoolRunner
                 $this->workflow->markTestAsFailed($test, $error);
             } finally {
                 if ($test->hasChromeSession()) {
-                    var_dump("release " . $test->getChromeSession());
                     $this->lazyChromeBrowser->releaseSession($test->getChromeSession());
                 }
             }

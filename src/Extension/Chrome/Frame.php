@@ -10,9 +10,9 @@ use Amp\Deferred;
 
 class Frame
 {
-    private $session;
+    private $target;
 
-    private $page;
+    private $tab;
 
     private $parentFrame;
 
@@ -22,10 +22,10 @@ class Frame
 
     private $executionContextDeferred;
 
-    public function __construct(Session $session, Page $page, $id, Frame $parentFrame = null)
+    public function __construct(Target $target, Tab $tab, $id, Frame $parentFrame = null)
     {
-        $this->session = $session;
-        $this->page = $page;
+        $this->target = $target;
+        $this->tab = $tab;
         $this->id = $id;
         $this->parentFrame = $parentFrame;
         $this->executionContextDeferred = new Deferred();

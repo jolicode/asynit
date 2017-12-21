@@ -2,7 +2,7 @@
 
 namespace Asynit\Parser;
 
-use Asynit\Annotation\ChromeSession;
+use Asynit\Annotation\ChromeTab;
 use Asynit\Annotation\Depend;
 use Asynit\Annotation\DisplayName;
 use Asynit\Test;
@@ -64,7 +64,7 @@ class TestPoolBuilder
                     $test->setDisplayName($annotation->getName());
                 }
 
-                if ($annotation instanceof ChromeSession) {
+                if ($annotation instanceof ChromeTab) {
                     $test->setChromeSession($annotation->getName());
                 }
             }

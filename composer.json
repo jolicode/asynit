@@ -32,15 +32,21 @@
         "amphp/sync": "^1.0",
         "amphp/websocket": "^0.2",
         "amphp/process": "^0.3",
+        "amphp/file": "^0.3",
         "bovigo/assert": "^2.1",
         "doctrine/annotations": "^1.2",
         "doctrine/collections": "^1.3",
         "guzzlehttp/psr7": "^1.4",
         "php-http/message": "^1.3",
         "php-http/client-common": "^1.4",
-        "symfony/console": "^3.2",
-        "symfony/finder": "^3.1",
-        "symfony/yaml": "^3.3"
+        "symfony/console": "^3.2 | ^4.0",
+        "symfony/finder": "^3.1 | ^4.0",
+        "symfony/yaml": "^3.3 | ^4.0",
+        "symfony/dom-crawler": "^3.3 | ^4.0",
+        "psr/log": "^1.0"
+    },
+    "require-dev": {
+        "symfony/css-selector": "^3.3 | ^4.0"
     },
     "prefer-stable": true
 }
