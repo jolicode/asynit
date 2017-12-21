@@ -60,15 +60,15 @@ class PoolRunner
     protected function run(Test $test): Promise
     {
         return \Amp\call(function () use ($test) {
-            $this->workflow->markTestAsRunning($test);
-
-            $testCase = $this->getTestObject($test);
-            $testCase->initialize();
-
-            $method = $test->getMethod()->getName();
-            $args = $test->getArguments();
-
             try {
+                $this->workflow->markTestAsRunning($test);
+
+                $testCase = $this->getTestObject($test);
+                $testCase->initialize();
+
+                $method = $test->getMethod()->getName();
+                $args = $test->getArguments();
+
                 $result = yield \Amp\call(function () use ($testCase, $method, $args) { return $testCase->$method(...$args); });
 
                 foreach ($test->getChildren() as $childTest) {
