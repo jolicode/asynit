@@ -6,6 +6,7 @@ use Amp\Loop;
 use Asynit\Output\OutputFactory;
 use Asynit\Parser\TestsFinder;
 use Asynit\Parser\TestPoolBuilder;
+use Asynit\Runner\LazyChromeBrowser;
 use Asynit\Runner\PoolRunner;
 use Asynit\TestWorkflow;
 use Doctrine\Common\Annotations\AnnotationReader;
@@ -14,6 +15,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Logger\ConsoleLogger;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class AsynitCommand extends Command
@@ -35,6 +37,7 @@ class AsynitCommand extends Command
             ->addOption('tty', null, InputOption::VALUE_NONE, 'Force to use tty output')
             ->addOption('no-tty', null, InputOption::VALUE_NONE, 'Force to use no tty output')
             ->addOption('concurrency', null, InputOption::VALUE_REQUIRED, 'Max number of parallels requests', 10)
+            ->addOption('chrome-binary', null, InputOption::VALUE_REQUIRED, 'Path to the chrome binary', null)
             ->addOption('bootstrap', null, InputOption::VALUE_REQUIRED, 'A PHP file to include before anything else', $this->defaultBootstrapFilename)
         ;
     }
@@ -56,7 +59,8 @@ class AsynitCommand extends Command
         // Build services for parsing and running tests
         $testsFinder = new TestsFinder();
         $builder = new TestPoolBuilder(new AnnotationReader());
-        $runner = new PoolRunner(new GuzzleMessageFactory(), new TestWorkflow($chainOutput), $input->getOption('concurrency'));
+        $browser = new LazyChromeBrowser($input->getOption('chrome-binary'), null, new ConsoleLogger($output));
+        $runner = new PoolRunner(new GuzzleMessageFactory(), new TestWorkflow($chainOutput), $browser, $input->getOption('concurrency'));
 
         // Build a list of tests from the directory
         $testMethods = $testsFinder->findTests($input->getArgument('target'));

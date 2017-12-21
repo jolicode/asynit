@@ -78,7 +78,7 @@ class PoolRunner
 
                 if ($test->hasChromeSession()) {
                     $session = yield $this->lazyChromeBrowser->getSession($test->getChromeSession());
-                    $testCase->setSession($session);
+                    $testCase->setTarget($session);
                 }
 
                 $result = yield \Amp\call(function () use ($testCase, $method, $args) { return $testCase->$method(...$args); });
