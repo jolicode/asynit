@@ -104,7 +104,7 @@ class Browser extends EventEmitter
         $deferred = new Deferred();
         $this->registry[$messageId] = $deferred;
 
-        \Amp\call(function () use($method, $params, $messageId) {
+        \Amp\asyncCall(function () use($method, $params, $messageId) {
             // Force {} for encoding
             if (empty($params)) {
                 $params = new \stdClass();
