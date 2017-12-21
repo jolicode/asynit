@@ -6,20 +6,35 @@ namespace Asynit\Extension\Chrome;
 
 use function Amp\call;
 use Amp\Promise;
+use Http\Message\MessageFactory\GuzzleMessageFactory;
+use Http\Message\ResponseFactory;
 use Symfony\Component\DomCrawler\Crawler;
 
 class Client
 {
     private $tab;
 
-    public function __construct(Tab $tab)
+    public function __construct(Tab $tab, ResponseFactory $responseFactory = null)
     {
         $this->tab = $tab;
+        $this->responseFactory = $responseFactory ?? new GuzzleMessageFactory();
     }
 
     public function request($url): Promise
     {
-        return $this->tab->navigate($url);
+        return call(function () use ($url) {
+            $responseData =  yield $this->tab->navigate($url);
+
+            $response = $this->responseFactory->createResponse(
+                $responseData['status'],
+                $responseData['statusText'],
+                $responseData['headers'],
+                null,
+                $responseData['protocol']
+            );
+
+            return $response;
+        });
     }
 
     public function getCrawler(): Promise
