@@ -65,7 +65,7 @@ class PoolRunner
                 $this->workflow->markTestAsRunning($test);
 
                 $testCase = $this->getTestObject($test);
-                $testCase->initialize();
+                yield $testCase->initialize();
 
                 $method = $test->getMethod()->getName();
                 $args = $test->getArguments();

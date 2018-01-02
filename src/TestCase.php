@@ -3,6 +3,7 @@
 namespace Asynit;
 
 use Amp\Artax\DefaultClient;
+use function Amp\call;
 use Amp\Sync\Lock;
 use Amp\Sync\Semaphore;
 use Amp\Promise;
@@ -39,16 +40,20 @@ class TestCase
      *
      * @param HttpAsyncClient $asyncClient
      *
-     * @return HttpAsyncClient
+     * @return \Generator|Promise|HttpAsyncClient
      */
-    public function setUp(HttpAsyncClient $asyncClient): HttpAsyncClient
+    public function setUp(HttpAsyncClient $asyncClient)
     {
         return $asyncClient;
     }
 
     final public function initialize()
     {
-        $this->client = $this->setUp(new ArtaxAsyncAdapter($this->messageFactory, new DefaultClient()));
+        return call(function () {
+            $this->client = yield call(function () {
+                return $this->setUp(new ArtaxAsyncAdapter($this->messageFactory, new DefaultClient()));
+            });
+        });
     }
 
     /**
