@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Asynit\Extension\Chrome;
 
+use function Amp\asyncCall;
+
 class EventEmitter
 {
     /** @var \Closure[][] */
@@ -16,7 +18,7 @@ class EventEmitter
         }
 
         foreach ($this->closures[$eventName] as $closure) {
-            $closure($data);
+            asyncCall($closure, $data);
         }
     }
 

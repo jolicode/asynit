@@ -37,6 +37,9 @@ class Tab
         $this->target->on('Security.certificateError', (new \ReflectionMethod($this, 'onCertificateError'))->getClosure($this));
         $this->target->on('Inspector.targetCrashed', (new \ReflectionMethod($this, 'onTargetCrashed'))->getClosure($this));
         $this->target->on('Performance.metrics', (new \ReflectionMethod($this, 'onMetrics'))->getClosure($this));
+        $this->target->on('Security.certificateError', function ($event) {
+            yield $this->target->send('Security.handleCertificateError', ['eventId' => $event['eventId'], 'action' => 'continue']);
+        });
 
         $this->target->onOneTime('Page.loadEventFired', function ($event) {
             $this->loadFired->resolve($event['timestamp']);
@@ -127,6 +130,8 @@ class Tab
     public function screenshot($fullPage = true, $width = 1920, $height = 1080): Promise
     {
         return call(function () use ($fullPage, $width, $height) {
+            yield $this->waitForLoadEvent();
+
             $clip = [
                 'width' => $width,
                 'height' => $height,

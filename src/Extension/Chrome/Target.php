@@ -96,6 +96,8 @@ class Target extends EventEmitter
                 $this->send('Performance.enable'),
             ];
 
+            yield $this->send('Security.setOverrideCertificateErrors', ['override' => true]);
+
             try {
                 $frameTree = yield $this->send('Page.getFrameTree');
             } catch (\Throwable $e) {
