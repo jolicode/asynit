@@ -33,6 +33,8 @@ class Test
 
     private $displayName;
 
+    private $chromeSession;
+
     public function __construct(\ReflectionMethod $reflectionMethod, $identifier = null)
     {
         $this->method = $reflectionMethod;
@@ -43,6 +45,27 @@ class Test
         );
         $this->displayName = $this->identifier;
         $this->state = self::STATE_PENDING;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getChromeSession()
+    {
+        return $this->chromeSession;
+    }
+
+    /**
+     * @param string $chromeSession
+     */
+    public function setChromeSession(string $chromeSession)
+    {
+        $this->chromeSession = $chromeSession;
+    }
+
+    public function hasChromeSession(): bool
+    {
+        return $this->chromeSession !== null;
     }
 
     public function isCompleted(): bool

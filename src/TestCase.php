@@ -8,6 +8,7 @@ use Amp\Sync\Lock;
 use Amp\Sync\Semaphore;
 use Amp\Promise;
 use Asynit\Assert\AssertWebCaseTrait;
+use Asynit\Extension\Chrome\ChromeTestCaseTrait;
 use Asynit\HttpClient\ArtaxAsyncAdapter;
 use Http\Client\HttpAsyncClient;
 use Http\Message\MessageFactory;
@@ -16,6 +17,7 @@ use Psr\Http\Message\RequestInterface;
 class TestCase
 {
     use AssertWebCaseTrait;
+    use ChromeTestCaseTrait;
 
     /** @var MessageFactory */
     private $messageFactory;

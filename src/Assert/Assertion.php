@@ -61,7 +61,7 @@ class Assertion extends BaseAssertion
             $message = $e->getMessage();
 
             foreach ($e->getTrace() as $call) {
-                if (false === strpos($call['file'], 'vendor')) {
+                if (array_key_exists('file', $call) && false === strpos($call['file'], 'vendor')) {
                     break;
                 }
             }

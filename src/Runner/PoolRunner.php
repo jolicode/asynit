@@ -23,11 +23,15 @@ class PoolRunner
     /** @var Semaphore */
     private $semaphore;
 
-    public function __construct(RequestFactory $requestFactory, TestWorkflow $workflow, $concurrency = 10)
+    /** @var LazyChromeBrowser */
+    private $lazyChromeBrowser;
+
+    public function __construct(RequestFactory $requestFactory, TestWorkflow $workflow, LazyChromeBrowser $chromeBrowser, $concurrency = 10)
     {
         $this->requestFactory = $requestFactory;
         $this->workflow = $workflow;
         $this->semaphore = new LocalSemaphore($concurrency);
+        $this->lazyChromeBrowser = $chromeBrowser;
     }
 
     public function loop(Pool $pool)
@@ -53,6 +57,8 @@ class PoolRunner
 
             yield $promises;
 
+            $this->lazyChromeBrowser->shutdown();
+
             Loop::stop();
             ob_end_flush();
         });
@@ -70,6 +76,11 @@ class PoolRunner
                 $method = $test->getMethod()->getName();
                 $args = $test->getArguments();
 
+                if ($test->hasChromeSession()) {
+                    $session = yield $this->lazyChromeBrowser->getSession($test->getChromeSession());
+                    $testCase->setTarget($session);
+                }
+
                 $result = yield \Amp\call(function () use ($testCase, $method, $args) { return $testCase->$method(...$args); });
 
                 foreach ($test->getChildren() as $childTest) {
@@ -79,6 +90,10 @@ class PoolRunner
                 $this->workflow->markTestAsSuccess($test);
             } catch (\Throwable $error) {
                 $this->workflow->markTestAsFailed($test, $error);
+            } finally {
+                if ($test->hasChromeSession()) {
+                    $this->lazyChromeBrowser->releaseSession($test->getChromeSession());
+                }
             }
         });
     }
