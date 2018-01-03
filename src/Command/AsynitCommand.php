@@ -33,7 +33,7 @@ class AsynitCommand extends Command
             ->setName('asynit')
             ->addArgument('target', InputArgument::REQUIRED, 'File or directory to test')
             ->addOption('host', null, InputOption::VALUE_REQUIRED, 'Base host to use', null)
-            ->addOption('allow-self-signed-certificate', null, InputOption::VALUE_NONE, 'Allow self signed ssl certificate')
+            ->addOption('allow-insecure-certificate', null, InputOption::VALUE_NONE, 'Allow insecure certificate (like self signed)')
             ->addOption('tty', null, InputOption::VALUE_NONE, 'Force to use tty output')
             ->addOption('no-tty', null, InputOption::VALUE_NONE, 'Force to use no tty output')
             ->addOption('concurrency', null, InputOption::VALUE_REQUIRED, 'Max number of parallels requests', 10)

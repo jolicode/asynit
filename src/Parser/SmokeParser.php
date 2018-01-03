@@ -10,15 +10,25 @@ use Symfony\Component\Yaml\Yaml;
 
 class SmokeParser
 {
+    private $host;
+
+    public function __construct(string $host = '')
+    {
+        $this->host = $host;
+    }
+
     public function parse($file)
     {
         $methods = [];
         $contents = file_get_contents($file);
         $data = Yaml::parse($contents);
+        $baseDir = \dirname($file);
 
-        foreach ($data as $url => $expected) {
-            $test = new Test(new \ReflectionMethod(SmokerTestCase::class, 'smokeTest'), $url);
-            $argument = [$url, $expected];
+        foreach ($data as $name => $expected) {
+            $url = $expected['url'] ?? $name;
+            $fullUrl = $this->host . $url;
+            $test = new Test(new \ReflectionMethod(SmokerTestCase::class, 'smokeTest'), $name);
+            $argument = [$fullUrl, $expected, $baseDir, $name];
             $test->addArgument($argument, $test);
 
             $methods[$url] = $test;
