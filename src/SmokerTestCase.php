@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace Asynit;
 
+use function Amp\Parallel\Worker\enqueue;
+use Amp\ParallelFunctions\Internal\ParallelTask;
+use function Amp\ParallelFunctions\parallel;
 use Asynit\Annotation\ChromeTab;
 use Asynit\Extension\Chrome\Client;
+use Opis\Closure\SerializableClosure;
 
 class SmokerTestCase extends TestCase
 {
@@ -29,43 +33,52 @@ class SmokerTestCase extends TestCase
         }
     }
 
-    protected function doScreenshotAssert(Client $client, string $baseDir, string $screenshotName, float $changesAllowed)
+    private function doScreenshotAssert(Client $client, string $baseDir, string $screenshotName, float $changesAllowed)
     {
         // Allow tiny diff - float comparison can be a pain in the ass
         $changesAllowed += 0.01;
         $data = yield $client->screenshot();
 
-        $imageObj = new \imagick();
-        $imageObj->readImageBlob($data);
+        // Parallel diff engine, better performance as imagick can be slow (@TODO Need a concurrency setting)
+        $diffFunction = $this->getDiffFunction();
+        $changesPercent = yield $diffFunction($data, $baseDir, $screenshotName, $changesAllowed);
 
-        $resultPath = $baseDir . '/screenshots/result/' . $screenshotName . '.png';
-        $expectedPath = $baseDir . '/screenshots/expected/' . $screenshotName . '.png';
-        $diffPath = $baseDir . '/screenshots/diff/' . $screenshotName . '.png';
+        $this->assertLessThanOrEqual($changesAllowed, $changesPercent, 'Test render changes, if failure please move the result image to the expected directory');
+    }
 
-        if (!file_exists($expectedPath)) {
-            @mkdir(\dirname($expectedPath), 0755, true);
-            $imageObj->writeImage($expectedPath);
+    private function getDiffFunction()
+    {
+        return parallel(static function ($data, $baseDir, $screenshotName, $changesAllowed) {
+            $imageObj = new \imagick();
+            $imageObj->readImageBlob($data);
 
-            return;
-        }
+            $resultPath = $baseDir . '/screenshots/result/' . $screenshotName . '.png';
+            $expectedPath = $baseDir . '/screenshots/expected/' . $screenshotName . '.png';
+            $diffPath = $baseDir . '/screenshots/diff/' . $screenshotName . '.png';
 
-        @mkdir(\dirname($resultPath), 0755, true);
-        @mkdir(\dirname($diffPath), 0755, true);
+            if (!file_exists($expectedPath)) {
+                @mkdir(\dirname($expectedPath), 0755, true);
+                $imageObj->writeImage($expectedPath);
 
-        $expected = new \imagick($expectedPath);
-        list($comparedImage, $comparedResult)  = $expected->compareImages($imageObj, \Imagick::METRIC_FUZZERROR);
+                return;
+            }
 
-        $changesPercent = $comparedResult * 100;
+            $expected = new \imagick($expectedPath);
+            list($comparedImage, $comparedResult)  = $expected->compareImages($imageObj, \Imagick::METRIC_FUZZERROR);
 
-        try {
-            $this->assertLessThanOrEqual($changesAllowed, $changesPercent, 'Test render changes, if failure please move the result image to the expected directory');
-        } catch (\Throwable $exception) {
-            $comparedImage->setImageFormat('png');
-            $comparedImage->writeImage($diffPath);
+            $changesPercent = $comparedResult * 100;
 
-            $imageObj->writeImage($resultPath);
+            if ($changesAllowed < $changesPercent) {
+                @mkdir(\dirname($resultPath), 0755, true);
+                @mkdir(\dirname($diffPath), 0755, true);
 
-            throw $exception;
-        }
+                $comparedImage->setImageFormat('png');
+                $comparedImage->writeImage($diffPath);
+
+                $imageObj->writeImage($resultPath);
+            }
+
+            return $changesPercent;
+        });
     }
 }
