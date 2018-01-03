@@ -30,7 +30,7 @@
         "php": "^7.0",
         "amphp/artax": "^3.0.13",
         "amphp/sync": "^1.0",
-        "amphp/websocket": "^0.2",,
+        "amphp/websocket": "^0.2",
         "amphp/parallel-functions": "^0.1",
         "amphp/process": "^0.3",
         "amphp/file": "^0.3",
