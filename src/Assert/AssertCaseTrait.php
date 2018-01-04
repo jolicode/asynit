@@ -43,6 +43,7 @@ use function bovigo\assert\predicate\{
     isSameAs,
     isTrue,
     matches,
+    matchesFormat,
     startsWith
 };
 use bovigo\assert\predicate\Predicate;
@@ -538,6 +539,22 @@ trait AssertCaseTrait
     public function assertStringEndsNotWith($suffix, $string, $message = null)
     {
         $this->assert($string, doesNotEndWith($suffix), $message);
+    }
+
+    /**
+     * Asserts that a string matches a given format string.
+     *
+     * @param string $format
+     * @param string $string
+     * @param string $message
+     */
+    public function assertStringMatchesFormat($format, $string, $message = '')
+    {
+        if (!function_exists('bovigo\assert\predicate\matchesFormat')) {
+            throw new \Exception('The "matchesFormat" assertion exists since bovigo/assert 3.2. Please upgrade the library before using this function.');
+        }
+
+        $this->assert($string, matchesFormat($format), $message);
     }
 
     /**
