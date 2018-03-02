@@ -24,17 +24,18 @@ class FunctionalTests extends TestCase
         return 'foo';
     }
 
-    public function testError()
+    public function testException()
     {
         $exception = null;
 
         try {
             $response = yield $this->get('http://something-is-not-reachable');
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $exception = $e;
         }
 
         $this->assertNotNull($exception, 'Not null exception');
+        $this->assertInstanceOf(Exception::class, $exception);
     }
 
     /**

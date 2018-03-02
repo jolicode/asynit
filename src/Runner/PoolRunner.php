@@ -64,13 +64,22 @@ class PoolRunner
             try {
                 $this->workflow->markTestAsRunning($test);
 
-                $testCase = $this->getTestObject($test);
+                $testCase = $this->buildTestCase($test);
+
                 yield $testCase->initialize();
 
-                $method = $test->getMethod()->getName();
-                $args = $test->getArguments();
+                $result = yield \Amp\call(function () use ($testCase, $test) {
+                    $method = $test->getMethod()->getName();
+                    $args = $test->getArguments();
 
-                $result = yield \Amp\call(function () use ($testCase, $method, $args) { return $testCase->$method(...$args); });
+                    set_error_handler(__CLASS__ . '::handleInternalError');
+
+                    try {
+                        return $testCase->$method(...$args);
+                    } finally {
+                        restore_error_handler();
+                    }
+                });
 
                 foreach ($test->getChildren() as $childTest) {
                     $childTest->addArgument($result, $test);
@@ -83,15 +92,15 @@ class PoolRunner
         });
     }
 
-    /**
-     * Return a test case for a given test method.
-     *
-     * @param Test $test
-     *
-     * @return TestCase
-     */
-    private function getTestObject(Test $test): TestCase
+    private function buildTestCase(Test $test): TestCase
     {
         return $test->getMethod()->getDeclaringClass()->newInstance($this->requestFactory, $this->semaphore, $test);
+    }
+
+    public static function handleInternalError($type, $message, $file, $line)
+    {
+        $message = "$message in $file:$line";
+
+        throw new \ErrorException($message, 0, $type, $file, $line);
     }
 }
