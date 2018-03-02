@@ -12,13 +12,9 @@ class Depend
 {
     private $dependency;
 
-    public function __construct($dependency)
+    public function __construct(array $dependency)
     {
-        if (is_array($dependency)) {
-            $dependency = current($dependency);
-        }
-
-        $this->dependency = $dependency;
+        $this->dependency = $dependency['value'];
     }
 
     /**

@@ -2,9 +2,6 @@
 
 namespace Asynit;
 
-/**
- * A test.
- */
 class Test
 {
     const STATE_PENDING = 'pending';
@@ -75,35 +72,21 @@ class Test
         return true;
     }
 
-    /**
-     * @return string
-     */
     public function getState(): string
     {
         return $this->state;
     }
 
-    /**
-     * @param string $state
-     */
     public function setState(string $state)
     {
         $this->state = $state;
     }
 
-    /**
-     * Return an unique identifier for this test.
-     *
-     * @return string
-     */
     public function getIdentifier(): string
     {
         return $this->identifier;
     }
 
-    /**
-     * @return \ReflectionMethod
-     */
     public function getMethod(): \ReflectionMethod
     {
         return $this->method;
@@ -129,9 +112,6 @@ class Test
         $this->assertions[] = $assertion;
     }
 
-    /**
-     * @return array
-     */
     public function getAssertions(): array
     {
         return $this->assertions;
@@ -153,9 +133,6 @@ class Test
         return $this->children;
     }
 
-    /**
-     * @return array
-     */
     public function getArguments(): array
     {
         $args = [];
@@ -171,17 +148,11 @@ class Test
         return array_merge($args, array_values($arguments));
     }
 
-    /**
-     * @return string
-     */
     public function getDisplayName(): string
     {
         return $this->displayName;
     }
 
-    /**
-     * @param string $displayName
-     */
     public function setDisplayName(string $displayName)
     {
         $this->displayName = $displayName;

@@ -46,6 +46,12 @@ class FunctionalTests extends TestCase
         $this->assertEquals('foo', $value);
     }
 
+    /** @Depend("Asynit\Tests\AnotherTest::test_from_another_file") */
+    public function testDependFromAnotherFile($value)
+    {
+        $this->assertSame('Asynit\Tests\AnotherTest::test_from_another_file', $value);
+    }
+
     public function testStartParallel()
     {
         return time();
@@ -83,5 +89,40 @@ class FunctionalTests extends TestCase
         $end = time();
 
         $this->assertLessThan(10, $end - $start);
+    }
+
+    public function get_a()
+    {
+        return 'a';
+    }
+
+    /** @Depend("get_a") */
+    public function get_b($a)
+    {
+        $this->assertSame('a', $a);
+
+        return 'b';
+    }
+
+    /**
+     * @Depend("get_a")
+     * @Depend("get_b")
+     */
+    public function test_c($a, $b)
+    {
+        $this->assertSame('a', $a);
+        $this->assertSame('b', $b);
+    }
+
+    /**
+     * @Depend("get_a")
+     * @Depend("get_b")
+     * @Depend("Asynit\Tests\AnotherTest::get_d")
+     */
+    public function test_c_with_d($a, $b, $d)
+    {
+        $this->assertSame('a', $a);
+        $this->assertSame('b', $b);
+        $this->assertSame('d', $d);
     }
 }
