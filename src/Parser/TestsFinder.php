@@ -25,6 +25,8 @@ class TestsFinder
 
     private function doFindTests($files): array
     {
+        $methods = [];
+
         foreach ($files as $file) {
             $existingClasses = get_declared_classes();
             $path = $file;
