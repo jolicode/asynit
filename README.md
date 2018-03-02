@@ -14,9 +14,9 @@ composer require --dev jolicode/asynit
 
 #### Basic usage
 
-Asynit will read PHP's classes and try to mimic the PHPUnit API. Sso you need
-to a create a test class in some directory, which will extends the `TestCase`
-class of Asynit:
+Asynit will read PHP's classes and try to mimic the PHPUnit API. You need to
+create a test class in some directory, which will extend the `TestCase` class of
+Asynit:
 
 ```php
 use Asynit\TestCase;
@@ -44,15 +44,17 @@ class ApiTest extends TestCase
 }
 ```
 
+Note: All test methods should be prefixed by the `test` keyword. All others
+methods will not be executed automatically.
+
 Here we perform a `GET` request on `http://my-site-web` then we get the
-`$response` by using the `yield` operator. This operator must but understand
+`$response` by using the `yield` operator. This operator must be understood
 like an `await` in other language (C# / JavaScript) which is feasible by using
 the [amp](https://github.com/amphp/amp) framework.
 
 All assertions supported by PHPUnit are also supported by Asynit thanks to the
 [bovigo-assert](https://github.com/mikey179/bovigo-assert) library.
 But you can use your own as long as it's throw an exception on failure.
-
 
 For running this test you will only need to use the PHP file provided by this
 project:
@@ -118,10 +120,6 @@ namespace Application\ApiTest;
 
 use Asynit\Annotation\Depend;
 use Asynit\TestCase;
-use Http\Client\Common\Plugin\BaseUriPlugin;
-use Http\Client\Common\PluginClient;
-use Http\Client\HttpAsyncClient;
-use Http\Message\UriFactory\GuzzleUriFactory;
 
 class SecurityTest extends TestCase
 {
@@ -165,6 +163,98 @@ class PostTest
     }
 }
 ```
+
+#### Test Organization
+
+It's really common to have an `abstract WebTestCase` in your project where you can
+define many helpers to ease the writing of tests.
+
+Here is an example:
+
+```php
+namespace App\Tests;
+
+use Asynit\TestCase;
+
+abstract class WebTestCase extends TestCase
+{
+    protected function fetchToken(string $email, string $password = 'password')
+    {
+        $payload = [
+            'email' => $email,
+            'password' => $password,
+        ];
+
+        $response = yield $this->post('/users/token', [
+            'Content-Type' => 'application/x-www-form-urlencoded',
+        ], http_build_query($payload));
+
+        $this->assertSame(200, $response->getStatusCode());
+
+        $content = json_decode($response->getBody()->getContents(), true);
+
+        $this->assertArrayHasKey('token', $content);
+
+        return $content['token'];
+    }
+}
+```
+
+Then in your test class you will be able to call this method:
+
+```php
+namespace App\Tests;
+
+class OrganizationTest extends WebTestCase
+{
+    public function test_user_can_get_its_information()
+    {
+        $token = yield from $this->fetchToken('email@example.com');
+
+        // ...
+    }
+}
+```
+
+If many tests are using the method `WebTestCase::fetchToken` with the same
+argument, it could be useful to cache this method. As it is explain in the
+[Dependency between tests](#dependency-between-tests) chapter, it's possible to
+use the `Depend` annotation:
+
+
+```php
+namespace App\Tests;
+
+use Asynit\TestCase;
+
+abstract class WebTestCase extends TestCase
+{
+    protected function fetchUserToken()
+    {
+        return yield from $this->fetchToken('email@example.com', 'password');
+    }
+}
+```
+
+Then in your test you will be able to depend on this method:
+
+```php
+namespace App\Tests;
+
+class OrganizationTest extends WebTestCase
+{
+    /** @Depend("fetchUserToken") */
+    public function test_greg_fetch_token(string $userToken)
+    {
+        // ...
+    }
+}
+```
+
+As you may notice, the `fetchUserToken` method does not start with `test`. Thus
+by default this method will not be included in the test suite. But as it is a
+dependency of a test, it will be included as a regular test in the global test
+suite and will leverage the cache system.
 
 ### Smoker
 
