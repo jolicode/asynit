@@ -110,10 +110,12 @@ class PhpunitLike implements OutputInterface
         $time = microtime(true) - $this->start;
         $time = round($time * 1000, 2);
 
-        fwrite(STDOUT, "\n\n# Failures:\n\n");
+        if (\count($this->failures) > 0) {
+            fwrite(STDOUT, "\n\n# Failures:\n\n");
 
-        foreach ($this->failures as $step => $failure) {
-            $this->writeFailure($step, $failure['test'], $failure['failure']);
+            foreach ($this->failures as $step => $failure) {
+                $this->writeFailure($step, $failure['test'], $failure['failure']);
+            }
         }
 
         fwrite(STDOUT, "\n\nExecuted $this->testOutputed tests, $this->assertionCount assertions in $time ms\n");
