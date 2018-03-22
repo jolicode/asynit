@@ -28,17 +28,17 @@ class OutputFactory
         }
 
         if ($forceNoTty) {
-            return new Simple();
+            return new PhpunitLike();
         }
 
         // Return simple output if no posix methods
         if (!function_exists('posix_isatty')) {
-            return new Simple();
+            return new PhpunitLike();
         }
 
         // Return simple output if not tty
         if (!posix_isatty(STDOUT)) {
-            return new Simple();
+            return new PhpunitLike();
         }
 
         // Return tty output when STDOUT is a tty
