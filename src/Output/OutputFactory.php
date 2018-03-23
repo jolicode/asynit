@@ -9,39 +9,13 @@ namespace Asynit\Output;
  */
 class OutputFactory
 {
-    public function buildOutput(bool $forceTty = null, bool $forceNoTty = null): array
+    public function buildOutput(int $testCount): array
     {
         $countOutput = new Count();
-
         $chainOutput = new Chain();
-        $bestOutput = $this->buildBestOutput($forceTty, $forceNoTty);
-        $chainOutput->addOutput($bestOutput);
+        $chainOutput->addOutput(new PhpUnitAlike($testCount));
         $chainOutput->addOutput($countOutput);
 
         return [$chainOutput, $countOutput];
-    }
-
-    private function buildBestOutput(bool $forceTty = null, bool $forceNoTty = null): OutputInterface
-    {
-        if ($forceTty) {
-            return new Tty();
-        }
-
-        if ($forceNoTty) {
-            return new PhpunitLike();
-        }
-
-        // Return simple output if no posix methods
-        if (!function_exists('posix_isatty')) {
-            return new PhpunitLike();
-        }
-
-        // Return simple output if not tty
-        if (!posix_isatty(STDOUT)) {
-            return new PhpunitLike();
-        }
-
-        // Return tty output when STDOUT is a tty
-        return new Tty();
     }
 }

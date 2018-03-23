@@ -72,7 +72,7 @@ class PoolRunner
                     $method = $test->getMethod()->getName();
                     $args = $test->getArguments();
 
-                    set_error_handler(__CLASS__ . '::handleInternalError');
+                    set_error_handler(__CLASS__.'::handleInternalError');
 
                     try {
                         return $testCase->$method(...$args);

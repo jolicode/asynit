@@ -2,10 +2,7 @@
 
 namespace Asynit\Tests;
 
-use Asynit\Annotation\Depend;
 use Asynit\TestCase;
-use Http\Client\Exception;
-use Psr\Http\Message\ResponseInterface;
 
 class AnotherTest extends TestCase
 {
