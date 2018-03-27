@@ -261,7 +261,7 @@ suite and will leverage the cache system.
 Smoker use the Asynit API to provide a simple way to test many URLs when there
 is no need to have a complex logic of testing.
 
-You just have to defined a YAML file like the following:
+You just have to define a YAML file like the following:
 
 ```yaml
 "https://jolicode.com/":
@@ -278,4 +278,19 @@ And then run the PHP smoker CLI on it:
 
 ```yaml
 php bin/smoker test.yml
+```
+
+In case you want to check all your site without having to maintain a list of
+URLs in the YAML file, you can use the discovery feature. This will make the
+smoker crawl your website and run asserts on all the matching URLs it find:
+
+```yaml
+"https://jolicode.com/":
+    status: 200
+    discovery:
+        enabled: true
+        match: 'https://jolicode.com/(.*)'
+        recursive: true
+        # depth: 3
+        limit: 1000
 ```
