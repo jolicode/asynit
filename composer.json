@@ -34,9 +34,10 @@
         "doctrine/annotations": "^1.2",
         "doctrine/collections": "^1.3",
         "guzzlehttp/psr7": "^1.4",
-        "php-http/message": "^1.3",
         "php-http/client-common": "^1.4",
+        "php-http/message": "^1.3",
         "symfony/console": "^3.2",
+        "symfony/dom-crawler": "^3.1",
         "symfony/finder": "^3.1",
         "symfony/yaml": "^3.3"
     },
