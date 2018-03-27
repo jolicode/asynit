@@ -290,7 +290,6 @@ smoker crawl your website and run asserts on all the matching URLs it find:
     discovery:
         enabled: true
         match: 'https://jolicode.com/(.*)'
-        recursive: true
         # depth: 3
         limit: 1000
 ```

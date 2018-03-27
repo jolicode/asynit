@@ -6,7 +6,6 @@
     discovery:
         enabled: true
         match: 'https://jolicode.com/equipe/(.*)'
-        recursive: true
         depth: 3
         limit: 1000
 

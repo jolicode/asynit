@@ -38,16 +38,7 @@ class SmokerTestCase extends TestCase
         }
 
         $recursiveConfiguration = $configuration;
-
-        if (isset($discovery['recursive']) && $discovery['recursive']) {
-            $recursiveConfiguration['discovery']['enabled'] = true;
-            $recursiveConfiguration['discovery']['recursive'] = isset($discovery['recursive']) ? $discovery['recursive'] : false;
-            $recursiveConfiguration['discovery']['limit'] = $discovery['limit'] ?? self::DISCOVERY_DEFAULT_LIMIT;
-        } else {
-            $recursiveConfiguration['discovery'] = [
-                'enabled' => false,
-            ];
-        }
+        $recursiveConfiguration['discovery']['limit'] = $discovery['limit'] ?? self::DISCOVERY_DEFAULT_LIMIT;
 
         if (isset($discovery['depth']) && $discovery['depth'] >= 1) {
             $recursiveConfiguration['discovery']['depth'] = ((int) $discovery['depth']) - 1;
