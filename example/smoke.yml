@@ -3,6 +3,11 @@
 
 "https://jolicode.com/equipe":
     status: 200
+    discovery:
+        enabled: true
+        match: 'https://jolicode.com/equipe/(.*)'
+        depth: 3
+        limit: 1000
 
 "https://jolicode.com/nos-valeurs":
     status: 200
@@ -28,19 +33,10 @@
 "https://jolicode.com/blog/joliday-2017-avec-des-joysticks-des-bulles-et-des-leds":
     status: 200
 
-"https://jolicode.com/equipe/xavier-lacot":
-    status: 200
-
 "https://jolicode.com/blog/joliday-2016-avec-du-carton-du-malt-et-un-doigt":
     status: 200
 
-"https://jolicode.com/equipe/aurelien-david":
-    status: 200
-
 "https://jolicode.com/blog/le-printemps-des-conferences":
-    status: 200
-
-"https://jolicode.com/equipe/mathieu-santostefano":
     status: 200
 
 "https://jolicode.com/blog/resume-de-la-laracon-eu-2016":

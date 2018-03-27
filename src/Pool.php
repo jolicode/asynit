@@ -25,6 +25,10 @@ class Pool
     public function addTest(Test $test)
     {
         $this->tests->add($test);
+
+        if ($test instanceof PoolAwareInterface) {
+            $test->setPool($this);
+        }
     }
 
     public function isEmpty(): bool

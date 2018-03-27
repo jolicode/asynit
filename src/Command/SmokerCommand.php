@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Asynit\Command;
 
 use Amp\Loop;
+use Asynit\Output\OutputFactory;
 use Asynit\Parser\SmokeParser;
 use Asynit\Parser\TestPoolBuilder;
 use Asynit\Runner\PoolRunner;
@@ -41,7 +42,7 @@ class SmokerCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         // Build the client
-        list($chainOutput, $countOutput) = (new OuputFactory())::buildOutput($input->getOption('tty'), $input->getOption('no-tty'));
+        list($chainOutput, $countOutput) = (new OutputFactory())->buildOutput($input->getOption('tty'), $input->getOption('no-tty'));
 
         $parser = new SmokeParser();
         $builder = new TestPoolBuilder(new AnnotationReader());

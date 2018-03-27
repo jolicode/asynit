@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Asynit\Parser;
 
 use Asynit\SmokerTestCase;
-use Asynit\Test;
+use Asynit\SmokeTest;
 use Symfony\Component\Yaml\Yaml;
 
 class SmokeParser
@@ -16,9 +16,9 @@ class SmokeParser
         $contents = file_get_contents($file);
         $data = Yaml::parse($contents);
 
-        foreach ($data as $url => $expected) {
-            $test = new Test(new \ReflectionMethod(SmokerTestCase::class, 'smokeTest'), $url);
-            $argument = [$url, $expected];
+        foreach ($data as $url => $configuration) {
+            $test = new SmokeTest(new \ReflectionMethod(SmokerTestCase::class, 'smokeTest'), $url);
+            $argument = [$url, $configuration, $test];
             $test->addArgument($argument, $test);
 
             $methods[$url] = $test;
