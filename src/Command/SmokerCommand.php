@@ -46,7 +46,7 @@ class SmokerCommand extends Command
         list($chainOutput, $countOutput) = (new OutputFactory())->buildOutput(\count($testMethods));
 
         $builder = new TestPoolBuilder(new AnnotationReader());
-        $runner = new PoolRunner(new GuzzleMessageFactory(), new TestWorkflow($chainOutput), $input->getOption('concurrency'));
+        $runner = new PoolRunner(new GuzzleMessageFactory(), new TestWorkflow($chainOutput), $input->getOption('concurrency'), $input->getOption('allow-self-signed-certificate'));
 
         $pool = $builder->build($testMethods);
 

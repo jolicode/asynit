@@ -23,11 +23,15 @@ class PoolRunner
     /** @var Semaphore */
     private $semaphore;
 
-    public function __construct(RequestFactory $requestFactory, TestWorkflow $workflow, $concurrency = 10)
+    /** @var bool */
+    private $allowSelfSignedCertificate;
+
+    public function __construct(RequestFactory $requestFactory, TestWorkflow $workflow, $concurrency = 10, bool $allowSelfSignedCertificate = false)
     {
         $this->requestFactory = $requestFactory;
         $this->workflow = $workflow;
         $this->semaphore = new LocalSemaphore($concurrency);
+        $this->allowSelfSignedCertificate = $allowSelfSignedCertificate;
     }
 
     public function loop(Pool $pool)
@@ -66,7 +70,7 @@ class PoolRunner
 
                 $testCase = $this->buildTestCase($test);
 
-                yield $testCase->initialize();
+                yield $testCase->initialize($this->allowSelfSignedCertificate);
 
                 $result = yield \Amp\call(function () use ($testCase, $test) {
                     $method = $test->getMethod()->getName();

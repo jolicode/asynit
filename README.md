@@ -282,6 +282,12 @@ And then run the PHP smoker CLI on it:
 php bin/smoker test.yml
 ```
 
+You can allow self signed certificates (useful in development environment) with this option:
+
+```yaml
+php bin/smoker --allow-self-signed-certificate test.yml
+```
+
 In case you want to check all your site without having to maintain a list of
 URLs in the YAML file, you can use the discovery feature. This will make the
 smoker crawl your website and run asserts on all the matching URLs it find:
