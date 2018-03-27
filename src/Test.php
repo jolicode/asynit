@@ -30,7 +30,9 @@ class Test
 
     private $displayName;
 
-    public function __construct(\ReflectionMethod $reflectionMethod, $identifier = null)
+    private $isRealTest;
+
+    public function __construct(\ReflectionMethod $reflectionMethod, $identifier = null, $isRealTest = true)
     {
         $this->method = $reflectionMethod;
         $this->identifier = $identifier ?: sprintf(
@@ -40,6 +42,12 @@ class Test
         );
         $this->displayName = $this->identifier;
         $this->state = self::STATE_PENDING;
+        $this->isRealTest = $isRealTest;
+    }
+
+    public function isRealTest(): bool
+    {
+        return $this->isRealTest;
     }
 
     public function isCompleted(): bool

@@ -59,10 +59,10 @@ class TestPoolBuilder
                     $dependentTest = $tests[$dependency];
                 } elseif (is_callable($dependency)) {
                     if (false === strpos($dependency, '::')) {
-                        $dependentTest = new Test(new \ReflectionMethod($test->getMethod()->getDeclaringClass()->getName(), $annotation->getDependency()));
+                        $dependentTest = new Test(new \ReflectionMethod($test->getMethod()->getDeclaringClass()->getName(), $annotation->getDependency()), null, false);
                     } else {
                         $parts = explode('::', $dependency);
-                        $dependentTest = new Test(new \ReflectionMethod($parts[0], $parts[1]));
+                        $dependentTest = new Test(new \ReflectionMethod($parts[0], $parts[1]), null, false);
                     }
                     $tests[$dependentTest->getIdentifier()] = $dependentTest;
                 }
