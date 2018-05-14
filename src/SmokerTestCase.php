@@ -50,7 +50,7 @@ class SmokerTestCase extends TestCase
         $links = $crawler->filterXPath('//a')->links();
 
         foreach ($links as $link) {
-            $uri = $link->getUri();
+            $uri = rtrim($link->getUri(), '#');
 
             if ($this->hasReachedDiscoveryLimit($discovery)) {
                 return;
