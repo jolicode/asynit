@@ -50,7 +50,9 @@ class SmokerTestCase extends TestCase
         $links = $crawler->filterXPath('//a')->links();
 
         foreach ($links as $link) {
-            $uri = rtrim($link->getUri(), '#');
+            $uri = $link->getUri();
+            $fragment = parse_url($uri, PHP_URL_FRAGMENT);
+            $uri = str_replace('#' . $fragment, '', $uri);
 
             if ($this->hasReachedDiscoveryLimit($discovery)) {
                 return;
