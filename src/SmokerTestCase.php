@@ -51,6 +51,8 @@ class SmokerTestCase extends TestCase
 
         foreach ($links as $link) {
             $uri = $link->getUri();
+            $fragment = parse_url($uri, PHP_URL_FRAGMENT);
+            $uri = str_replace('#' . $fragment, '', $uri);
 
             if ($this->hasReachedDiscoveryLimit($discovery)) {
                 return;
