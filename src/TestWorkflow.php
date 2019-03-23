@@ -8,9 +8,12 @@ class TestWorkflow
 {
     private $output;
 
-    public function __construct(OutputInterface $output)
+    private $outputBuffering;
+
+    public function __construct(OutputInterface $output, bool $outputBuffering = false)
     {
         $this->output = $output;
+        $this->outputBuffering = $outputBuffering;
     }
 
     public function markTestAsRunning(Test $test)
@@ -21,8 +24,12 @@ class TestWorkflow
 
         $test->setState(Test::STATE_RUNNING);
 
-        $debugOutput = ob_get_contents();
-        ob_clean();
+        $debugOutput = '';
+
+        if ($this->outputBuffering) {
+            $debugOutput = ob_get_contents();
+            ob_clean();
+        }
 
         $this->output->outputStep($test, $debugOutput);
     }
@@ -35,8 +42,13 @@ class TestWorkflow
 
         $test->setState(Test::STATE_SUCCESS);
 
-        $debugOutput = ob_get_contents();
-        ob_clean();
+        $debugOutput = '';
+
+        if ($this->outputBuffering) {
+            $debugOutput = ob_get_contents();
+            ob_clean();
+        }
+
         $this->output->outputSuccess($test, $debugOutput);
     }
 
@@ -48,8 +60,13 @@ class TestWorkflow
 
         $test->setState(Test::STATE_FAILURE);
 
-        $debugOutput = ob_get_contents();
-        ob_clean();
+        $debugOutput = '';
+
+        if ($this->outputBuffering) {
+            $debugOutput = ob_get_contents();
+            ob_clean();
+        }
+
         $this->output->outputFailure($test, $debugOutput, $error);
 
         foreach ($test->getChildren() as $child) {
@@ -69,8 +86,13 @@ class TestWorkflow
             $this->markTestAsSkipped($child);
         }
 
-        $debugOutput = ob_get_contents();
-        ob_clean();
+        $debugOutput = '';
+
+        if ($this->outputBuffering) {
+            $debugOutput = ob_get_contents();
+            ob_clean();
+        }
+
         $this->output->outputSkipped($test, $debugOutput);
     }
 }

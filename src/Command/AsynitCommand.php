@@ -2,14 +2,12 @@
 
 namespace Asynit\Command;
 
-use Amp\Loop;
 use Asynit\Output\OutputFactory;
 use Asynit\Parser\TestsFinder;
 use Asynit\Parser\TestPoolBuilder;
 use Asynit\Runner\PoolRunner;
 use Asynit\TestWorkflow;
 use Doctrine\Common\Annotations\AnnotationReader;
-use Http\Message\MessageFactory\GuzzleMessageFactory;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -56,14 +54,11 @@ class AsynitCommand extends Command
 
         // Build services for parsing and running tests
         $builder = new TestPoolBuilder(new AnnotationReader());
-        $runner = new PoolRunner(new GuzzleMessageFactory(), new TestWorkflow($chainOutput), $input->getOption('concurrency'));
+        $runner = new PoolRunner(new TestWorkflow($chainOutput));
 
         // Build a list of tests from the directory
         $pool = $builder->build($testMethods);
-
-        Loop::run(function () use ($runner, $pool) {
-            $runner->loop($pool);
-        });
+        $runner->loop($pool);
 
         // Return the number of failed tests
         return $countOutput->getFailed();

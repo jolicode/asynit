@@ -2,99 +2,92 @@
 
 namespace Asynit\Runner;
 
-use Amp\Loop;
-use Amp\Sync\LocalSemaphore;
-use Amp\Sync\Semaphore;
-use Amp\Promise;
 use Asynit\Test;
 use Asynit\TestCase;
 use Asynit\Pool;
 use Asynit\TestWorkflow;
-use Http\Message\RequestFactory;
+use function Concurrent\all;
+use function Concurrent\race;
+use Concurrent\Task;
 
 class PoolRunner
 {
-    /** @var TestWorkflow */
     private $workflow;
 
-    /** @var RequestFactory */
-    private $requestFactory;
+    private $outputBuffering;
 
-    /** @var Semaphore */
-    private $semaphore;
-
-    public function __construct(RequestFactory $requestFactory, TestWorkflow $workflow, $concurrency = 10)
+    public function __construct(TestWorkflow $workflow, bool $outputBuffering = false)
     {
-        $this->requestFactory = $requestFactory;
         $this->workflow = $workflow;
-        $this->semaphore = new LocalSemaphore($concurrency);
+        $this->outputBuffering = $outputBuffering;
     }
 
     public function loop(Pool $pool)
     {
-        return \Amp\call(function () use ($pool) {
+        if ($this->outputBuffering) {
             ob_start();
-            $promises = [];
+        }
 
-            while (!$pool->isEmpty()) {
-                $test = $pool->getTestToRun();
+        $tasks = [];
 
-                if (null === $test) {
-                    yield \Amp\Promise\first($promises);
+        while (!$pool->isEmpty()) {
+            $test = $pool->getTestToRun();
 
-                    continue;
-                }
+            if (null === $test) {
+                Task::await(race($tasks));
 
-                $promises[$test->getIdentifier()] = $this->run($test);
-                $promises[$test->getIdentifier()]->onResolve(function () use (&$promises, $test) {
-                    unset($promises[$test->getIdentifier()]);
-                });
+                continue;
             }
 
-            yield $promises;
+            $this->workflow->markTestAsRunning($test);
 
-            Loop::stop();
+            $task = Task::async(function () use ($test, &$tasks) {
+                $this->run($test);
+                unset($tasks[$test->getIdentifier()]);
+            });
+
+            $tasks[$test->getIdentifier()] = $task;
+        }
+
+        if (count($tasks) > 0) {
+            Task::await(all($tasks));
+        }
+
+        if ($this->outputBuffering) {
             ob_end_flush();
-        });
+        }
     }
 
-    protected function run(Test $test): Promise
+    protected function run(Test $test)
     {
-        return \Amp\call(function () use ($test) {
+        try {
+            $testCase = $this->buildTestCase($test);
+
+            $method = $test->getMethod()->getName();
+            $args = $test->getArguments();
+
+            set_error_handler(__CLASS__.'::handleInternalError');
+
             try {
-                $this->workflow->markTestAsRunning($test);
-
-                $testCase = $this->buildTestCase($test);
-
-                yield $testCase->initialize();
-
-                $result = yield \Amp\call(function () use ($testCase, $test) {
-                    $method = $test->getMethod()->getName();
-                    $args = $test->getArguments();
-
-                    set_error_handler(__CLASS__.'::handleInternalError');
-
-                    try {
-                        return $testCase->$method(...$args);
-                    } finally {
-                        restore_error_handler();
-                    }
-                });
-
-                foreach ($test->getChildren() as $childTest) {
-                    $childTest->addArgument($result, $test);
-                }
-
-                $this->workflow->markTestAsSuccess($test);
-            } catch (\Throwable $error) {
-                $this->workflow->markTestAsFailed($test, $error);
+                $testCase->setUp();
+                $result = $testCase->$method(...$args);
+            } finally {
+                restore_error_handler();
             }
-        });
+
+            foreach ($test->getChildren() as $childTest) {
+                $childTest->addArgument($result, $test);
+            }
+
+            $this->workflow->markTestAsSuccess($test);
+        } catch (\Throwable $error) {
+            $this->workflow->markTestAsFailed($test, $error);
+        }
     }
 
     private function buildTestCase(Test $test): TestCase
     {
-        return $test->getMethod()->getDeclaringClass()->newInstance($this->requestFactory, $this->semaphore, $test);
+        return $test->getMethod()->getDeclaringClass()->newInstance($test);
     }
 
     public static function handleInternalError($type, $message, $file, $line)

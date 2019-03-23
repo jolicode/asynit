@@ -4,11 +4,21 @@ namespace Asynit\Tests;
 
 use Asynit\Annotation\Depend;
 use Asynit\TestCase;
-use Http\Client\Exception;
+use Http\Client\Common\HttpMethodsClient;
+use Http\Client\Socket\Client;
+use Nyholm\Psr7\Factory\HttplugFactory;
 use Psr\Http\Message\ResponseInterface;
 
 class FunctionalTests extends TestCase
 {
+    /** @var HttpMethodsClient */
+    private $httpClient;
+
+    public function setUp()
+    {
+        $this->httpClient = new HttpMethodsClient(new Client(), new HttplugFactory());
+    }
+
     public function testReturn()
     {
         return 'tata';
@@ -16,10 +26,10 @@ class FunctionalTests extends TestCase
 
     public function testGet()
     {
-        $response = yield $this->get('http://127.0.0.1:8081');
+        $response = $this->httpClient->get('http://127.0.0.1:8081');
 
         $this->assertInstanceOf(ResponseInterface::class, $response);
-        $this->assertStatusCode(200, $response);
+        $this->assertSame(200, $response->getStatusCode());
 
         return 'foo';
     }
@@ -29,13 +39,12 @@ class FunctionalTests extends TestCase
         $exception = null;
 
         try {
-            $response = yield $this->get('http://something-is-not-reachable');
+            $response = $this->httpClient->get('http://something-is-not-reachable');
         } catch (\Exception $e) {
             $exception = $e;
         }
 
         $this->assertNotNull($exception, 'Not null exception');
-        $this->assertInstanceOf(Exception::class, $exception);
     }
 
     /**
@@ -59,22 +68,22 @@ class FunctionalTests extends TestCase
 
     public function testParallel1()
     {
-        yield $this->get('http://127.0.0.1:8081/delay/7');
+        $this->httpClient->get('http://127.0.0.1:8081/delay/7');
     }
 
     public function testParallel2()
     {
-        yield $this->get('http://127.0.0.1:8081/delay/7');
+        $this->httpClient->get('http://127.0.0.1:8081/delay/7');
     }
 
     public function testParallel3()
     {
-        yield $this->get('http://127.0.0.1:8081/delay/7');
+        $this->httpClient->get('http://127.0.0.1:8081/delay/7');
     }
 
     public function testParallel4()
     {
-        yield $this->get('http://127.0.0.1:8081/delay/7');
+        $this->httpClient->get('http://127.0.0.1:8081/delay/7');
     }
 
     /**
