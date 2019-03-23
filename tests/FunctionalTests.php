@@ -68,22 +68,26 @@ class FunctionalTests extends TestCase
 
     public function testParallel1()
     {
-        $this->httpClient->get('http://127.0.0.1:8081/delay/7');
+        $response = $this->httpClient->get('http://127.0.0.1:8081/delay/7');
+        $this->assertSame(200, $response->getStatusCode());
     }
 
     public function testParallel2()
     {
-        $this->httpClient->get('http://127.0.0.1:8081/delay/7');
+        $response = $this->httpClient->get('http://127.0.0.1:8081/delay/7');
+        $this->assertSame(200, $response->getStatusCode());
     }
 
     public function testParallel3()
     {
-        $this->httpClient->get('http://127.0.0.1:8081/delay/7');
+        $response = $this->httpClient->get('http://127.0.0.1:8081/delay/7');
+        $this->assertSame(200, $response->getStatusCode());
     }
 
     public function testParallel4()
     {
-        $this->httpClient->get('http://127.0.0.1:8081/delay/7');
+        $response = $this->httpClient->get('http://127.0.0.1:8081/delay/7');
+        $this->assertSame(200, $response->getStatusCode());
     }
 
     /**

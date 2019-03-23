@@ -10,7 +10,7 @@ class TestWorkflow
 
     private $outputBuffering;
 
-    public function __construct(OutputInterface $output, bool $outputBuffering = false)
+    public function __construct(OutputInterface $output, bool $outputBuffering = true)
     {
         $this->output = $output;
         $this->outputBuffering = $outputBuffering;

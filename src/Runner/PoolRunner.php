@@ -16,7 +16,7 @@ class PoolRunner
 
     private $outputBuffering;
 
-    public function __construct(TestWorkflow $workflow, bool $outputBuffering = false)
+    public function __construct(TestWorkflow $workflow, bool $outputBuffering = true)
     {
         $this->workflow = $workflow;
         $this->outputBuffering = $outputBuffering;

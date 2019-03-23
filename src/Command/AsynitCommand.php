@@ -28,9 +28,7 @@ class AsynitCommand extends Command
         $this
             ->setName('asynit')
             ->addArgument('target', InputArgument::REQUIRED, 'File or directory to test')
-            ->addOption('host', null, InputOption::VALUE_REQUIRED, 'Base host to use', null)
-            ->addOption('allow-self-signed-certificate', null, InputOption::VALUE_NONE, 'Allow self signed ssl certificate')
-            ->addOption('concurrency', null, InputOption::VALUE_REQUIRED, 'Max number of parallels requests', 10)
+            ->addOption('no-output-buffering', null, InputOption::VALUE_NONE, 'Remove output buffering')
             ->addOption('bootstrap', null, InputOption::VALUE_REQUIRED, 'A PHP file to include before anything else', $this->defaultBootstrapFilename)
         ;
     }
@@ -49,12 +47,13 @@ class AsynitCommand extends Command
 
         $testsFinder = new TestsFinder();
         $testMethods = $testsFinder->findTests($input->getArgument('target'));
+        $outputBuffering = !$input->getOption('no-output-buffering');
 
         list($chainOutput, $countOutput) = (new OutputFactory())->buildOutput(\count($testMethods));
 
         // Build services for parsing and running tests
         $builder = new TestPoolBuilder(new AnnotationReader());
-        $runner = new PoolRunner(new TestWorkflow($chainOutput));
+        $runner = new PoolRunner(new TestWorkflow($chainOutput, $outputBuffering), $outputBuffering);
 
         // Build a list of tests from the directory
         $pool = $builder->build($testMethods);
