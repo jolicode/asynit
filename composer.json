@@ -27,22 +27,19 @@
         "test": "bin/asynit tests/"
     },
     "require": {
-        "php": "^7.0",
-        "amphp/artax": "^3.0.14",
-        "amphp/sync": "^1.0",
+        "php": "^7.3",
+        "ext-async": "*",
         "bovigo/assert": "^2.1||^3.0",
         "doctrine/annotations": "^1.2",
-        "doctrine/collections": "^1.3",
-        "guzzlehttp/psr7": "^1.4",
-        "php-http/client-common": "^1.4",
-        "php-http/message": "^1.3",
         "symfony/console": "^3.2||^4.0",
-        "symfony/dom-crawler": "^3.1||^4.0",
         "symfony/finder": "^3.1||^4.0",
         "symfony/yaml": "^3.3||^4.0"
     },
     "require-dev": {
-        "friendsofphp/php-cs-fixer": "^2.10"
+        "concurrent-php/async-api": "dev-master",
+        "friendsofphp/php-cs-fixer": "^2.10",
+        "php-http/client-common": "^2.0",
+        "php-http/socket-client": "2.x-dev"
     },
     "prefer-stable": true,
     "config": {

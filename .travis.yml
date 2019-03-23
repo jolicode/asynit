@@ -10,19 +10,19 @@ cache:
         - $HOME/.composer/cache/files
 
 php:
-    - 7.0
-    - 7.1
-    - 7.2
     - 7.3
 
 matrix:
     fast_finish: true
     include:
-        - php: 7.0
+        - php: 7.3
           env: COMPOSER_FLAGS="--prefer-stable --prefer-lowest"
 
 before_install:
     - travis_retry composer self-update
+    - git clone https://github.com/concurrent-php/ext-async.git /tmp/async
+    - cd /tmp/async && phpize && ./configure && sudo make install
+    - echo "extension = async.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini && php -m && cd $TRAVIS_BUILD_DIR
     - docker build -t httpbin .
     - docker run -d -p 8081:80 httpbin
 

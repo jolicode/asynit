@@ -1,12 +1,23 @@
 # asynit
 
-Asynchronous (using coroutine) HTTP Request Testing Library for API and more...
+Asynchronous Testing Library
 
 ## Install
 
 ```
 composer require --dev jolicode/asynit
 ```
+
+## Why
+
+You can test anything with this library, runner try to run your test in an async way if possible.
+
+There is no threads or multi process execution, this library leverage the `ext-async` extension: https://github.com/concurrent-php/ext-async
+ which add an event loop inside php and which is capable of doing async with existing tcp and udp stream wrapper.
+ 
+It's not really parallelism, we just try to execute a test when another test is waiting for an IO event.
+
+As an exemple this library can reduce a lot of waiting time when doing functional test against a real web server.
 
 ## Usage
 
@@ -35,7 +46,7 @@ class ApiTest extends TestCase
 {
     public function testGet()
     {
-        $response = yield $this->get('http://my-site-web');
+        $response = $this->httpClient->get('http://my-site-web');
 
         $this->assertSame(200, $response->getStatusCode());
         // or
@@ -48,9 +59,7 @@ Note: All test methods should be prefixed by the `test` keyword. All others
 methods will not be executed automatically.
 
 Here we perform a `GET` request on `http://my-site-web` then we get the
-`$response` by using the `yield` operator. This operator must be understood
-like an `await` in other language (C# / JavaScript) which is feasible by using
-the [amp](https://github.com/amphp/amp) framework.
+`$response`.
 
 All assertions supported by PHPUnit are also supported by Asynit thanks to the
 [bovigo-assert](https://github.com/mikey179/bovigo-assert) library.
@@ -69,11 +78,10 @@ If you have many test files, you can run Asynit with a directory
 $ php vendor/bin/asynit path/to/the/directory
 ```
 
-#### Overriding HTTP Client
+#### Prepare test
 
 Like PHPUnit you can add a special method named `setUp` to your test case. This
-special method will be run before each test and can also be used to override the
-HTTP client.
+special method will be run before each test and be used to declare common needs for each test.
 
 ```php
 
@@ -85,19 +93,14 @@ use Http\Message\UriFactory\GuzzleUriFactory;
 
 class ApiTest extends TestCase
 {
-    public function setUp(HttpAsyncClient $asyncClient): HttpAsyncClient
-    {
-        $uri = (new GuzzleUriFactory())->createUri('http://httpbin.org');
+    private $service;
 
-        return new PluginClient($asyncClient, [
-            new BaseUriPlugin($uri)
-        ]);
+    public function setUp(): HttpAsyncClient
+    {
+        $this->service = new Service();
     }
 }
 ```
-
-You should always decorate the client and not trying to return a new one (unless
-you know what you are doing).
 
 #### Dependency between tests
 
@@ -123,9 +126,16 @@ use Asynit\TestCase;
 
 class SecurityTest extends TestCase
 {
+    private $client;
+    
+    public function setUp()
+    {
+        $this->client = new HttpMethodsClient(new Client());
+    }
+
     public function testLogin()
     {
-        $response = yield $this->post('/', [], '{ "username": "user", "password": "pass" }');
+        $response = $this->client->post('/', [], '{ "username": "user", "password": "pass" }');
 
         $this->assertStatusCode(200, $response);
 
@@ -137,7 +147,7 @@ class SecurityTest extends TestCase
      */
     public function testAuthenticatedRequest(string $token)
     {
-        $response = yield $this->get('/api', ['X-Auth-Token' => $token]);
+        $response = $this->client->get('/api', ['X-Auth-Token' => $token]);
 
         $this->assertStatusCode(200, $response);
     }
@@ -157,7 +167,7 @@ class PostTest
      */
     public function testGet($token)
     {
-        $response = yield $this->get('/posts', ['X-Auth-Token' => $token]);
+        $response = $this->client->get('/posts', ['X-Auth-Token' => $token]);
 
         $this->assertStatusCode(200, $response);
     }
@@ -185,7 +195,7 @@ abstract class WebTestCase extends TestCase
             'password' => $password,
         ];
 
-        $response = yield $this->post('/users/token', [
+        $response = $this->client->post('/users/token', [
             'Content-Type' => 'application/x-www-form-urlencoded',
         ], http_build_query($payload));
 
@@ -209,7 +219,7 @@ class OrganizationTest extends WebTestCase
 {
     public function test_user_can_get_its_information()
     {
-        $token = yield from $this->fetchToken('email@example.com');
+        $token = $this->client->fetchToken('email@example.com');
 
         // ...
     }
@@ -231,7 +241,7 @@ abstract class WebTestCase extends TestCase
 {
     protected function fetchUserToken()
     {
-        return yield from $this->fetchToken('email@example.com', 'password');
+        return $this->fetchToken('email@example.com', 'password');
     }
 }
 ```
@@ -255,41 +265,3 @@ As you may notice, the `fetchUserToken` method does not start with `test`. Thus
 by default this method will not be included in the test suite. But as it is a
 dependency of a test, it will be included as a regular test in the global test
 suite and will leverage the cache system.
-
-### Smoker
-
-Smoker use the Asynit API to provide a simple way to test many URLs when there
-is no need to have a complex logic of testing.
-
-You just have to define a YAML file like the following:
-
-```yaml
-"https://jolicode.com/":
-    status: 200
-
-"https://jolicode.com/equipe":
-    status: 200
-
-"https://jolicode.com/nos-valeurs":
-    status: 200
-```
-
-And then run the PHP smoker CLI on it:
-
-```yaml
-php bin/smoker test.yml
-```
-
-In case you want to check all your site without having to maintain a list of
-URLs in the YAML file, you can use the discovery feature. This will make the
-smoker crawl your website and run asserts on all the matching URLs it find:
-
-```yaml
-"https://jolicode.com/":
-    status: 200
-    discovery:
-        enabled: true
-        match: 'https://jolicode.com/(.*)'
-        # depth: 3
-        limit: 1000
-```
