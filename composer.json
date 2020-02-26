@@ -27,7 +27,7 @@
         "test": "bin/asynit tests/"
     },
     "require": {
-        "php": "^7.0",
+        "php": "^7.2",
         "amphp/artax": "^3.0.14",
         "amphp/sync": "^1.0",
         "bovigo/assert": "^5.0 || ^6.0",
