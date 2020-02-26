@@ -55,8 +55,8 @@ class TestPoolBuilder
 
                 $dependentTest = false;
 
-                if (array_key_exists($dependency, $tests)) {
-                    $dependentTest = $tests[$dependency];
+                if ($tests->offsetExists($dependency)) {
+                    $dependentTest = $tests->offsetGet($dependency);
                 } elseif (is_callable($dependency)) {
                     if (false === strpos($dependency, '::')) {
                         $dependentTest = new Test(new \ReflectionMethod($test->getMethod()->getDeclaringClass()->getName(), $annotation->getDependency()), null, false);
