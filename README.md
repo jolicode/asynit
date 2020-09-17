@@ -261,6 +261,8 @@ suite and will leverage the cache system.
 Smoker use the Asynit API to provide a simple way to test many URLs when there
 is no need to have a complex logic of testing.
 
+You can pass a status code or an array of status code that will be considered valid.
+
 You just have to define a YAML file like the following:
 
 ```yaml
@@ -268,7 +270,7 @@ You just have to define a YAML file like the following:
     status: 200
 
 "https://jolicode.com/equipe":
-    status: 200
+    status: [200, 302]
 
 "https://jolicode.com/nos-valeurs":
     status: 200
