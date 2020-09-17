@@ -19,7 +19,11 @@ class SmokerTestCase extends TestCase
 
         $response = yield $this->get($uri);
 
-        static::assertStatusCode($configuration['status'], $response);
+        if (is_array($configuration['status'])) {
+            static::assertContains($response->getStatusCode(), $configuration['status']);
+        } else {
+            static::assertStatusCode($configuration['status'], $response);
+        }
 
         if (!isset($configuration['discovery'])) {
             return;
