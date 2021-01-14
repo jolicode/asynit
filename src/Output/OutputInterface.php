@@ -12,7 +12,6 @@ interface OutputInterface
     public function outputStep(Test $test, $debugOutput);
 
     /**
-     * @param Test                  $test
      * @param string                $debugOutput
      * @param \Throwable|\Exception $failure
      *

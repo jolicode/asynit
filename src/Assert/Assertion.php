@@ -32,8 +32,7 @@ class Assertion extends BaseAssertion
     /**
      * constructor.
      *
-     * @param mixed                                $value
-     * @param \SebastianBergmann\Exporter\Exporter $exporter
+     * @param mixed $value
      */
     public function __construct($value, Exporter $exporter, Test $test)
     {
@@ -47,12 +46,6 @@ class Assertion extends BaseAssertion
     /** @var Test */
     public static $currentTest;
 
-    /**
-     * @param Predicate   $predicate
-     * @param string|null $description
-     *
-     * @return bool
-     */
     public function evaluate(Predicate $predicate, string $description = null): bool
     {
         try {
@@ -83,8 +76,6 @@ class Assertion extends BaseAssertion
      *
      * @param \bovigo\assert\predicate\Predicate $predicate   predicate that failed
      * @param string                             $description additional description for failure message
-     *
-     * @return string
      */
     private function describeSuccess(Predicate $predicate, string $description = null): string
     {

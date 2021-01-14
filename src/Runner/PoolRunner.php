@@ -3,12 +3,12 @@
 namespace Asynit\Runner;
 
 use Amp\Loop;
+use Amp\Promise;
 use Amp\Sync\LocalSemaphore;
 use Amp\Sync\Semaphore;
-use Amp\Promise;
+use Asynit\Pool;
 use Asynit\Test;
 use Asynit\TestCase;
-use Asynit\Pool;
 use Asynit\TestWorkflow;
 use Http\Message\RequestFactory;
 

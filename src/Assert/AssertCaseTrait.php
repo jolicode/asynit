@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Asynit\Assert;
 
-use function bovigo\assert\exporter;
 use function bovigo\assert\counting;
+use function bovigo\assert\exporter;
 use function bovigo\assert\predicate\contains;
 use function bovigo\assert\predicate\doesNotContain;
 use function bovigo\assert\predicate\doesNotEndWith;
@@ -41,8 +41,8 @@ use function bovigo\assert\predicate\isSameAs;
 use function bovigo\assert\predicate\isTrue;
 use function bovigo\assert\predicate\matches;
 use function bovigo\assert\predicate\matchesFormat;
-use function bovigo\assert\predicate\startsWith;
 use bovigo\assert\predicate\Predicate;
+use function bovigo\assert\predicate\startsWith;
 
 trait AssertCaseTrait
 {
@@ -554,11 +554,7 @@ trait AssertCaseTrait
     }
 
     /**
-     * @param             $value
-     * @param callable    $predicate
-     * @param string|null $description
-     *
-     * @return bool
+     * @param $value
      */
     public function assert($value, callable $predicate, string $description = null): bool
     {

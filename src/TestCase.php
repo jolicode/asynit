@@ -4,9 +4,9 @@ namespace Asynit;
 
 use Amp\Artax\DefaultClient;
 use function Amp\call;
+use Amp\Promise;
 use Amp\Sync\Lock;
 use Amp\Sync\Semaphore;
-use Amp\Promise;
 use Asynit\Assert\AssertWebCaseTrait;
 use Asynit\HttpClient\ArtaxAsyncAdapter;
 use Http\Client\HttpAsyncClient;
@@ -38,8 +38,6 @@ class TestCase
      *
      * Allow to set default services and context, and also decorate the http async client.
      *
-     * @param HttpAsyncClient $asyncClient
-     *
      * @return \Generator|Promise|HttpAsyncClient
      */
     public function setUp(HttpAsyncClient $asyncClient)
@@ -58,10 +56,6 @@ class TestCase
 
     /**
      * Allow to test a rejection or a resolution of an async call.
-     *
-     * @param RequestInterface $request
-     *
-     * @return Promise
      */
     final protected function sendRequest(RequestInterface $request): Promise
     {
@@ -81,8 +75,6 @@ class TestCase
      * @param array  $headers
      * @param null   $body
      * @param string $version
-     *
-     * @return Promise
      */
     final protected function get($uri, $headers = [], $body = null, $version = '1.1'): Promise
     {
@@ -94,8 +86,6 @@ class TestCase
      * @param array  $headers
      * @param null   $body
      * @param string $version
-     *
-     * @return Promise
      */
     final protected function post($uri, $headers = [], $body = null, $version = '1.1'): Promise
     {
@@ -107,8 +97,6 @@ class TestCase
      * @param array  $headers
      * @param null   $body
      * @param string $version
-     *
-     * @return Promise
      */
     final protected function patch($uri, $headers = [], $body = null, $version = '1.1'): Promise
     {
@@ -133,8 +121,6 @@ class TestCase
      * @param array  $headers
      * @param null   $body
      * @param string $version
-     *
-     * @return Promise
      */
     final protected function delete($uri, $headers = [], $body = null, $version = '1.1'): Promise
     {
@@ -146,8 +132,6 @@ class TestCase
      * @param array  $headers
      * @param null   $body
      * @param string $version
-     *
-     * @return Promise
      */
     final protected function options($uri, $headers = [], $body = null, $version = '1.1'): Promise
     {

@@ -68,12 +68,7 @@ class TestPoolBuilder
                 }
 
                 if (!$dependentTest) {
-                    throw new \RuntimeException(sprintf(
-                        'Failed to build test pool "%s" dependency is not resolvable for "%s::%s".',
-                        $annotation->getDependency(),
-                        $test->getMethod()->getDeclaringClass()->getName(),
-                        $test->getMethod()->getName()
-                    ));
+                    throw new \RuntimeException(sprintf('Failed to build test pool "%s" dependency is not resolvable for "%s::%s".', $annotation->getDependency(), $test->getMethod()->getDeclaringClass()->getName(), $test->getMethod()->getName()));
                 }
 
                 $dependentTest->addChildren($test);

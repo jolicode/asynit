@@ -13,8 +13,6 @@ class Chain implements OutputInterface
 
     /**
      * Add output to the chain.
-     *
-     * @param OutputInterface $output
      */
     public function addOutput(OutputInterface $output)
     {
