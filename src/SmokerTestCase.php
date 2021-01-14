@@ -10,7 +10,7 @@ class SmokerTestCase extends TestCase
 {
     const DISCOVERY_DEFAULT_LIMIT = 1000;
 
-    static private $uris = [];
+    private static $uris = [];
 
     public function smokeTest($data)
     {
@@ -35,7 +35,7 @@ class SmokerTestCase extends TestCase
 
         if (
             (isset($discovery['enabled']) && !$discovery['enabled']) // Enabled by default
-            || (isset($discovery['depth']) && $discovery['depth'] === 0)
+            || (isset($discovery['depth']) && 0 === $discovery['depth'])
             || $this->hasReachedDiscoveryLimit($discovery)
         ) {
             return;
@@ -56,7 +56,7 @@ class SmokerTestCase extends TestCase
         foreach ($links as $link) {
             $uri = $link->getUri();
             $fragment = parse_url($uri, PHP_URL_FRAGMENT);
-            $uri = str_replace('#' . $fragment, '', $uri);
+            $uri = str_replace('#'.$fragment, '', $uri);
 
             if ($this->hasReachedDiscoveryLimit($discovery)) {
                 return;

@@ -19,8 +19,6 @@ class Pool
 
     /**
      * Queue a test.
-     *
-     * @param Test $test
      */
     public function addTest(Test $test)
     {

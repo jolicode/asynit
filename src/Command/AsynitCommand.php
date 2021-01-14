@@ -4,8 +4,8 @@ namespace Asynit\Command;
 
 use Amp\Loop;
 use Asynit\Output\OutputFactory;
-use Asynit\Parser\TestsFinder;
 use Asynit\Parser\TestPoolBuilder;
+use Asynit\Parser\TestsFinder;
 use Asynit\Runner\PoolRunner;
 use Asynit\TestWorkflow;
 use Doctrine\Common\Annotations\AnnotationReader;
