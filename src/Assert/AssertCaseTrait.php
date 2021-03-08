@@ -7,6 +7,7 @@ namespace Asynit\Assert;
 use function bovigo\assert\counting;
 use function bovigo\assert\exporter;
 use function bovigo\assert\predicate\contains;
+use function bovigo\assert\predicate\containsSubset;
 use function bovigo\assert\predicate\doesNotContain;
 use function bovigo\assert\predicate\doesNotEndWith;
 use function bovigo\assert\predicate\doesNotHaveKey;
@@ -551,6 +552,11 @@ trait AssertCaseTrait
         }
 
         $this->assert($string, matchesFormat($format), $message);
+    }
+
+    public function assertContainsSubset(array $other, array $subset, bool $strict = false, string $message = '')
+    {
+        $this->assert($subset, containsSubset($other, $strict), $message);
     }
 
     /**
