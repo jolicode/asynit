@@ -50,25 +50,22 @@ class TestPoolBuilder
                 $dependency = $annotation->getDependency();
 
                 if (false === strpos($dependency, '::')) {
-                    $dependency = $test->getMethod()->getDeclaringClass()->getName().'::'.$dependency;
-                }
+                    if (!method_exists($test->getMethod()->getDeclaringClass()->getName(), $dependency)) {
+                        throw new \RuntimeException(sprintf('Failed to build test pool "%s" dependency is not resolvable for "%s::%s".', $dependency, $test->getMethod()->getDeclaringClass()->getName(), $test->getMethod()->getName()));
+                    }
 
-                $dependentTest = false;
-
-                if ($tests->offsetExists($dependency)) {
+                    $dependentTest = new Test(new \ReflectionMethod($test->getMethod()->getDeclaringClass()->getName(), $annotation->getDependency()), null, false);
+                    $tests[$dependentTest->getIdentifier()] = $dependentTest;
+                } elseif ($tests->offsetExists($dependency)) {
                     $dependentTest = $tests->offsetGet($dependency);
                 } elseif (is_callable($dependency)) {
-                    if (false === strpos($dependency, '::')) {
-                        $dependentTest = new Test(new \ReflectionMethod($test->getMethod()->getDeclaringClass()->getName(), $annotation->getDependency()), null, false);
-                    } else {
-                        $parts = explode('::', $dependency);
-                        $dependentTest = new Test(new \ReflectionMethod($parts[0], $parts[1]), null, false);
-                    }
+                    $parts = explode('::', $dependency);
+                    $dependentTest = new Test(new \ReflectionMethod($parts[0], $parts[1]), null, false);
                     $tests[$dependentTest->getIdentifier()] = $dependentTest;
                 }
 
                 if (!$dependentTest) {
-                    throw new \RuntimeException(sprintf('Failed to build test pool "%s" dependency is not resolvable for "%s::%s".', $annotation->getDependency(), $test->getMethod()->getDeclaringClass()->getName(), $test->getMethod()->getName()));
+                    throw new \RuntimeException(sprintf('Failed to build test pool "%s" dependency is not resolvable for "%s::%s".', $dependency, $test->getMethod()->getDeclaringClass()->getName(), $test->getMethod()->getName()));
                 }
 
                 $dependentTest->addChildren($test);
