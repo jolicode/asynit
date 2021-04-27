@@ -49,23 +49,29 @@ class TestPoolBuilder
             if ($annotation instanceof Depend) {
                 $dependency = $annotation->getDependency();
 
-                if (false === strpos($dependency, '::')) {
-                    if (!method_exists($test->getMethod()->getDeclaringClass()->getName(), $dependency)) {
-                        throw new \RuntimeException(sprintf('Failed to build test pool "%s" dependency is not resolvable for "%s::%s".', $dependency, $test->getMethod()->getDeclaringClass()->getName(), $test->getMethod()->getName()));
-                    }
-
-                    $dependentTest = new Test(new \ReflectionMethod($test->getMethod()->getDeclaringClass()->getName(), $annotation->getDependency()), null, false);
-                    $tests[$dependentTest->getIdentifier()] = $dependentTest;
-                } elseif ($tests->offsetExists($dependency)) {
+                if ($tests->offsetExists($dependency)) {
                     $dependentTest = $tests->offsetGet($dependency);
-                } elseif (is_callable($dependency)) {
-                    $parts = explode('::', $dependency);
-                    $dependentTest = new Test(new \ReflectionMethod($parts[0], $parts[1]), null, false);
-                    $tests[$dependentTest->getIdentifier()] = $dependentTest;
+                    $dependentTest->addChildren($test);
+                    $test->addParent($dependentTest);
+                    continue;
                 }
 
-                if (!$dependentTest) {
+                if (false === strpos($dependency, '::')) {
+                    $class = $test->getMethod()->getDeclaringClass()->getName();
+                    $method = $dependency;
+                } else {
+                    [$class, $method] = explode('::', $dependency, 2);
+                }
+
+                if (!method_exists($class, $method)) {
                     throw new \RuntimeException(sprintf('Failed to build test pool "%s" dependency is not resolvable for "%s::%s".', $dependency, $test->getMethod()->getDeclaringClass()->getName(), $test->getMethod()->getName()));
+                }
+
+                $dependentTest = new Test(new \ReflectionMethod($class, $method), null, false);
+                if ($tests->offsetExists($dependentTest->getIdentifier())) {
+                    $dependentTest = $tests->offsetGet($dependentTest->getIdentifier());
+                } else {
+                    $tests[$dependentTest->getIdentifier()] = $dependentTest;
                 }
 
                 $dependentTest->addChildren($test);

@@ -41,7 +41,7 @@ class Pool
         return $this->tests;
     }
 
-    public function getTestToRun()
+    public function getTestToRun(): ?Test
     {
         foreach ($this->tests as $test) {
             if ($test->canBeRun()) {
