@@ -5,6 +5,7 @@ namespace Asynit;
 use Amp\Artax\DefaultClient;
 use function Amp\call;
 use Amp\Promise;
+use Amp\Socket\ClientTlsContext;
 use Amp\Sync\Lock;
 use Amp\Sync\Semaphore;
 use Asynit\Assert\AssertWebCaseTrait;
@@ -45,11 +46,16 @@ class TestCase
         return $asyncClient;
     }
 
-    final public function initialize()
+    final public function initialize(bool $allowSelfSignedCertificate = false)
     {
-        return call(function () {
-            $this->client = yield call(function () {
-                return $this->setUp(new ArtaxAsyncAdapter($this->messageFactory, new DefaultClient()));
+        return call(function () use ($allowSelfSignedCertificate) {
+            $this->client = yield call(function () use ($allowSelfSignedCertificate) {
+                if ($allowSelfSignedCertificate) {
+                    $tlsContext = new ClientTlsContext();
+                    $tlsContext = $tlsContext->withoutPeerVerification();
+                }
+
+                return $this->setUp(new ArtaxAsyncAdapter($this->messageFactory, new DefaultClient(null, null, $tlsContext ?? null)));
             });
         });
     }
