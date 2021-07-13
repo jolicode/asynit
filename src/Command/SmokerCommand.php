@@ -41,7 +41,7 @@ class SmokerCommand extends Command
     {
         // Build the client
         $parser = new SmokeParser();
-        $testMethods = $parser->parse($input->getArgument('file'));
+        $testMethods = $parser->parse($input->getArgument('file'), $input->getOption('host'));
 
         list($chainOutput, $countOutput) = (new OutputFactory())->buildOutput(\count($testMethods));
 
