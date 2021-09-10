@@ -1,49 +1,35 @@
 name: CI
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+  pull_request: null
+  schedule:
+    -
+      cron: '0 0 * * MON'
 jobs:
   tests:
     runs-on: ubuntu-latest
     strategy:
-      max-parallel: 15
+      fail-fast: false
       matrix:
-        php-versions:  ['7.4', '8.0']
-    name: tests-${{ matrix.php-versions }}
+        php-version: ['7.4', '8.0']
+        composer-flags: ['']
+        name: ['']
+        include:
+          - php-version: '7.3'
+            composer-flags: '--prefer-lowest'
+            name: '(prefer lowest dependencies)'
+    name: Tests PHP ${{ matrix.php-version }} ${{ matrix.name }}
     steps:
       - name: checkout
-        uses: actions/checkout@master
-      - name: cache-composer
-        uses: actions/cache@v2
-        with:
-          path: ~/.composer/cache/
-          key: composer-${{ matrix.php-versions }}-${{ github.sha }}
+        uses: actions/checkout@v2
       - name: setup
         uses: shivammathur/setup-php@2.9.0
         with:
-          php-version: ${{ matrix.php-versions }}
+          php-version: ${{ matrix.php-version }}
       - name: composer install
-        run: composer update --prefer-stable
-      - name: Build docker
-        run: docker build -t httpbin .
-      - name: Run docker
-        run: docker run -d -p 8081:80 httpbin
-      - name: tests
-        run: composer test
-  tests-lowest:
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout
-        uses: actions/checkout@master
-      - name: cache-composer-lowest
-        uses: actions/cache@v2
-        with:
-          path: ~/.composer/cache/
-          key: composer-lowest-${{ github.sha }}
-      - name: setup
-        uses: shivammathur/setup-php@2.9.0
-        with:
-          php-version: 7.3
-      - name: composer install
-        run: composer update --prefer-lowest --prefer-stable
+        run: composer update --prefer-dist --no-interaction ${{ matrix.composer-flags }}
       - name: Build docker
         run: docker build -t httpbin .
       - name: Run docker
