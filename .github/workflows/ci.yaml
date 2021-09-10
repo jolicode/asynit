@@ -1,0 +1,52 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 15
+      matrix:
+        php-versions:  ['7.4', '8.0']
+    name: tests-${{ matrix.php-versions }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@master
+      - name: cache-composer
+        uses: actions/cache@v2
+        with:
+          path: ~/.composer/cache/
+          key: composer-${{ matrix.php-versions }}-${{ github.sha }}
+      - name: setup
+        uses: shivammathur/setup-php@2.9.0
+        with:
+          php-version: ${{ matrix.php-versions }}
+      - name: composer install
+        run: composer update --prefer-stable
+      - name: Build docker
+        run: docker build -t httpbin .
+      - name: Run docker
+        run: docker run -d -p 8081:80 httpbin
+      - name: tests
+        run: composer test
+  tests-lowest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@master
+      - name: cache-composer-lowest
+        uses: actions/cache@v2
+        with:
+          path: ~/.composer/cache/
+          key: composer-lowest-${{ github.sha }}
+      - name: setup
+        uses: shivammathur/setup-php@2.9.0
+        with:
+          php-version: 7.3
+      - name: composer install
+        run: composer update --prefer-lowest --prefer-stable
+      - name: Build docker
+        run: docker build -t httpbin .
+      - name: Run docker
+        run: docker run -d -p 8081:80 httpbin
+      - name: tests
+        run: composer test
