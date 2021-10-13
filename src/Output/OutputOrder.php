@@ -41,7 +41,7 @@ class OutputOrder implements OutputInterface
             if (\count($depends) > 0) {
                 $dependsStr = " depends on " . join(", ", array_map(function ($i) {
                     return "#" . $i;
-                }, $depends));
+                }, array_unique($depends)));
             }
 
             fwrite(STDOUT, " - #".$index . ' ' . $test->getDisplayName() . $dependsStr . "\n");
