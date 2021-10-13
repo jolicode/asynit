@@ -34,6 +34,7 @@ class AsynitCommand extends Command
             ->addOption('allow-self-signed-certificate', null, InputOption::VALUE_NONE, 'Allow self signed ssl certificate')
             ->addOption('concurrency', null, InputOption::VALUE_REQUIRED, 'Max number of parallels requests', 10)
             ->addOption('bootstrap', null, InputOption::VALUE_REQUIRED, 'A PHP file to include before anything else', $this->defaultBootstrapFilename)
+            ->addOption('order', null, InputOption::VALUE_NONE, 'Output tests execution order')
         ;
     }
 
@@ -52,7 +53,7 @@ class AsynitCommand extends Command
         $testsFinder = new TestsFinder();
         $testMethods = $testsFinder->findTests($input->getArgument('target'));
 
-        list($chainOutput, $countOutput) = (new OutputFactory())->buildOutput(\count($testMethods));
+        list($chainOutput, $countOutput) = (new OutputFactory($input->getOption('order')))->buildOutput(\count($testMethods));
 
         // Build services for parsing and running tests
         $builder = new TestPoolBuilder(new AnnotationReader());
