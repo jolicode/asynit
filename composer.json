@@ -44,7 +44,7 @@
         "friendsofphp/php-cs-fixer": "^2.10"
     },
     "conflict": {
-        "symfony/options-resolver": "<4.0 || <5.3 >= 5.0"
+        "symfony/options-resolver": "<4.4.30 || <5.3 >= 5.0"
     },
     "prefer-stable": true,
     "minimum-stability": "dev",
