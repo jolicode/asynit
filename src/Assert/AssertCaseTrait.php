@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Asynit\Assert;
 
+use Asynit\Test;
 use function bovigo\assert\counting;
 use function bovigo\assert\exporter;
 use function bovigo\assert\predicate\contains;
@@ -47,7 +48,7 @@ use function bovigo\assert\predicate\startsWith;
 
 trait AssertCaseTrait
 {
-    private $test;
+    private Test $test;
 
     /**
      * Asserts that an array has a specified key.

@@ -22,12 +22,12 @@ class Assertion extends BaseAssertion
     /**
      * @var \SebastianBergmann\Exporter\Exporter
      */
-    private $exporter;
+    private Exporter $exporter;
 
     /**
      * @var Test
      */
-    private $test;
+    private Test $test;
 
     /**
      * constructor.
@@ -44,7 +44,7 @@ class Assertion extends BaseAssertion
     }
 
     /** @var Test */
-    public static $currentTest;
+    public static Test $currentTest;
 
     public function evaluate(Predicate $predicate, string $description = null): bool
     {

@@ -11,15 +11,8 @@ use Doctrine\Common\Annotations\AnnotationReader;
 /**
  * Build test.
  */
-class TestPoolBuilder
+final class TestPoolBuilder
 {
-    private $reader;
-
-    public function __construct(AnnotationReader $reader)
-    {
-        $this->reader = $reader;
-    }
-
     /**
      * Build the initial test pool.
      *
@@ -43,44 +36,45 @@ class TestPoolBuilder
 
     private function processTestAnnotations(\ArrayObject $tests, Test $test)
     {
-        $annotations = $this->reader->getMethodAnnotations($test->getMethod());
+        $testMethod = $test->getMethod();
+        $attributes = $testMethod->getAttributes(Depend::class);
 
-        foreach ($annotations as $annotation) {
-            if ($annotation instanceof Depend) {
-                $dependency = $annotation->getDependency();
+        foreach ($attributes as $attribute) {
+            $dependency = $attribute->newInstance()->dependency;
 
-                if ($tests->offsetExists($dependency)) {
-                    $dependentTest = $tests->offsetGet($dependency);
-                    $dependentTest->addChildren($test);
-                    $test->addParent($dependentTest);
-                    continue;
-                }
-
-                if (false === strpos($dependency, '::')) {
-                    $class = $test->getMethod()->getDeclaringClass()->getName();
-                    $method = $dependency;
-                } else {
-                    [$class, $method] = explode('::', $dependency, 2);
-                }
-
-                if (!method_exists($class, $method)) {
-                    throw new \RuntimeException(sprintf('Failed to build test pool "%s" dependency is not resolvable for "%s::%s".', $dependency, $test->getMethod()->getDeclaringClass()->getName(), $test->getMethod()->getName()));
-                }
-
-                $dependentTest = new Test(new \ReflectionMethod($class, $method), null, false);
-                if ($tests->offsetExists($dependentTest->getIdentifier())) {
-                    $dependentTest = $tests->offsetGet($dependentTest->getIdentifier());
-                } else {
-                    $tests[$dependentTest->getIdentifier()] = $dependentTest;
-                }
-
+            if ($tests->offsetExists($dependency)) {
+                $dependentTest = $tests->offsetGet($dependency);
                 $dependentTest->addChildren($test);
                 $test->addParent($dependentTest);
+                continue;
             }
 
-            if ($annotation instanceof DisplayName) {
-                $test->setDisplayName($annotation->getName());
+            if (false === strpos($dependency, '::')) {
+                $class = $test->getMethod()->getDeclaringClass()->getName();
+                $method = $dependency;
+            } else {
+                [$class, $method] = explode('::', $dependency, 2);
             }
+
+            if (!method_exists($class, $method)) {
+                throw new \RuntimeException(sprintf('Failed to build test pool "%s" dependency is not resolvable for "%s::%s".', $dependency, $test->getMethod()->getDeclaringClass()->getName(), $test->getMethod()->getName()));
+            }
+
+            $dependentTest = new Test(new \ReflectionMethod($class, $method), null, false);
+            if ($tests->offsetExists($dependentTest->getIdentifier())) {
+                $dependentTest = $tests->offsetGet($dependentTest->getIdentifier());
+            } else {
+                $tests[$dependentTest->getIdentifier()] = $dependentTest;
+            }
+
+            $dependentTest->addChildren($test);
+            $test->addParent($dependentTest);
+        }
+
+        $displayName = $testMethod->getAttributes(DisplayName::class);
+
+        if (\count($displayName) > 0) {
+            $test->setDisplayName($displayName[0]->newInstance()->name);
         }
     }
 }

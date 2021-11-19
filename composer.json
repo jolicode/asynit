@@ -27,13 +27,12 @@
         "test": "bin/asynit tests/"
     },
     "require": {
-        "php": "^7.3 || ^8.0",
-        "amphp/http-client": "^3.0.14",
-        "amphp/sync": "^1.0",
+        "php": "^8.1",
+        "amphp/http-client-psr7": "v2.x-dev",
         "bovigo/assert": "^6.2",
         "doctrine/annotations": "^1.2",
         "doctrine/collections": "^1.3",
-        "guzzlehttp/psr7": "^1.4",
+        "guzzlehttp/psr7": "^2.1.0",
         "php-http/client-common": "^2.0",
         "php-http/message": "^1.3",
         "symfony/console": "^4.4 || ^5.0 || ^6.0",
@@ -42,9 +41,11 @@
         "symfony/yaml": "^4.4 || ^5.0 || ^6.0"
     },
     "require-dev": {
+        "roave/security-advisories": "dev-latest",
         "friendsofphp/php-cs-fixer": "^2.10"
     },
     "prefer-stable": true,
+    "minimum-stability": "dev",
     "config": {
         "sort-packages": true
     }

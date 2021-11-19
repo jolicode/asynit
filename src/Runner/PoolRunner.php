@@ -2,103 +2,108 @@
 
 namespace Asynit\Runner;
 
-use Amp\Loop;
-use Amp\Promise;
+use Amp\Future;
+use Amp\Http\Client\Connection\DefaultConnectionFactory;
+use Amp\Http\Client\Connection\UnlimitedConnectionPool;
+use Amp\Http\Client\HttpClientBuilder;
+use Amp\Http\Client\Psr7\PsrAdapter;
+use Amp\Http\Client\Psr7\PsrHttpClient;
+use Amp\Socket\ClientTlsContext;
+use Amp\Socket\ConnectContext;
 use Amp\Sync\LocalSemaphore;
 use Amp\Sync\Semaphore;
 use Asynit\Pool;
 use Asynit\Test;
 use Asynit\TestCase;
 use Asynit\TestWorkflow;
-use Http\Message\RequestFactory;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\StreamFactoryInterface;
+use function Amp\coroutine;
 
 class PoolRunner
 {
-    /** @var TestWorkflow */
-    private $workflow;
+    private Semaphore $semaphore;
 
-    /** @var RequestFactory */
-    private $requestFactory;
+    private ClientInterface $client;
 
-    /** @var Semaphore */
-    private $semaphore;
-
-    /** @var bool */
-    private $allowSelfSignedCertificate;
-
-    public function __construct(RequestFactory $requestFactory, TestWorkflow $workflow, $concurrency = 10, bool $allowSelfSignedCertificate = false)
+    public function __construct(private RequestFactoryInterface $requestFactory, private ResponseFactoryInterface $responseFactory, private StreamFactoryInterface $streamFactory,  private TestWorkflow $workflow, $concurrency = 10, private bool $allowSelfSignedCertificate = false)
     {
-        $this->requestFactory = $requestFactory;
-        $this->workflow = $workflow;
         $this->semaphore = new LocalSemaphore($concurrency);
-        $this->allowSelfSignedCertificate = $allowSelfSignedCertificate;
+
+        $tlsContext = new ClientTlsContext('');
+
+        if ($allowSelfSignedCertificate) {
+            $tlsContext = $tlsContext->withoutPeerVerification();
+        }
+
+        $connectContext = new ConnectContext('');
+        $connectContext = $connectContext->withTlsContext($tlsContext);
+
+        $builder = new HttpClientBuilder();
+        $builder = $builder->usingPool(new UnlimitedConnectionPool(new DefaultConnectionFactory(null, $connectContext)));
+        $client = $builder->build();
+        $adapter = new PsrAdapter($requestFactory, $responseFactory);
+        $this->client = new PsrHttpClient($client, $adapter);
     }
 
     public function loop(Pool $pool)
     {
-        return \Amp\call(function () use ($pool) {
-            ob_start();
-            $promises = [];
+        ob_start();
+        /** @var Future[] $futures */
+        $futures = [];
 
-            while (!$pool->isEmpty()) {
-                $test = $pool->getTestToRun();
+        while (!$pool->isEmpty()) {
+            $test = $pool->getTestToRun();
 
-                if (null === $test) {
-                    yield \Amp\Promise\first($promises);
+            if (null === $test) {
+                Future\any($futures);
 
-                    continue;
-                }
-
-                $promises[$test->getIdentifier()] = $this->run($test);
-                $promises[$test->getIdentifier()]->onResolve(function () use (&$promises, $test) {
-                    unset($promises[$test->getIdentifier()]);
-                });
+                continue;
             }
 
-            yield $promises;
+            $this->workflow->markTestAsRunning($test);
 
-            Loop::stop();
-            ob_end_flush();
-        });
+            $futures[$test->getIdentifier()] = coroutine(function () use($test, &$futures) {
+                $this->run($test);
+
+                unset($futures[$test->getIdentifier()]);
+            });
+        }
+        ob_end_flush();
     }
 
-    protected function run(Test $test): Promise
+    protected function run(Test $test)
     {
-        return \Amp\call(function () use ($test) {
+        try {
+            $testCase = $this->buildTestCase($test);
+            $testCase->setUp($this->client);
+
+            $method = $test->getMethod()->getName();
+            $args = $test->getArguments();
+
+            set_error_handler(__CLASS__.'::handleInternalError');
+
             try {
-                $this->workflow->markTestAsRunning($test);
-
-                $testCase = $this->buildTestCase($test);
-
-                yield $testCase->initialize($this->allowSelfSignedCertificate);
-
-                $result = yield \Amp\call(function () use ($testCase, $test) {
-                    $method = $test->getMethod()->getName();
-                    $args = $test->getArguments();
-
-                    set_error_handler(__CLASS__.'::handleInternalError');
-
-                    try {
-                        return $testCase->$method(...$args);
-                    } finally {
-                        restore_error_handler();
-                    }
-                });
-
-                foreach ($test->getChildren() as $childTest) {
-                    $childTest->addArgument($result, $test);
-                }
-
-                $this->workflow->markTestAsSuccess($test);
-            } catch (\Throwable $error) {
-                $this->workflow->markTestAsFailed($test, $error);
+                $result = $testCase->$method(...$args);
+            } finally {
+                restore_error_handler();
             }
-        });
+
+            foreach ($test->getChildren() as $childTest) {
+                $childTest->addArgument($result, $test);
+            }
+
+            $this->workflow->markTestAsSuccess($test);
+        } catch (\Throwable $error) {
+            $this->workflow->markTestAsFailed($test, $error);
+        }
     }
 
     private function buildTestCase(Test $test): TestCase
     {
-        return $test->getMethod()->getDeclaringClass()->newInstance($this->requestFactory, $this->semaphore, $test);
+        return $test->getMethod()->getDeclaringClass()->newInstance($this->requestFactory, $this->streamFactory, $this->semaphore, $test, $this->client);
     }
 
     public static function handleInternalError($type, $message, $file, $line)

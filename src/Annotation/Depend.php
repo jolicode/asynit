@@ -2,26 +2,13 @@
 
 namespace Asynit\Annotation;
 
-use Doctrine\Common\Annotations\Annotation\Target;
-
-/**
- * @Annotation
- * @Target({"METHOD"})
- */
+#[\Attribute(\Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)]
 class Depend
 {
-    private $dependency;
+    public string $dependency;
 
-    public function __construct(array $dependency)
+    public function __construct(string $dependency)
     {
-        $this->dependency = $dependency['value'];
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getDependency()
-    {
-        return $this->dependency;
+        $this->dependency = $dependency;
     }
 }

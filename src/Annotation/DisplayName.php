@@ -4,25 +4,13 @@ declare(strict_types=1);
 
 namespace Asynit\Annotation;
 
-/**
- * @Annotation
- * @Target({"METHOD"})
- */
+#[\Attribute(\Attribute::TARGET_METHOD)]
 class DisplayName
 {
-    private $name;
+    public string $name;
 
-    public function __construct($name)
+    public function __construct(string $name)
     {
-        if (is_array($name)) {
-            $name = current($name);
-        }
-
         $this->name = $name;
-    }
-
-    public function getName(): string
-    {
-        return $this->name;
     }
 }
