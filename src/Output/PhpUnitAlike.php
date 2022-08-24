@@ -154,31 +154,31 @@ class PhpUnitAlike implements OutputInterface
         return @round($memory / pow(1000, ($i = floor(log($memory, 1000)))), 2).(isset($unit[$i]) ? $unit[$i] : 'B');
     }
 
-    private function getDisplayableTime($time)
+    private function getDisplayableTime(float $time): string
     {
         $milliseconds = $time;
-        $seconds = round(($time % 60000) / 1000, 2);
-        $minutes = round(($time / (1000 * 60)) % 60);
-        $hours = round($time / (1000 * 60 * 60));
+        $seconds = (intval($time) % 60000) / 1000;
+        $minutes = intval($time / (1000 * 60)) % 60;
+        $hours = $time / (1000 * 60 * 60);
 
-        $text = $milliseconds.' milliseconds';
+        $text = sprintf('%.2F milliseconds', $milliseconds);
 
         if (($seconds - 0.1) < 0) {
             return $text;
         }
 
-        $text = $seconds.' seconds';
+        $text = sprintf('%.2F seconds', $seconds);
 
         if (($minutes - 0.1) < 0) {
             return $text;
         }
 
-        $text = $minutes.' minutes, '.$text;
+        $text = sprintf('%d minutes, %s', $minutes, $text);
 
         if (($hours - 0.1) < 0) {
             return $text;
         }
 
-        return $hours.' hours, '.$text;
+        return sprintf('%d hours, %s', $hours, $text);
     }
 }
