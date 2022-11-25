@@ -3,7 +3,8 @@ on:
   push:
     branches:
       - master
-  pull_request: null
+  pull_request:
+      - master
   schedule:
     -
       cron: '0 0 * * MON'
