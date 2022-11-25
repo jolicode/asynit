@@ -43,7 +43,7 @@ class FunctionalTests extends TestCase
      */
     public function testDepend($value)
     {
-        $this->assertEquals('foo', $value);
+        $this->assertSame('foo', $value);
     }
 
     /** @Depend("Asynit\Tests\AnotherTest::test_from_another_file") */
