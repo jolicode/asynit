@@ -2,7 +2,6 @@
 <?php
 
 use Asynit\Command\AsynitCommand;
-use Doctrine\Common\Annotations\AnnotationRegistry;
 use Symfony\Component\Console\Application;
 
 if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
@@ -19,3 +18,4 @@ if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
     ->setDefaultCommand('asynit', true)
     ->run()
 ;
+
