@@ -1,45 +1,53 @@
 <?php
 
-namespace Asynit;
+namespace Asynit\HttpClient;
 
+use Amp\Http\Client\Connection\DefaultConnectionFactory;
+use Amp\Http\Client\Connection\UnlimitedConnectionPool;
+use Amp\Http\Client\HttpClientBuilder;
+use Amp\Socket\ClientTlsContext;
+use Amp\Socket\ConnectContext;
+use Asynit\Annotation\OnCreate;
 use Asynit\Assert\AssertWebCaseTrait;
+use Nyholm\Psr7\Factory\Psr17Factory;
 use Psr\Http\Client\ClientInterface;
-use Psr\Http\Message\RequestFactoryInterface;
-use Amp\Sync\Semaphore;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\StreamFactoryInterface;
 
-class TestCase
+trait HttpClientWebCaseTrait
 {
     use AssertWebCaseTrait;
 
-    final public function __construct(
-        private RequestFactoryInterface $requestFactory,
-        private StreamFactoryInterface $streamFactory,
-        private Semaphore $semaphore,
-        Test $test,
-        protected ClientInterface $client,
-    )
+    private ClientInterface|null $httpClient = null;
+
+    private Psr17Factory|null $httpFactory = null;
+
+    protected $allowSelfSignedCertificate = false;
+
+    protected function createHttpClient(bool $allowSelfSignedCertificate = false): ClientInterface
     {
-        $this->test = $test;
+        $tlsContext = new ClientTlsContext('');
+
+        if ($allowSelfSignedCertificate) {
+            $tlsContext = $tlsContext->withoutPeerVerification();
+        }
+
+        $connectContext = new ConnectContext('');
+        $connectContext = $connectContext->withTlsContext($tlsContext);
+
+        $builder = new HttpClientBuilder();
+        $builder = $builder->usingPool(new UnlimitedConnectionPool(new DefaultConnectionFactory(null, $connectContext)));
+        $client = $builder->build();
+        $factory = new Psr17Factory();
+
+        return new AmpPsrHttpClient($client, $factory, $factory);
     }
 
-    public function initialize()
+    #[OnCreate]
+    final public function setUpHttpClient(): void
     {
-        $this->client = $this->setUp($this->client);
-    }
-
-    /**
-     * Run before each test.
-     *
-     * Allow to set default services and context, and also decorate the http async client.
-     *
-     * @return ClientInterface
-     */
-    public function setUp(ClientInterface $asyncClient): ClientInterface
-    {
-        return $asyncClient;
+        $this->httpClient = $this->createHttpClient($this->allowSelfSignedCertificate);
+        $this->httpFactory = new Psr17Factory();
     }
 
     /**
@@ -47,18 +55,14 @@ class TestCase
      */
     final protected function sendRequest(RequestInterface $request): ResponseInterface
     {
-        $lock = $this->semaphore->acquire();
-        $response = $this->client->sendRequest($request);
-        $lock->release();
-
-        return $response;
+        return $this->httpClient->sendRequest($request);
     }
 
     final protected function get(string $uri, array $headers = [], $body = null, ?string $version = null): ResponseInterface
     {
         return $this->sendRequest($this->createRequest('GET', $uri, $headers, $body, $version));
     }
-    
+
     final protected function post(string $uri, array $headers = [], $body = null, ?string $version = null): ResponseInterface
     {
         return $this->sendRequest($this->createRequest('POST', $uri, $headers, $body, $version));
@@ -84,25 +88,21 @@ class TestCase
         return $this->sendRequest($this->createRequest('OPTIONS', $uri, $headers, $body, $version));
     }
 
-    protected function createUri(string $uri): string
+    private function createRequest(string $method, string $uri, array $headers = [], $body = null, ?string $version = null): RequestInterface
     {
-        return $uri;
-    }
-
-    private function createRequest(string $method, string $uri, array $headers = [], $body = null, ?string $version = null): RequestInterface {
-        $request = $this->requestFactory->createRequest($method, $this->createUri($uri));
+        $request = $this->httpFactory->createRequest($method, $uri);
 
         foreach ($headers as $name => $value) {
             $request = $request->withHeader($name, $value);
         }
 
-        if ($body !== null) {
-            $body = $this->streamFactory->createStream($body);
+        if (null !== $body) {
+            $body = $this->httpFactory->createStream($body);
 
             $request = $request->withBody($body);
         }
 
-        if ($version !== null) {
+        if (null !== $version) {
             $request = $request->withProtocolVersion($version);
         }
 

@@ -36,15 +36,15 @@ class OutputOrder implements OutputInterface
         foreach ($this->tests as $index => $test) {
             $depends = $this->createDepends($test, $orders);
             $orders[$test->getDisplayName()] = $index;
-            $dependsStr = "";
+            $dependsStr = '';
 
             if (\count($depends) > 0) {
-                $dependsStr = " depends on " . join(", ", array_map(function ($i) {
-                    return "#" . $i;
+                $dependsStr = ' depends on '.join(', ', array_map(function ($i) {
+                    return '#'.$i;
                 }, array_unique($depends)));
             }
 
-            fwrite(STDOUT, " - #".$index . ' ' . $test->getDisplayName() . $dependsStr . "\n");
+            fwrite(STDOUT, ' - #'.$index.' '.$test->getDisplayName().$dependsStr."\n");
         }
     }
 

@@ -19,14 +19,8 @@ class Assertion extends BaseAssertion
      */
     private $value;
 
-    /**
-     * @var \SebastianBergmann\Exporter\Exporter
-     */
     private Exporter $exporter;
 
-    /**
-     * @var Test
-     */
     private Test $test;
 
     /**
@@ -43,7 +37,6 @@ class Assertion extends BaseAssertion
         $this->test = $test;
     }
 
-    /** @var Test */
     public static Test $currentTest;
 
     public function evaluate(Predicate $predicate, string $description = null): bool

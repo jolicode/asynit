@@ -2,19 +2,17 @@
 
 namespace Asynit;
 
-use Doctrine\Common\Collections\ArrayCollection;
-
 /**
  * Pool containing test, running tests and running http calls.
  */
 class Pool
 {
-    /** @var Test[]|ArrayCollection */
+    /** @var Test[] */
     private $tests;
 
     public function __construct()
     {
-        $this->tests = new ArrayCollection();
+        $this->tests = [];
     }
 
     /**
@@ -22,18 +20,16 @@ class Pool
      */
     public function addTest(Test $test)
     {
-        $this->tests->add($test);
-
-        if ($test instanceof PoolAwareInterface) {
-            $test->setPool($this);
-        }
+        $this->tests[] = $test;
     }
 
     public function isEmpty(): bool
     {
-        return 0 === $this->tests->filter(function (Test $test) {
+        $notCompletedTests = array_filter($this->tests, function (Test $test) {
             return !$test->isCompleted();
-        })->count();
+        });
+
+        return 0 === count($notCompletedTests);
     }
 
     public function getTests()

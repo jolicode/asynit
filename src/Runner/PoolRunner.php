@@ -2,50 +2,24 @@
 
 namespace Asynit\Runner;
 
+use function Amp\async;
 use Amp\Future;
-use Amp\Http\Client\Connection\DefaultConnectionFactory;
-use Amp\Http\Client\Connection\UnlimitedConnectionPool;
-use Amp\Http\Client\HttpClientBuilder;
-use Amp\Http\Client\Psr7\PsrAdapter;
-use Amp\Http\Client\Psr7\PsrHttpClient;
-use Amp\Socket\ClientTlsContext;
-use Amp\Socket\ConnectContext;
 use Amp\Sync\LocalSemaphore;
 use Amp\Sync\Semaphore;
+use Asynit\Annotation\OnCreate;
 use Asynit\Pool;
 use Asynit\Test;
-use Asynit\TestCase;
 use Asynit\TestWorkflow;
-use Psr\Http\Client\ClientInterface;
-use Psr\Http\Message\RequestFactoryInterface;
-use Psr\Http\Message\ResponseFactoryInterface;
-use Psr\Http\Message\StreamFactoryInterface;
-use function Amp\coroutine;
 
 class PoolRunner
 {
     private Semaphore $semaphore;
 
-    private ClientInterface $client;
+    private $testCases = [];
 
-    public function __construct(private RequestFactoryInterface $requestFactory, private ResponseFactoryInterface $responseFactory, private StreamFactoryInterface $streamFactory,  private TestWorkflow $workflow, $concurrency = 10, private bool $allowSelfSignedCertificate = false)
+    public function __construct(private TestWorkflow $workflow, int $concurrency = 10)
     {
         $this->semaphore = new LocalSemaphore($concurrency);
-
-        $tlsContext = new ClientTlsContext('');
-
-        if ($allowSelfSignedCertificate) {
-            $tlsContext = $tlsContext->withoutPeerVerification();
-        }
-
-        $connectContext = new ConnectContext('');
-        $connectContext = $connectContext->withTlsContext($tlsContext);
-
-        $builder = new HttpClientBuilder();
-        $builder = $builder->usingPool(new UnlimitedConnectionPool(new DefaultConnectionFactory(null, $connectContext)));
-        $client = $builder->build();
-        $adapter = new PsrAdapter($requestFactory, $responseFactory);
-        $this->client = new PsrHttpClient($client, $adapter);
     }
 
     public function loop(Pool $pool)
@@ -58,15 +32,17 @@ class PoolRunner
             $test = $pool->getTestToRun();
 
             if (null === $test) {
-                Future\any($futures);
+                Future\awaitAny($futures);
 
                 continue;
             }
 
             $this->workflow->markTestAsRunning($test);
 
-            $futures[$test->getIdentifier()] = coroutine(function () use($test, &$futures) {
+            $futures[$test->getIdentifier()] = async(function () use ($test, &$futures) {
+                $lock = $this->semaphore->acquire();
                 $this->run($test);
+                $lock->release();
 
                 unset($futures[$test->getIdentifier()]);
             });
@@ -77,8 +53,7 @@ class PoolRunner
     protected function run(Test $test)
     {
         try {
-            $testCase = $this->buildTestCase($test);
-            $testCase->setUp($this->client);
+            $testCase = $this->getTestCase($test);
 
             $method = $test->getMethod()->getName();
             $args = $test->getArguments();
@@ -101,9 +76,28 @@ class PoolRunner
         }
     }
 
-    private function buildTestCase(Test $test): TestCase
+    private function getTestCase(Test $test)
     {
-        return $test->getMethod()->getDeclaringClass()->newInstance($this->requestFactory, $this->streamFactory, $this->semaphore, $test, $this->client);
+        $reflectionClass = $test->getMethod()->getDeclaringClass();
+
+        if (!isset($this->testCases[$reflectionClass->getName()])) {
+            $testCase = $reflectionClass->newInstance();
+
+            // Find all methods with attribute OnCreate
+            foreach ($reflectionClass->getMethods() as $reflectionMethod) {
+                $onCreate = $reflectionMethod->getAttributes(OnCreate::class);
+
+                if (0 === count($onCreate)) {
+                    continue;
+                }
+
+                $testCase->{$reflectionMethod->getName()}($test);
+            }
+
+            $this->testCases[$reflectionClass->getName()] = $testCase;
+        }
+
+        return $this->testCases[$reflectionClass->getName()];
     }
 
     public static function handleInternalError($type, $message, $file, $line)

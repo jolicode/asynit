@@ -6,7 +6,6 @@ use Asynit\Annotation\Depend;
 use Asynit\Annotation\DisplayName;
 use Asynit\Pool;
 use Asynit\Test;
-use Doctrine\Common\Annotations\AnnotationReader;
 
 /**
  * Build test.

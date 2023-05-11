@@ -2,17 +2,11 @@
 
 namespace Asynit\Command;
 
-
 use Asynit\Output\OutputFactory;
 use Asynit\Parser\TestPoolBuilder;
 use Asynit\Parser\TestsFinder;
 use Asynit\Runner\PoolRunner;
 use Asynit\TestWorkflow;
-use Doctrine\Common\Annotations\AnnotationReader;
-use GuzzleHttp\Psr7\HttpFactory;
-use Http\Message\MessageFactory\GuzzleMessageFactory;
-use Nyholm\Psr7\Factory\Psr17Factory;
-use Revolt\EventLoop;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -58,10 +52,8 @@ class AsynitCommand extends Command
 
         list($chainOutput, $countOutput) = (new OutputFactory($input->getOption('order')))->buildOutput(\count($testMethods));
 
-        // Build services for parsing and running tests
-        $builder = new TestPoolBuilder(new AnnotationReader());
-        $factory = new HttpFactory();
-        $runner = new PoolRunner($factory, $factory, $factory, new TestWorkflow($chainOutput), $input->getOption('concurrency'));
+        $builder = new TestPoolBuilder();
+        $runner = new PoolRunner(new TestWorkflow($chainOutput), $input->getOption('concurrency'));
 
         // Build a list of tests from the directory
         $pool = $builder->build($testMethods);
