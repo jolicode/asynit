@@ -27,9 +27,10 @@ class TestsFinder
 
     /**
      * @param iterable<string|\SplFileInfo> $files
-     * @throws \ReflectionException
      *
      * @return Test[]
+     *
+     * @throws \ReflectionException
      */
     private function doFindTests(iterable $files): array
     {

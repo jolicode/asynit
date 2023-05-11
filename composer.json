@@ -39,7 +39,7 @@
     },
     "require-dev": {
         "amphp/http-client": "v5.0.0-beta.11",
-        "friendsofphp/php-cs-fixer": "^v2.19.3",
+        "friendsofphp/php-cs-fixer": "^v3.16.0",
         "nyholm/psr7": "^1.8.0",
         "php-http/client-common": "^2.4",
         "php-http/message": "^1.3",

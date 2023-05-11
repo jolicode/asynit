@@ -7,8 +7,8 @@ use Symfony\Component\Console\Formatter\OutputFormatterStyle;
 
 class PhpUnitAlike implements OutputInterface
 {
-    const SPLIT_AT = 60;
-    const MAX_TRACE = 10;
+    public const SPLIT_AT = 60;
+    public const MAX_TRACE = 10;
 
     private $outputFormatFail;
     private $outputFormatSuccess;
@@ -151,7 +151,7 @@ class PhpUnitAlike implements OutputInterface
             return '0 '.$unit[0];
         }
 
-        return @round($memory / pow(1000, ($i = floor(log($memory, 1000)))), 2).(isset($unit[$i]) ? $unit[$i] : 'B');
+        return @round($memory / pow(1000, $i = floor(log($memory, 1000))), 2).(isset($unit[$i]) ? $unit[$i] : 'B');
     }
 
     private function getDisplayableTime(float $time): string

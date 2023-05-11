@@ -4,11 +4,11 @@ namespace Asynit;
 
 class Test
 {
-    const STATE_PENDING = 'pending';
-    const STATE_RUNNING = 'running';
-    const STATE_SUCCESS = 'success';
-    const STATE_FAILURE = 'failure';
-    const STATE_SKIPPED = 'skipped';
+    public const STATE_PENDING = 'pending';
+    public const STATE_RUNNING = 'running';
+    public const STATE_SUCCESS = 'success';
+    public const STATE_FAILURE = 'failure';
+    public const STATE_SKIPPED = 'skipped';
 
     /** @var Test[] */
     private array $parents = [];
@@ -19,7 +19,6 @@ class Test
     /** @var mixed[] */
     private array $arguments = [];
 
-    /** @var \ReflectionMethod */
     private \ReflectionMethod $method;
 
     /** @var string[] */

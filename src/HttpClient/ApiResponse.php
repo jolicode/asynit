@@ -8,7 +8,8 @@ use Psr\Http\Message\StreamInterface;
 /**
  * @implements \ArrayAccess<string, mixed>
  */
-class ApiResponse implements \ArrayAccess, ResponseInterface {
+class ApiResponse implements \ArrayAccess, ResponseInterface
+{
     /**
      * @var array<string, mixed>|null
      */
@@ -18,17 +19,20 @@ class ApiResponse implements \ArrayAccess, ResponseInterface {
     {
     }
 
-    public function getStatusCode(): int {
+    public function getStatusCode(): int
+    {
         return $this->response->getStatusCode();
     }
 
-    private function ensureBodyIsRead(bool $associative = true): void {
+    private function ensureBodyIsRead(bool $associative = true): void
+    {
         if (null === $this->data) {
             $this->data = json_decode($this->response->getBody(), $associative, flags: JSON_THROW_ON_ERROR);
         }
     }
 
-    public function json(bool $associative = true): mixed {
+    public function json(bool $associative = true): mixed
+    {
         $this->ensureBodyIsRead($associative);
 
         return $this->data;

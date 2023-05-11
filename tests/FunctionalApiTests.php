@@ -2,10 +2,8 @@
 
 namespace Asynit\Tests;
 
-use Asynit\Attribute\Depend;
 use Asynit\Attribute\TestCase;
 use Asynit\HttpClient\HttpClientApiCaseTrait;
-use Asynit\HttpClient\HttpClientWebCaseTrait;
 use Psr\Http\Message\ResponseInterface;
 
 #[TestCase]

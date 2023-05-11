@@ -6,6 +6,8 @@ namespace Asynit\Assert;
 
 use Asynit\Attribute\OnCreate;
 use Asynit\Test;
+use bovigo\assert\predicate\Predicate;
+
 use function bovigo\assert\counting;
 use function bovigo\assert\exporter;
 use function bovigo\assert\predicate\contains;
@@ -44,7 +46,6 @@ use function bovigo\assert\predicate\isSameAs;
 use function bovigo\assert\predicate\isTrue;
 use function bovigo\assert\predicate\matches;
 use function bovigo\assert\predicate\matchesFormat;
-use bovigo\assert\predicate\Predicate;
 use function bovigo\assert\predicate\startsWith;
 
 trait AssertCaseTrait
@@ -567,9 +568,6 @@ trait AssertCaseTrait
         $this->assert($subset, containsSubset($other, $strict), $message);
     }
 
-    /**
-     * @param $value
-     */
     public function assert($value, callable $predicate, string $description = null): bool
     {
         return (new Assertion($value, exporter(), $this->test))

@@ -2,10 +2,11 @@
 
 namespace Asynit\Tests;
 
-use function Amp\delay;
+use Asynit\Assert\AssertCaseTrait;
 use Asynit\Attribute\Depend;
 use Asynit\Attribute\TestCase;
-use Asynit\Assert\AssertCaseTrait;
+
+use function Amp\delay;
 
 #[TestCase]
 class FunctionalTests
