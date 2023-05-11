@@ -13,8 +13,6 @@ if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
     throw new \RuntimeException('Unable to load autoloader.');
 }
 
-AnnotationRegistry::registerLoader([$loader, 'loadClass']);
-
 (new Application('asynit'))
     ->add(new AsynitCommand())
     ->getApplication()
