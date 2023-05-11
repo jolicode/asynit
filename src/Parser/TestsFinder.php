@@ -2,8 +2,8 @@
 
 namespace Asynit\Parser;
 
-use Asynit\Annotation\Test as TestAnnotation;
-use Asynit\Annotation\TestCase;
+use Asynit\Attribute\Test as TestAnnotation;
+use Asynit\Attribute\TestCase;
 use Asynit\Test;
 use Symfony\Component\Finder\Finder;
 

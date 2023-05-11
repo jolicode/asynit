@@ -2,9 +2,9 @@
 
 namespace Asynit\Tests;
 
-use Asynit\Annotation\Depend;
-use Asynit\Annotation\Test;
-use Asynit\Annotation\TestCase;
+use Asynit\Attribute\Depend;
+use Asynit\Attribute\Test;
+use Asynit\Attribute\TestCase;
 
 #[TestCase]
 class Simple

@@ -7,7 +7,7 @@ use Amp\Http\Client\Connection\UnlimitedConnectionPool;
 use Amp\Http\Client\HttpClientBuilder;
 use Amp\Socket\ClientTlsContext;
 use Amp\Socket\ConnectContext;
-use Asynit\Annotation\OnCreate;
+use Asynit\Attribute\OnCreate;
 use Asynit\Assert\AssertWebCaseTrait;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Psr\Http\Client\ClientInterface;

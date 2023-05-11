@@ -2,8 +2,8 @@
 
 namespace Asynit\Parser;
 
-use Asynit\Annotation\Depend;
-use Asynit\Annotation\DisplayName;
+use Asynit\Attribute\Depend;
+use Asynit\Attribute\DisplayName;
 use Asynit\Pool;
 use Asynit\Test;
 

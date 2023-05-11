@@ -3,8 +3,8 @@
 namespace Asynit\Tests;
 
 use function Amp\delay;
-use Asynit\Annotation\Depend;
-use Asynit\Annotation\TestCase;
+use Asynit\Attribute\Depend;
+use Asynit\Attribute\TestCase;
 use Asynit\Assert\AssertCaseTrait;
 
 #[TestCase]

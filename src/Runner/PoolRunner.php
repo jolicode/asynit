@@ -6,7 +6,7 @@ use function Amp\async;
 use Amp\Future;
 use Amp\Sync\LocalSemaphore;
 use Amp\Sync\Semaphore;
-use Asynit\Annotation\OnCreate;
+use Asynit\Attribute\OnCreate;
 use Asynit\Pool;
 use Asynit\Test;
 use Asynit\TestWorkflow;

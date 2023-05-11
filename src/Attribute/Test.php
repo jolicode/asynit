@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Asynit\Annotation;
+namespace Asynit\Attribute;
 
 #[\Attribute(\Attribute::TARGET_METHOD)]
 class Test

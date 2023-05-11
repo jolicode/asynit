@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Asynit\Assert;
 
-use Asynit\Annotation\OnCreate;
+use Asynit\Attribute\OnCreate;
 use Asynit\Test;
 use function bovigo\assert\counting;
 use function bovigo\assert\exporter;

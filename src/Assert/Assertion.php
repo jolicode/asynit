@@ -12,12 +12,7 @@ use SebastianBergmann\Exporter\Exporter;
 
 class Assertion extends BaseAssertion
 {
-    /**
-     * value to do the assertion on.
-     *
-     * @var mixed
-     */
-    private $value;
+    private mixed $value;
 
     private Exporter $exporter;
 
@@ -36,8 +31,6 @@ class Assertion extends BaseAssertion
         $this->exporter = $exporter;
         $this->test = $test;
     }
-
-    public static Test $currentTest;
 
     public function evaluate(Predicate $predicate, string $description = null): bool
     {

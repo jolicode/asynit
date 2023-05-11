@@ -7,10 +7,7 @@ namespace Asynit\Annotation;
 #[\Attribute(\Attribute::TARGET_METHOD)]
 class DisplayName
 {
-    public string $name;
-
-    public function __construct(string $name)
+    public function __construct(public string $name)
     {
-        $this->name = $name;
     }
 }
