@@ -2,103 +2,102 @@
 
 namespace Asynit\Runner;
 
-use Amp\Loop;
-use Amp\Promise;
+use function Amp\async;
+use Amp\Future;
 use Amp\Sync\LocalSemaphore;
 use Amp\Sync\Semaphore;
+use Asynit\Attribute\OnCreate;
 use Asynit\Pool;
 use Asynit\Test;
-use Asynit\TestCase;
 use Asynit\TestWorkflow;
-use Http\Message\RequestFactory;
 
 class PoolRunner
 {
-    /** @var TestWorkflow */
-    private $workflow;
+    private Semaphore $semaphore;
 
-    /** @var RequestFactory */
-    private $requestFactory;
+    private $testCases = [];
 
-    /** @var Semaphore */
-    private $semaphore;
-
-    /** @var bool */
-    private $allowSelfSignedCertificate;
-
-    public function __construct(RequestFactory $requestFactory, TestWorkflow $workflow, $concurrency = 10, bool $allowSelfSignedCertificate = false)
+    public function __construct(private TestWorkflow $workflow, int $concurrency = 10)
     {
-        $this->requestFactory = $requestFactory;
-        $this->workflow = $workflow;
         $this->semaphore = new LocalSemaphore($concurrency);
-        $this->allowSelfSignedCertificate = $allowSelfSignedCertificate;
     }
 
     public function loop(Pool $pool)
     {
-        return \Amp\call(function () use ($pool) {
-            ob_start();
-            $promises = [];
+        ob_start();
+        /** @var Future[] $futures */
+        $futures = [];
 
-            while (!$pool->isEmpty()) {
-                $test = $pool->getTestToRun();
+        while (!$pool->isEmpty()) {
+            $test = $pool->getTestToRun();
 
-                if (null === $test) {
-                    yield \Amp\Promise\first($promises);
+            if (null === $test) {
+                Future\awaitAny($futures);
 
+                continue;
+            }
+
+            $this->workflow->markTestAsRunning($test);
+
+            $futures[$test->getIdentifier()] = async(function () use ($test, &$futures) {
+                $lock = $this->semaphore->acquire();
+                $this->run($test);
+                $lock->release();
+
+                unset($futures[$test->getIdentifier()]);
+            });
+        }
+        ob_end_flush();
+    }
+
+    protected function run(Test $test)
+    {
+        try {
+            $testCase = $this->getTestCase($test);
+
+            $method = $test->getMethod()->getName();
+            $args = $test->getArguments();
+
+            set_error_handler(__CLASS__.'::handleInternalError');
+
+            try {
+                $result = $testCase->$method(...$args);
+            } finally {
+                restore_error_handler();
+            }
+
+            foreach ($test->getChildren() as $childTest) {
+                $childTest->addArgument($result, $test);
+            }
+
+            $this->workflow->markTestAsSuccess($test);
+        } catch (\Throwable $error) {
+            $this->workflow->markTestAsFailed($test, $error);
+        }
+    }
+
+    private function getTestCase(Test $test)
+    {
+        $reflectionClass = $test->getMethod()->getDeclaringClass();
+
+        if (!isset($this->testCases[$reflectionClass->getName()])) {
+            $testCase = $reflectionClass->newInstance();
+
+            // Find all methods with attribute OnCreate
+            foreach ($reflectionClass->getMethods() as $reflectionMethod) {
+                $onCreate = $reflectionMethod->getAttributes(OnCreate::class);
+
+                if (0 === count($onCreate)) {
                     continue;
                 }
 
-                $promises[$test->getIdentifier()] = $this->run($test);
-                $promises[$test->getIdentifier()]->onResolve(function () use (&$promises, $test) {
-                    unset($promises[$test->getIdentifier()]);
-                });
+                $testCase->{$reflectionMethod->getName()}($test);
             }
 
-            yield $promises;
+            $this->testCases[$reflectionClass->getName()] = $testCase;
+        }
 
-            Loop::stop();
-            ob_end_flush();
-        });
-    }
-
-    protected function run(Test $test): Promise
-    {
-        return \Amp\call(function () use ($test) {
-            try {
-                $this->workflow->markTestAsRunning($test);
-
-                $testCase = $this->buildTestCase($test);
-
-                yield $testCase->initialize($this->allowSelfSignedCertificate);
-
-                $result = yield \Amp\call(function () use ($testCase, $test) {
-                    $method = $test->getMethod()->getName();
-                    $args = $test->getArguments();
-
-                    set_error_handler(__CLASS__.'::handleInternalError');
-
-                    try {
-                        return $testCase->$method(...$args);
-                    } finally {
-                        restore_error_handler();
-                    }
-                });
-
-                foreach ($test->getChildren() as $childTest) {
-                    $childTest->addArgument($result, $test);
-                }
-
-                $this->workflow->markTestAsSuccess($test);
-            } catch (\Throwable $error) {
-                $this->workflow->markTestAsFailed($test, $error);
-            }
-        });
-    }
-
-    private function buildTestCase(Test $test): TestCase
-    {
-        return $test->getMethod()->getDeclaringClass()->newInstance($this->requestFactory, $this->semaphore, $test);
+        return $this->testCases[$reflectionClass->getName()];
     }
 
     public static function handleInternalError($type, $message, $file, $line)

@@ -2,7 +2,7 @@
 
 class HttpClientOverrideTest extends \Asynit\TestCase
 {
-    public function setUp(\Http\Client\HttpAsyncClient $asyncClient): \Http\Client\HttpAsyncClient
+    public function setUp(Http\Client\HttpAsyncClient $asyncClient): Http\Client\HttpAsyncClient
     {
         $uri = (new \Http\Message\UriFactory\GuzzleUriFactory())->createUri('http://httpbin.org');
 

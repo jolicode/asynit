@@ -12,22 +12,11 @@ use SebastianBergmann\Exporter\Exporter;
 
 class Assertion extends BaseAssertion
 {
-    /**
-     * value to do the assertion on.
-     *
-     * @var mixed
-     */
-    private $value;
+    private mixed $value;
 
-    /**
-     * @var \SebastianBergmann\Exporter\Exporter
-     */
-    private $exporter;
+    private Exporter $exporter;
 
-    /**
-     * @var Test
-     */
-    private $test;
+    private Test $test;
 
     /**
      * constructor.
@@ -42,9 +31,6 @@ class Assertion extends BaseAssertion
         $this->exporter = $exporter;
         $this->test = $test;
     }
-
-    /** @var Test */
-    public static $currentTest;
 
     public function evaluate(Predicate $predicate, string $description = null): bool
     {

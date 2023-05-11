@@ -2,9 +2,7 @@
 
 namespace Asynit\Tests;
 
-use Asynit\TestCase;
-
-class AnotherTest extends TestCase
+class AnotherTest
 {
     public function test_from_another_file()
     {

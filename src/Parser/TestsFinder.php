@@ -2,8 +2,9 @@
 
 namespace Asynit\Parser;
 
+use Asynit\Attribute\Test as TestAnnotation;
+use Asynit\Attribute\TestCase;
 use Asynit\Test;
-use Asynit\TestCase;
 use Symfony\Component\Finder\Finder;
 
 class TestsFinder
@@ -40,17 +41,26 @@ class TestsFinder
             $newClasses = array_diff(get_declared_classes(), $existingClasses);
 
             foreach ($newClasses as $class) {
-                if (!is_subclass_of($class, TestCase::class)) {
+                $reflectionClass = new \ReflectionClass($class);
+                $testCases = $reflectionClass->getAttributes(TestCase::class);
+
+                if (0 === count($testCases)) {
                     continue;
                 }
 
-                foreach (get_class_methods($class) as $method) {
-                    if (!preg_match('/^test(.+)$/', $method)) {
-                        continue;
+                foreach ($reflectionClass->getMethods(\ReflectionMethod::IS_PUBLIC) as $reflectionMethod) {
+                    $tests = $reflectionMethod->getAttributes(TestAnnotation::class);
+                    $test = null;
+
+                    if (count($tests) > 0) {
+                        $test = new Test($reflectionMethod);
+                    } elseif (preg_match('/^test(.+)$/', $reflectionMethod->getName())) {
+                        $test = new Test($reflectionMethod);
                     }
 
-                    $test = new Test(new \ReflectionMethod($class, $method));
-                    $methods[$test->getIdentifier()] = $test;
+                    if (null !== $test) {
+                        $methods[$test->getIdentifier()] = $test;
+                    }
                 }
             }
         }
