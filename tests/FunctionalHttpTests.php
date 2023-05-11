@@ -46,10 +46,10 @@ class FunctionalHttpTests
         $this->assertSame('foo', $value);
     }
 
-    #[Depend("Asynit\Tests\AnotherTest::test_from_another_file")]
+    #[Depend("Asynit\Tests\AnotherTestHttp::test_from_another_file")]
     public function testDependFromAnotherFile($value)
     {
-        $this->assertSame('Asynit\Tests\AnotherTest::test_from_another_file', $value);
+        $this->assertSame('Asynit\Tests\AnotherTestHttp::test_from_another_file', $value);
     }
 
     public function testStartParallel()

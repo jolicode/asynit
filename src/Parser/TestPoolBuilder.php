@@ -33,7 +33,10 @@ final class TestPoolBuilder
         return $pool;
     }
 
-    private function processTestAnnotations(\ArrayObject $tests, Test $test)
+    /**
+     * @param \ArrayObject<string, Test> $tests
+     */
+    private function processTestAnnotations(\ArrayObject $tests, Test $test): void
     {
         $testMethod = $test->getMethod();
         $attributes = $testMethod->getAttributes(Depend::class);
@@ -41,8 +44,9 @@ final class TestPoolBuilder
         foreach ($attributes as $attribute) {
             $dependency = $attribute->newInstance()->dependency;
 
-            if ($tests->offsetExists($dependency)) {
-                $dependentTest = $tests->offsetGet($dependency);
+            if (isset($tests[$dependency])) {
+                $dependentTest = $tests[$dependency];
+
                 $dependentTest->addChildren($test);
                 $test->addParent($dependentTest);
                 continue;
@@ -60,8 +64,9 @@ final class TestPoolBuilder
             }
 
             $dependentTest = new Test(new \ReflectionMethod($class, $method), null, false);
-            if ($tests->offsetExists($dependentTest->getIdentifier())) {
-                $dependentTest = $tests->offsetGet($dependentTest->getIdentifier());
+
+            if (isset($tests[$dependentTest->getIdentifier()])) {
+                $dependentTest = $tests[$dependentTest->getIdentifier()];
             } else {
                 $tests[$dependentTest->getIdentifier()] = $dependentTest;
             }

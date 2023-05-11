@@ -6,14 +6,11 @@ use Asynit\Output\OutputInterface;
 
 class TestWorkflow
 {
-    private $output;
-
-    public function __construct(OutputInterface $output)
+    public function __construct(private OutputInterface $output)
     {
-        $this->output = $output;
     }
 
-    public function markTestAsRunning(Test $test)
+    public function markTestAsRunning(Test $test): void
     {
         if ($test->isCompleted()) {
             return;
@@ -27,7 +24,7 @@ class TestWorkflow
         $this->output->outputStep($test, $debugOutput);
     }
 
-    public function markTestAsSuccess(Test $test)
+    public function markTestAsSuccess(Test $test): void
     {
         if ($test->isCompleted()) {
             return;
@@ -40,7 +37,7 @@ class TestWorkflow
         $this->output->outputSuccess($test, $debugOutput);
     }
 
-    public function markTestAsFailed(Test $test, \Throwable $error)
+    public function markTestAsFailed(Test $test, \Throwable $error): void
     {
         if ($test->isCompleted()) {
             return;
@@ -50,14 +47,17 @@ class TestWorkflow
 
         $debugOutput = ob_get_contents();
         ob_clean();
-        $this->output->outputFailure($test, $debugOutput, $error);
+
+        if (is_string($debugOutput)) {
+            $this->output->outputFailure($test, $debugOutput, $error);
+        }
 
         foreach ($test->getChildren() as $child) {
             $this->markTestAsSkipped($child);
         }
     }
 
-    public function markTestAsSkipped(Test $test)
+    public function markTestAsSkipped(Test $test): void
     {
         if ($test->isCompleted()) {
             return;

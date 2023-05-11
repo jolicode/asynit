@@ -9,6 +9,7 @@ use Symfony\Component\Finder\Finder;
 
 class TestsFinder
 {
+    /** @return Test[] */
     public function findTests(string $path): array
     {
         if (\is_file($path)) {
@@ -24,7 +25,13 @@ class TestsFinder
         return $this->doFindTests($finder);
     }
 
-    private function doFindTests($files): array
+    /**
+     * @param iterable<string|\SplFileInfo> $files
+     * @throws \ReflectionException
+     *
+     * @return Test[]
+     */
+    private function doFindTests(iterable $files): array
     {
         $methods = [];
 

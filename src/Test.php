@@ -11,28 +11,29 @@ class Test
     const STATE_SKIPPED = 'skipped';
 
     /** @var Test[] */
-    private $parents = [];
+    private array $parents = [];
 
     /** @var Test[] */
-    private $children = [];
+    private array $children = [];
 
-    /** @var array */
-    private $arguments = [];
+    /** @var mixed[] */
+    private array $arguments = [];
 
     /** @var \ReflectionMethod */
-    private $method;
+    private \ReflectionMethod $method;
 
-    private $assertions = [];
+    /** @var string[] */
+    private array $assertions = [];
 
-    private $identifier;
+    private string $identifier;
 
-    private $state;
+    private string $state;
 
-    private $displayName;
+    private string $displayName;
 
-    private $isRealTest;
+    private bool $isRealTest;
 
-    public function __construct(\ReflectionMethod $reflectionMethod, $identifier = null, $isRealTest = true)
+    public function __construct(\ReflectionMethod $reflectionMethod, string $identifier = null, bool $isRealTest = true)
     {
         $this->method = $reflectionMethod;
         $this->identifier = $identifier ?: sprintf(
@@ -85,7 +86,7 @@ class Test
         return $this->state;
     }
 
-    public function setState(string $state)
+    public function setState(string $state): void
     {
         $this->state = $state;
     }
@@ -100,26 +101,27 @@ class Test
         return $this->method;
     }
 
-    public function addChildren(Test $test)
+    public function addChildren(Test $test): void
     {
         $this->children[] = $test;
     }
 
-    public function addParent(Test $test)
+    public function addParent(Test $test): void
     {
         $this->parents[] = $test;
     }
 
-    public function addArgument($argument, Test $test)
+    public function addArgument(mixed $argument, Test $test): void
     {
         $this->arguments[$test->getIdentifier()] = $argument;
     }
 
-    public function addAssertion($assertion)
+    public function addAssertion(string $assertion): void
     {
         $this->assertions[] = $assertion;
     }
 
+    /** @return string[] */
     public function getAssertions(): array
     {
         return $this->assertions;
@@ -141,6 +143,7 @@ class Test
         return $this->children;
     }
 
+    /** @return mixed[] */
     public function getArguments(): array
     {
         $args = [];
@@ -161,7 +164,7 @@ class Test
         return $this->displayName;
     }
 
-    public function setDisplayName(string $displayName)
+    public function setDisplayName(string $displayName): void
     {
         $this->displayName = $displayName;
     }

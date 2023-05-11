@@ -15,17 +15,21 @@ class PoolRunner
 {
     private Semaphore $semaphore;
 
+    /** @var object[] */
     private $testCases = [];
 
+    /**
+     * @param positive-int $concurrency
+     */
     public function __construct(private TestWorkflow $workflow, int $concurrency = 10)
     {
         $this->semaphore = new LocalSemaphore($concurrency);
     }
 
-    public function loop(Pool $pool)
+    public function loop(Pool $pool): void
     {
         ob_start();
-        /** @var Future[] $futures */
+        /** @var Future<mixed>[] $futures */
         $futures = [];
 
         while (!$pool->isEmpty()) {
@@ -50,7 +54,7 @@ class PoolRunner
         ob_end_flush();
     }
 
-    protected function run(Test $test)
+    protected function run(Test $test): void
     {
         try {
             $testCase = $this->getTestCase($test);
@@ -58,7 +62,11 @@ class PoolRunner
             $method = $test->getMethod()->getName();
             $args = $test->getArguments();
 
-            set_error_handler(__CLASS__.'::handleInternalError');
+            set_error_handler(static function (int $errno, string $errstr, string $errfile, int $errline) {
+                $message = "$errstr in $errfile:$errline";
+
+                throw new \ErrorException($message, 0, $errno, $errfile, $errline);
+            });
 
             try {
                 $result = $testCase->$method(...$args);
@@ -76,7 +84,7 @@ class PoolRunner
         }
     }
 
-    private function getTestCase(Test $test)
+    private function getTestCase(Test $test): object
     {
         $reflectionClass = $test->getMethod()->getDeclaringClass();
 
@@ -98,12 +106,5 @@ class PoolRunner
         }
 
         return $this->testCases[$reflectionClass->getName()];
-    }
-
-    public static function handleInternalError($type, $message, $file, $line)
-    {
-        $message = "$message in $file:$line";
-
-        throw new \ErrorException($message, 0, $type, $file, $line);
     }
 }

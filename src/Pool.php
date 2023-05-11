@@ -18,7 +18,7 @@ class Pool
     /**
      * Queue a test.
      */
-    public function addTest(Test $test)
+    public function addTest(Test $test): void
     {
         $this->tests[] = $test;
     }
@@ -30,11 +30,6 @@ class Pool
         });
 
         return 0 === count($notCompletedTests);
-    }
-
-    public function getTests()
-    {
-        return $this->tests;
     }
 
     public function getTestToRun(): ?Test

@@ -15,12 +15,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class AsynitCommand extends Command
 {
-    private $defaultBootstrapFilename;
+    private string $defaultBootstrapFilename = '';
 
     /**
      * {@inheritdoc}
      */
-    protected function configure()
+    protected function configure(): void
     {
         $this->defaultBootstrapFilename = getcwd().'/vendor/autoload.php';
 
@@ -38,8 +38,9 @@ class AsynitCommand extends Command
     /**
      * {@inheritdoc}
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        /** @var string $bootstrapFilename */
         $bootstrapFilename = $input->getOption('bootstrap');
         if (file_exists($bootstrapFilename)) {
             require $bootstrapFilename;
