@@ -1,6 +1,5 @@
-FROM golang:1.9-alpine3.7
+FROM golang:1.22-alpine
 
-RUN apk --update add git
-RUN go get github.com/ahmetb/go-httpbin/cmd/httpbin
+RUN go install github.com/ahmetb/go-httpbin/cmd/httpbin@latest
 
 CMD ["bin/httpbin","-host",":80"]

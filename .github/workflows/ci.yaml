@@ -32,6 +32,6 @@ jobs:
             - name: Build docker
               run: docker build -t httpbin .
             - name: Run docker
-              run: docker run -d -p 8081:80 httpbin
+              run: docker run -d --rm -p 8081:80 httpbin
             - name: tests
               run: composer test
