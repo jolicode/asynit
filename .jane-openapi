@@ -1,0 +1,7 @@
+<?php
+
+return [
+    'openapi-file' => __DIR__ . '/petstore.json',
+    'namespace' => 'Asynit\Tests\PetStore\Generated',
+    'directory' => __DIR__ . '/tests/PetStore/Generated',
+];

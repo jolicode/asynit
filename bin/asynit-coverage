@@ -1,0 +1,41 @@
+#!/usr/bin/env php
+<?php
+
+use Asynit\Command\AsynitCommand;
+use Symfony\Component\Console\Application;
+
+use SebastianBergmann\CodeCoverage\Filter;
+use SebastianBergmann\CodeCoverage\Driver\Selector;
+use SebastianBergmann\CodeCoverage\CodeCoverage;
+use SebastianBergmann\CodeCoverage\Report\Text as TextReport;
+use SebastianBergmann\CodeCoverage\Report\Thresholds;
+
+if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
+    $loader = require(__DIR__ . '/../vendor/autoload.php');
+} elseif (file_exists(__DIR__ . '/../../../../vendor/autoload.php')) {
+    $loader = require(__DIR__ . '/../../../../vendor/autoload.php');
+} else {
+    throw new \RuntimeException('Unable to load autoloader.');
+}
+
+$filter = new Filter;
+$filter->includeDirectory(__DIR__ . '/../src');
+
+$coverage = new CodeCoverage(
+    (new Selector)->forLineCoverage($filter),
+    $filter
+);
+$coverage->start('library');
+
+$app = (new Application('asynit'))
+    ->add(new AsynitCommand())
+    ->getApplication()
+    ->setDefaultCommand('asynit', true);
+
+$app->setAutoExit(false);
+
+$code = $app->run();
+$coverage->stop();
+
+echo (new TextReport(Thresholds::default(), true))->process($coverage, true);
+

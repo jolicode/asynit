@@ -40,10 +40,13 @@
     "require-dev": {
         "amphp/http-client": "v5.0.0-beta.11",
         "friendsofphp/php-cs-fixer": "^v3.16.0",
+        "jane-php/open-api-3": "^7.5",
+        "jane-php/open-api-runtime": "^7.5",
         "nyholm/psr7": "^1.8.0",
         "php-http/client-common": "^2.4",
         "php-http/message": "^1.3",
-        "phpstan/phpstan": "^1.10"
+        "phpstan/phpstan": "^1.10",
+        "phpunit/php-code-coverage": "^10.1"
     },
     "conflict": {
         "amphp/http-client": "<v5.0.0",
@@ -52,6 +55,9 @@
     "prefer-stable": true,
     "minimum-stability": "dev",
     "config": {
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "php-http/discovery": false
+        }
     }
 }
