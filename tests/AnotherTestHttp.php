@@ -2,8 +2,8 @@
 
 namespace Asynit\Tests;
 
+use Amp\Http\HttpResponse;
 use Asynit\HttpClient\HttpClientWebCaseTrait;
-use Psr\Http\Message\ResponseInterface;
 
 class AnotherTestHttp
 {
@@ -13,7 +13,7 @@ class AnotherTestHttp
     {
         $response = $this->get('http://127.0.0.1:8081/');
 
-        $this->assertInstanceOf(ResponseInterface::class, $response);
+        $this->assertInstanceOf(HttpResponse::class, $response);
         $this->assertStatusCode(200, $response);
 
         return __METHOD__;

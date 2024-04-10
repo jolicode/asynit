@@ -2,10 +2,10 @@
 
 namespace Asynit\Tests;
 
+use Amp\Http\HttpResponse;
 use Asynit\Attribute\Depend;
 use Asynit\Attribute\TestCase;
 use Asynit\HttpClient\HttpClientWebCaseTrait;
-use Psr\Http\Message\ResponseInterface;
 
 #[TestCase]
 class FunctionalHttpTests
@@ -21,7 +21,7 @@ class FunctionalHttpTests
     {
         $response = $this->get($this->createUri('/'));
 
-        $this->assertInstanceOf(ResponseInterface::class, $response);
+        $this->assertInstanceOf(HttpResponse::class, $response);
         $this->assertStatusCode(200, $response);
 
         return 'foo';

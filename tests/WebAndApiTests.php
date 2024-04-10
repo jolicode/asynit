@@ -2,6 +2,7 @@
 
 namespace Asynit\Tests;
 
+use Amp\Http\HttpResponse;
 use Asynit\Attribute\TestCase;
 use Asynit\HttpClient\ApiResponse;
 use Asynit\HttpClient\HttpClientApiCaseTrait;
@@ -30,12 +31,11 @@ class WebAndApiTests
     {
         $response = $this->get($this->createUri('/get'));
 
-        $this->assertInstanceOf(ResponseInterface::class, $response);
+        $this->assertInstanceOf(HttpResponse::class, $response);
         $this->assertStatusCode(200, $response);
 
-        $content = json_decode($response->getBody()->getContents(), true);
+        $content = json_decode($response->getBody(), true);
         $this->assertArrayNotHasKey('Content-Type', $content['headers']);
-
     }
 
     public function testJsonApi()

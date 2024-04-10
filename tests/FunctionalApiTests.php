@@ -3,8 +3,8 @@
 namespace Asynit\Tests;
 
 use Asynit\Attribute\TestCase;
+use Asynit\HttpClient\ApiResponse;
 use Asynit\HttpClient\HttpClientApiCaseTrait;
-use Psr\Http\Message\ResponseInterface;
 
 #[TestCase]
 class FunctionalApiTests
@@ -15,7 +15,7 @@ class FunctionalApiTests
     {
         $response = $this->get($this->createUri('/get'));
 
-        $this->assertInstanceOf(ResponseInterface::class, $response);
+        $this->assertInstanceOf(ApiResponse::class, $response);
         $this->assertStatusCode(200, $response);
         $this->assertSame('application/json', $response['headers']['Content-Type']);
     }

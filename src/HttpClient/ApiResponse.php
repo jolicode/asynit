@@ -2,32 +2,29 @@
 
 namespace Asynit\HttpClient;
 
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\StreamInterface;
+use Amp\ByteStream\Payload;
+use Amp\Http\Client\Response;
+use Amp\Http\HttpResponse;
 
 /**
  * @implements \ArrayAccess<string, mixed>
  */
-class ApiResponse implements \ArrayAccess, ResponseInterface
+class ApiResponse extends HttpResponse implements \ArrayAccess
 {
     /**
      * @var array<string, mixed>|null
      */
     private array|null $data = null;
 
-    public function __construct(private ResponseInterface $response)
+    public function __construct(private readonly Response $response)
     {
-    }
-
-    public function getStatusCode(): int
-    {
-        return $this->response->getStatusCode();
+        parent::__construct($response->getStatus(), $response->getReason());
     }
 
     private function ensureBodyIsRead(bool $associative = true): void
     {
         if (null === $this->data) {
-            $this->data = json_decode($this->response->getBody(), $associative, flags: JSON_THROW_ON_ERROR);
+            $this->data = json_decode($this->response->getBody()->read(), $associative, flags: JSON_THROW_ON_ERROR);
         }
     }
 
@@ -70,68 +67,23 @@ class ApiResponse implements \ArrayAccess, ResponseInterface
         unset($this->data[$offset]);
     }
 
-    public function getProtocolVersion()
-    {
-        return $this->response->getProtocolVersion();
-    }
-
-    public function withProtocolVersion(string $version): self
-    {
-        return new self($this->response->withProtocolVersion($version));
-    }
-
-    public function getHeaders()
+    public function getHeaders(): array
     {
         return $this->response->getHeaders();
     }
 
-    public function hasHeader(string $name)
+    public function hasHeader(string $name): bool
     {
         return $this->response->hasHeader($name);
     }
 
-    public function getHeader(string $name)
+    public function getHeader(string $name): null|string
     {
         return $this->response->getHeader($name);
     }
 
-    public function getHeaderLine(string $name)
-    {
-        return $this->response->getHeaderLine($name);
-    }
-
-    public function withHeader(string $name, $value): self
-    {
-        return new self($this->response->withHeader($name, $value));
-    }
-
-    public function withAddedHeader(string $name, $value): self
-    {
-        return new self($this->response->withAddedHeader($name, $value));
-    }
-
-    public function withoutHeader(string $name): self
-    {
-        return new self($this->response->withoutHeader($name));
-    }
-
-    public function getBody()
+    public function getBody(): Payload
     {
         return $this->response->getBody();
-    }
-
-    public function withBody(StreamInterface $body): self
-    {
-        return new self($this->response->withBody($body));
-    }
-
-    public function withStatus(int $code, string $reasonPhrase = ''): self
-    {
-        return new self($this->response->withStatus($code, $reasonPhrase));
-    }
-
-    public function getReasonPhrase()
-    {
-        return $this->response->getReasonPhrase();
     }
 }

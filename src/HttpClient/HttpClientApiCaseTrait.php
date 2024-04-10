@@ -2,7 +2,7 @@
 
 namespace Asynit\HttpClient;
 
-use Psr\Http\Message\RequestInterface;
+use Amp\Http\Client\Request;
 
 trait HttpClientApiCaseTrait
 {
@@ -13,54 +13,48 @@ trait HttpClientApiCaseTrait
         return 'application/json';
     }
 
-    final protected function get(string $uri, array|null $json = null, array $headers = [], ?string $version = null): ApiResponse
+    final protected function get(string $uri, array|null $json = null, array $headers = []): ApiResponse
     {
-        return new ApiResponse($this->sendRequest($this->createApiRequest('GET', $uri, $headers, $json, $version)));
+        return new ApiResponse($this->sendRequest($this->createApiRequest('GET', $uri, $headers, $json)));
     }
 
-    final protected function post(string $uri, array|null $json = null, array $headers = [], ?string $version = null): ApiResponse
+    final protected function post(string $uri, array|null $json = null, array $headers = []): ApiResponse
     {
-        return new ApiResponse($this->sendRequest($this->createApiRequest('POST', $uri, $headers, $json, $version)));
+        return new ApiResponse($this->sendRequest($this->createApiRequest('POST', $uri, $headers, $json)));
     }
 
-    final protected function patch(string $uri, array|null $json = null, array $headers = [], ?string $version = null): ApiResponse
+    final protected function patch(string $uri, array|null $json = null, array $headers = []): ApiResponse
     {
-        return new ApiResponse($this->sendRequest($this->createApiRequest('PATCH', $uri, $headers, $json, $version)));
+        return new ApiResponse($this->sendRequest($this->createApiRequest('PATCH', $uri, $headers, $json)));
     }
 
-    final protected function put(string $uri, array|null $json = null, array $headers = [], ?string $version = null): ApiResponse
+    final protected function put(string $uri, array|null $json = null, array $headers = []): ApiResponse
     {
-        return new ApiResponse($this->sendRequest($this->createApiRequest('PUT', $uri, $headers, $json, $version)));
+        return new ApiResponse($this->sendRequest($this->createApiRequest('PUT', $uri, $headers, $json)));
     }
 
-    final protected function delete(string $uri, array|null $json = null, array $headers = [], ?string $version = null): ApiResponse
+    final protected function delete(string $uri, array|null $json = null, array $headers = []): ApiResponse
     {
-        return new ApiResponse($this->sendRequest($this->createApiRequest('DELETE', $uri, $headers, $json, $version)));
+        return new ApiResponse($this->sendRequest($this->createApiRequest('DELETE', $uri, $headers, $json)));
     }
 
-    final protected function options(string $uri, array|null $json = null, array $headers = [], ?string $version = null): ApiResponse
+    final protected function options(string $uri, array|null $json = null, array $headers = []): ApiResponse
     {
-        return new ApiResponse($this->sendRequest($this->createApiRequest('OPTIONS', $uri, $headers, $json, $version)));
+        return new ApiResponse($this->sendRequest($this->createApiRequest('OPTIONS', $uri, $headers, $json)));
     }
 
-    private function createApiRequest(string $method, string $uri, array $headers = [], array|null $json = null, ?string $version = null): RequestInterface
+    private function createApiRequest(string $method, string $uri, array $headers = [], array|null $json = null): Request
     {
-        $request = $this->httpFactory->createRequest($method, $uri);
-        $request = $request->withHeader('Content-Type', $this->getApiContentType());
-        $request = $request->withHeader('Accept', $this->getApiContentType());
+        $request = new Request($uri, $method);
+        $request->addHeader('Content-Type', $this->getApiContentType());
+        $request->addHeader('Accept', $this->getApiContentType());
 
         foreach ($headers as $name => $value) {
-            $request = $request->withHeader($name, $value);
+            $request->addHeader($name, $value);
         }
 
         if (null !== $json) {
-            $body = $this->httpFactory->createStream(json_encode($json, flags: JSON_THROW_ON_ERROR));
-
-            $request = $request->withBody($body);
-        }
-
-        if (null !== $version) {
-            $request = $request->withProtocolVersion($version);
+            $request->setBody(json_encode($json, flags: JSON_THROW_ON_ERROR));
         }
 
         return $request;
