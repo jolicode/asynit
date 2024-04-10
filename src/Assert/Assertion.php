@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Asynit\Assert;
 
+use Asynit\Runner\TestStorage;
 use Asynit\Test;
 use bovigo\assert\Assertion as BaseAssertion;
 use bovigo\assert\AssertionFailure;
@@ -16,18 +17,15 @@ class Assertion extends BaseAssertion
 
     private Exporter $exporter;
 
-    private Test $test;
-
     /**
      * constructor.
      */
-    public function __construct($value, Exporter $exporter, Test $test)
+    public function __construct($value, Exporter $exporter)
     {
         parent::__construct($value, $exporter);
 
         $this->value = $value;
         $this->exporter = $exporter;
-        $this->test = $test;
     }
 
     public function evaluate(Predicate $predicate, ?string $description = null): bool
@@ -50,7 +48,7 @@ class Assertion extends BaseAssertion
             throw new AssertionFailure($message);
         }
 
-        $this->test->addAssertion($this->describeSuccess($predicate, $description));
+        TestStorage::get()?->addAssertion($this->describeSuccess($predicate, $description));
 
         return $result;
     }
