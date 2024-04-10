@@ -3,38 +3,38 @@
 namespace Asynit\HttpClient;
 
 use Amp\Http\Client\Request;
-use Amp\Http\HttpResponse;
+use Amp\Http\Client\Response;
 
 trait HttpClientWebCaseTrait
 {
     use HttpClientCaseTrait;
 
-    final protected function get(string $uri, array $headers = [], $body = null): HttpResponse
+    final protected function get(string $uri, array $headers = [], $body = null): Response
     {
         return $this->sendRequest($this->createRequest('GET', $uri, $headers, $body));
     }
 
-    final protected function post(string $uri, array $headers = [], $body = null): HttpResponse
+    final protected function post(string $uri, array $headers = [], $body = null): Response
     {
         return $this->sendRequest($this->createRequest('POST', $uri, $headers, $body));
     }
 
-    final protected function patch(string $uri, array $headers = [], $body = null): HttpResponse
+    final protected function patch(string $uri, array $headers = [], $body = null): Response
     {
         return $this->sendRequest($this->createRequest('PATCH', $uri, $headers, $body));
     }
 
-    final protected function put(string $uri, array $headers = [], $body = null): HttpResponse
+    final protected function put(string $uri, array $headers = [], $body = null): Response
     {
         return $this->sendRequest($this->createRequest('PUT', $uri, $headers, $body));
     }
 
-    final protected function delete(string $uri, array $headers = [], $body = null): HttpResponse
+    final protected function delete(string $uri, array $headers = [], $body = null): Response
     {
         return $this->sendRequest($this->createRequest('DELETE', $uri, $headers, $body));
     }
 
-    final protected function options(string $uri, array $headers = [], $body = null): HttpResponse
+    final protected function options(string $uri, array $headers = [], $body = null): Response
     {
         return $this->sendRequest($this->createRequest('OPTIONS', $uri, $headers, $body));
     }
