@@ -14,8 +14,6 @@ interface OutputInterface
     /**
      * @param string                $debugOutput
      * @param \Throwable|\Exception $failure
-     *
-     * @return mixed
      */
     public function outputFailure(Test $test, $debugOutput, $failure);
 

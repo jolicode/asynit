@@ -61,7 +61,6 @@ trait AssertCaseTrait
     /**
      * Asserts that an array has a specified key.
      *
-     * @param mixed              $key
      * @param array|\ArrayAccess $array
      * @param string             $message
      */
@@ -73,7 +72,6 @@ trait AssertCaseTrait
     /**
      * Asserts that an array does not have a specified key.
      *
-     * @param mixed              $key
      * @param array|\ArrayAccess $array
      * @param string             $message
      */
@@ -89,8 +87,6 @@ trait AssertCaseTrait
      * $checkForNonObjectIdentity to a non-default value will cause a fallback
      * to PHPUnit's constraint.
      *
-     * @param mixed  $needle
-     * @param mixed  $haystack
      * @param string $message
      */
     public function assertContains($needle, $haystack, $message = null)
@@ -105,8 +101,6 @@ trait AssertCaseTrait
      * $checkForNonObjectIdentity to a non-default value will cause a fallback
      * to PHPUnit's constraint.
      *
-     * @param mixed  $needle
-     * @param mixed  $haystack
      * @param string $message
      */
     public function assertNotContains($needle, $haystack, $message = null)
@@ -178,7 +172,6 @@ trait AssertCaseTrait
      * Asserts the number of elements of an array, Countable or Traversable.
      *
      * @param int    $expectedCount
-     * @param mixed  $haystack
      * @param string $message
      */
     public function assertCount($expectedCount, $haystack, $message = null)
@@ -190,7 +183,6 @@ trait AssertCaseTrait
      * Asserts the number of elements of an array, Countable or Traversable.
      *
      * @param int    $expectedCount
-     * @param mixed  $haystack
      * @param string $message
      */
     public function assertNotCount($expectedCount, $haystack, $message = null)
@@ -204,8 +196,6 @@ trait AssertCaseTrait
      * Please note that setting $canonicalize or $ignoreCase to true will cause
      * a fallback to PHPUnit's constraint.
      *
-     * @param mixed  $expected
-     * @param mixed  $actual
      * @param string $message
      * @param float  $delta
      */
@@ -220,8 +210,6 @@ trait AssertCaseTrait
      * Please note that setting $canonicalize or $ignoreCase to true will cause
      * a fallback to PHPUnit's constraint.
      *
-     * @param mixed  $expected
-     * @param mixed  $actual
      * @param string $message
      * @param float  $delta
      */
@@ -233,7 +221,6 @@ trait AssertCaseTrait
     /**
      * Asserts that a variable is empty.
      *
-     * @param mixed  $actual
      * @param string $message
      */
     public function assertEmpty($actual, $message = null)
@@ -244,7 +231,6 @@ trait AssertCaseTrait
     /**
      * Asserts that a variable is not empty.
      *
-     * @param mixed  $actual
      * @param string $message
      */
     public function assertNotEmpty($actual, $message = null)
@@ -255,8 +241,6 @@ trait AssertCaseTrait
     /**
      * Asserts that a value is greater than another value.
      *
-     * @param mixed  $expected
-     * @param mixed  $actual
      * @param string $message
      */
     public function assertGreaterThan($expected, $actual, $message = null)
@@ -267,8 +251,6 @@ trait AssertCaseTrait
     /**
      * Asserts that a value is greater than or equal to another value.
      *
-     * @param mixed  $expected
-     * @param mixed  $actual
      * @param string $message
      */
     public function assertGreaterThanOrEqual($expected, $actual, $message = null)
@@ -279,8 +261,6 @@ trait AssertCaseTrait
     /**
      * Asserts that a value is smaller than another value.
      *
-     * @param mixed  $expected
-     * @param mixed  $actual
      * @param string $message
      */
     public function assertLessThan($expected, $actual, $message = null)
@@ -291,8 +271,6 @@ trait AssertCaseTrait
     /**
      * Asserts that a value is smaller than or equal to another value.
      *
-     * @param mixed  $expected
-     * @param mixed  $actual
      * @param string $message
      */
     public function assertLessThanOrEqual($expected, $actual, $message = null)
@@ -347,7 +325,6 @@ trait AssertCaseTrait
     /**
      * Asserts that a variable is not null.
      *
-     * @param mixed  $actual
      * @param string $message
      */
     public function assertNotNull($actual, $message = null)
@@ -358,7 +335,6 @@ trait AssertCaseTrait
     /**
      * Asserts that a variable is null.
      *
-     * @param mixed  $actual
      * @param string $message
      */
     public function assertNull($actual, $message = null)
@@ -369,7 +345,6 @@ trait AssertCaseTrait
     /**
      * Asserts that a variable is finite.
      *
-     * @param mixed  $actual
      * @param string $message
      */
     public function assertFinite($actual, $message = null)
@@ -380,7 +355,6 @@ trait AssertCaseTrait
     /**
      * Asserts that a variable is infinite.
      *
-     * @param mixed  $actual
      * @param string $message
      */
     public function assertInfinite($actual, $message = null)
@@ -391,7 +365,6 @@ trait AssertCaseTrait
     /**
      * Asserts that a variable is nan.
      *
-     * @param mixed  $actual
      * @param string $message
      */
     public function assertNan($actual, $message = null)
@@ -404,8 +377,6 @@ trait AssertCaseTrait
      * Used on objects, it asserts that two variables reference
      * the same object.
      *
-     * @param mixed  $expected
-     * @param mixed  $actual
      * @param string $message
      */
     public function assertSame($expected, $actual, $message = null)
@@ -418,8 +389,6 @@ trait AssertCaseTrait
      * Used on objects, it asserts that two variables do not reference
      * the same object.
      *
-     * @param mixed  $expected
-     * @param mixed  $actual
      * @param string $message
      */
     public function assertNotSame($expected, $actual, $message = null)
@@ -431,7 +400,6 @@ trait AssertCaseTrait
      * Asserts that a variable is of a given type.
      *
      * @param string $expected
-     * @param mixed  $actual
      * @param string $message
      */
     public function assertInstanceOf($expected, $actual, $message = null)
@@ -443,7 +411,6 @@ trait AssertCaseTrait
      * Asserts that a variable is not of a given type.
      *
      * @param string $expected
-     * @param mixed  $actual
      * @param string $message
      */
     public function assertNotInstanceOf($expected, $actual, $message = null)
@@ -455,7 +422,6 @@ trait AssertCaseTrait
      * Asserts that a variable is of a given type.
      *
      * @param string $expected
-     * @param mixed  $actual
      * @param string $message
      */
     public function assertInternalType($expected, $actual, $message = null)
@@ -467,7 +433,6 @@ trait AssertCaseTrait
      * Asserts that a variable is not of a given type.
      *
      * @param string $expected
-     * @param mixed  $actual
      * @param string $message
      */
     public function assertNotInternalType($expected, $actual, $message = null)
@@ -568,7 +533,7 @@ trait AssertCaseTrait
         $this->assert($subset, containsSubset($other, $strict), $message);
     }
 
-    public function assert($value, callable $predicate, string $description = null): bool
+    public function assert($value, callable $predicate, ?string $description = null): bool
     {
         return (new Assertion($value, exporter(), $this->test))
             ->evaluate(counting(Predicate::castFrom($predicate)), $description);

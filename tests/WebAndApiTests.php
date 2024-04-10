@@ -7,7 +7,6 @@ use Asynit\Attribute\TestCase;
 use Asynit\HttpClient\ApiResponse;
 use Asynit\HttpClient\HttpClientApiCaseTrait;
 use Asynit\HttpClient\HttpClientWebCaseTrait;
-use Psr\Http\Message\ResponseInterface;
 
 #[TestCase]
 class WebAndApiTests

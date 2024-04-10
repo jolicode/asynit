@@ -12,32 +12,20 @@ class Count implements OutputInterface
     private $failed = 0;
     private $skipped = 0;
 
-    /**
-     * {@inheritdoc}
-     */
     public function outputStep(Test $test, $debugOutput)
     {
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function outputFailure(Test $test, $debugOutput, $failure)
     {
         ++$this->failed;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function outputSuccess(Test $test, $debugOutput)
     {
         ++$this->succeed;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function outputSkipped(Test $test, $debugOutput)
     {
         ++$this->skipped;

@@ -39,7 +39,7 @@
     },
     "require-dev": {
         "amphp/http-client": "^5.0.1",
-        "friendsofphp/php-cs-fixer": "^3.16.0",
+        "friendsofphp/php-cs-fixer": "^3.53.0",
         "phpstan/phpstan": "^1.10"
     },
     "conflict": {
