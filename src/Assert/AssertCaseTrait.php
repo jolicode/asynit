@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Asynit\Assert;
 
-use Asynit\Attribute\OnCreate;
-use Asynit\Test;
 use bovigo\assert\predicate\Predicate;
 
 use function bovigo\assert\counting;
@@ -50,14 +48,6 @@ use function bovigo\assert\predicate\startsWith;
 
 trait AssertCaseTrait
 {
-    protected Test $test;
-
-    #[OnCreate]
-    public function setUpTest(Test $test): void
-    {
-        $this->test = $test;
-    }
-
     /**
      * Asserts that an array has a specified key.
      *
@@ -535,7 +525,7 @@ trait AssertCaseTrait
 
     public function assert($value, callable $predicate, ?string $description = null): bool
     {
-        return (new Assertion($value, exporter(), $this->test))
+        return (new Assertion($value, exporter()))
             ->evaluate(counting(Predicate::castFrom($predicate)), $description);
     }
 

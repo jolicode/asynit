@@ -46,6 +46,8 @@ class PoolRunner
 
             $futures[$test->getIdentifier()] = async(function () use ($test, &$futures) {
                 $lock = $this->semaphore->acquire();
+                TestStorage::set($test);
+
                 $this->run($test);
                 $lock->release();
 
@@ -100,7 +102,7 @@ class PoolRunner
                     continue;
                 }
 
-                $testCase->{$reflectionMethod->getName()}($test);
+                $testCase->{$reflectionMethod->getName()}();
             }
 
             $this->testCases[$reflectionClass->getName()] = $testCase;
