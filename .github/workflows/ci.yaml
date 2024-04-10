@@ -16,7 +16,7 @@ jobs:
                 composer-flags: [""]
                 name: [""]
                 include:
-                    - php-version: "8.1"
+                    - php-version: "8.2"
                       composer-flags: "--prefer-lowest"
                       name: "(prefer lowest dependencies)"
         name: Tests PHP ${{ matrix.php-version }} ${{ matrix.name }}

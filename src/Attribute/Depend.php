@@ -3,9 +3,9 @@
 namespace Asynit\Attribute;
 
 #[\Attribute(\Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)]
-class Depend
+final readonly class Depend
 {
-    public function __construct(public string $dependency)
+    public function __construct(public string $dependency, public bool $skipIfFailed = true)
     {
     }
 }

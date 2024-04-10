@@ -18,8 +18,8 @@ class WebAndApiTests
         HttpClientWebCaseTrait::put insteadof HttpClientApiCaseTrait;
         HttpClientWebCaseTrait::options insteadof HttpClientApiCaseTrait;
         HttpClientWebCaseTrait::delete insteadof HttpClientApiCaseTrait;
-        HttpClientApiCaseTrait::get as private getApi;
-        HttpClientApiCaseTrait::post as private postApi;
+        HttpClientApiCaseTrait::get as getApi;
+        HttpClientApiCaseTrait::post as postApi;
         HttpClientApiCaseTrait::patch as patchApi;
         HttpClientApiCaseTrait::put as putApi;
         HttpClientApiCaseTrait::options as optionsApi;
