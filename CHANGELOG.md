@@ -1,5 +1,11 @@
 ## Changes
 
+## 0.13.0 - 10/04/2024
+
+* **[BC BREAK]** HTTP test case now rely exclusively on amp http client (no more psr7 or psr18)
+* Fix assertions count
+* Add a new attribute to configure HttpClient (allow to set timeout)
+
 ## 0.12.0 - 11/05/2023
 
  * **[BC BREAK]** No more yield, use php fiber instead
