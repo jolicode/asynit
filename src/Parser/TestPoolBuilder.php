@@ -42,25 +42,26 @@ final class TestPoolBuilder
         $attributes = $testMethod->getAttributes(Depend::class);
 
         foreach ($attributes as $attribute) {
-            $dependency = $attribute->newInstance()->dependency;
+            /** @var Depend $dependency */
+            $dependency = $attribute->newInstance();
 
-            if (isset($tests[$dependency])) {
-                $dependentTest = $tests[$dependency];
+            if (isset($tests[$dependency->dependency])) {
+                $dependentTest = $tests[$dependency->dependency];
 
-                $dependentTest->addChildren($test);
+                $dependentTest->addChildren($test, $dependency->skipIfFailed);
                 $test->addParent($dependentTest);
                 continue;
             }
 
-            if (false === strpos($dependency, '::')) {
+            if (false === strpos($dependency->dependency, '::')) {
                 $class = $test->getMethod()->getDeclaringClass()->getName();
-                $method = $dependency;
+                $method = $dependency->dependency;
             } else {
-                [$class, $method] = explode('::', $dependency, 2);
+                [$class, $method] = explode('::', $dependency->dependency, 2);
             }
 
             if (!method_exists($class, $method)) {
-                throw new \RuntimeException(sprintf('Failed to build test pool "%s" dependency is not resolvable for "%s::%s".', $dependency, $test->getMethod()->getDeclaringClass()->getName(), $test->getMethod()->getName()));
+                throw new \RuntimeException(sprintf('Failed to build test pool "%s" dependency is not resolvable for "%s::%s".', $dependency->dependency, $test->getMethod()->getDeclaringClass()->getName(), $test->getMethod()->getName()));
             }
 
             $dependentTest = new Test(new \ReflectionMethod($class, $method), null, false);
@@ -71,7 +72,7 @@ final class TestPoolBuilder
                 $tests[$dependentTest->getIdentifier()] = $dependentTest;
             }
 
-            $dependentTest->addChildren($test);
+            $dependentTest->addChildren($test, $dependency->skipIfFailed);
             $test->addParent($dependentTest);
         }
 

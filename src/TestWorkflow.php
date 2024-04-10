@@ -52,7 +52,7 @@ class TestWorkflow
             $this->output->outputFailure($test, $debugOutput, $error);
         }
 
-        foreach ($test->getChildren() as $child) {
+        foreach ($test->getChildren(true) as $child) {
             $this->markTestAsSkipped($child);
         }
     }

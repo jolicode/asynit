@@ -75,7 +75,7 @@ class PhpUnitAlike implements OutputInterface
 
     private function writeTest(Test $test, $text)
     {
-        if (!$test->isRealTest()) {
+        if (!$test->isRealTest) {
             return;
         }
 

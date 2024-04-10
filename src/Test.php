@@ -19,8 +19,6 @@ class Test
     /** @var mixed[] */
     private array $arguments = [];
 
-    private \ReflectionMethod $method;
-
     /** @var string[] */
     private array $assertions = [];
 
@@ -30,11 +28,12 @@ class Test
 
     private string $displayName;
 
-    private bool $isRealTest;
-
-    public function __construct(\ReflectionMethod $reflectionMethod, string $identifier = null, bool $isRealTest = true)
+    public function __construct(
+        private readonly \ReflectionMethod $method,
+        string $identifier = null,
+        public readonly bool $isRealTest = true,
+    )
     {
-        $this->method = $reflectionMethod;
         $this->identifier = $identifier ?: sprintf(
             '%s::%s',
             $this->method->getDeclaringClass()->getName(),
@@ -42,12 +41,6 @@ class Test
         );
         $this->displayName = $this->identifier;
         $this->state = self::STATE_PENDING;
-        $this->isRealTest = $isRealTest;
-    }
-
-    public function isRealTest(): bool
-    {
-        return $this->isRealTest;
     }
 
     public function isCompleted(): bool
@@ -100,9 +93,12 @@ class Test
         return $this->method;
     }
 
-    public function addChildren(Test $test): void
+    public function addChildren(Test $test, bool $skipIfFailed): void
     {
-        $this->children[] = $test;
+        $this->children[] = [
+            'test' => $test,
+            'skipIfFailed' => $skipIfFailed,
+        ];
     }
 
     public function addParent(Test $test): void
@@ -135,11 +131,17 @@ class Test
     }
 
     /**
-     * @return Test[]
+     * @return iterable<Test>
      */
-    public function getChildren(): array
+    public function getChildren(bool $onlySkipIfFailed = false): iterable
     {
-        return $this->children;
+        foreach ($this->children as $child) {
+            if ($onlySkipIfFailed && !$child['skipIfFailed']) {
+                continue;
+            }
+
+            yield $child['test'];
+        }
     }
 
     /** @return mixed[] */
