@@ -19,9 +19,6 @@ class Chain implements OutputInterface
         $this->outputs[] = $output;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function outputStep(Test $test, $debugOutput)
     {
         foreach ($this->outputs as $output) {
@@ -29,9 +26,6 @@ class Chain implements OutputInterface
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function outputFailure(Test $test, $debugOutput, $failure)
     {
         foreach ($this->outputs as $output) {
@@ -39,9 +33,6 @@ class Chain implements OutputInterface
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function outputSuccess(Test $test, $debugOutput)
     {
         foreach ($this->outputs as $output) {
@@ -49,9 +40,6 @@ class Chain implements OutputInterface
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function outputSkipped(Test $test, $debugOutput)
     {
         foreach ($this->outputs as $output) {

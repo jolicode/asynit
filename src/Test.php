@@ -30,10 +30,9 @@ class Test
 
     public function __construct(
         private readonly \ReflectionMethod $method,
-        string $identifier = null,
+        ?string $identifier = null,
         public readonly bool $isRealTest = true,
-    )
-    {
+    ) {
         $this->identifier = $identifier ?: sprintf(
             '%s::%s',
             $this->method->getDeclaringClass()->getName(),

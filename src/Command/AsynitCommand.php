@@ -17,9 +17,6 @@ class AsynitCommand extends Command
 {
     private string $defaultBootstrapFilename = '';
 
-    /**
-     * {@inheritdoc}
-     */
     protected function configure(): void
     {
         $this->defaultBootstrapFilename = getcwd().'/vendor/autoload.php';
@@ -35,9 +32,6 @@ class AsynitCommand extends Command
         ;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         /** @var string $bootstrapFilename */

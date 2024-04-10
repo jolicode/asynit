@@ -20,8 +20,6 @@ class Assertion extends BaseAssertion
 
     /**
      * constructor.
-     *
-     * @param mixed $value
      */
     public function __construct($value, Exporter $exporter, Test $test)
     {
@@ -32,7 +30,7 @@ class Assertion extends BaseAssertion
         $this->test = $test;
     }
 
-    public function evaluate(Predicate $predicate, string $description = null): bool
+    public function evaluate(Predicate $predicate, ?string $description = null): bool
     {
         try {
             $result = parent::evaluate($predicate, $description);
@@ -60,10 +58,10 @@ class Assertion extends BaseAssertion
     /**
      * creates failure description when value failed the test with given predicate.
      *
-     * @param \bovigo\assert\predicate\Predicate $predicate   predicate that failed
-     * @param string                             $description additional description for failure message
+     * @param Predicate $predicate   predicate that failed
+     * @param string    $description additional description for failure message
      */
-    private function describeSuccess(Predicate $predicate, string $description = null): string
+    private function describeSuccess(Predicate $predicate, ?string $description = null): string
     {
         if ($description) {
             return $description;

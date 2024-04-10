@@ -14,7 +14,7 @@ class ApiResponse extends HttpResponse implements \ArrayAccess
     /**
      * @var array<string, mixed>|null
      */
-    private array|null $data = null;
+    private ?array $data = null;
 
     public function __construct(private readonly Response $response)
     {
@@ -77,7 +77,7 @@ class ApiResponse extends HttpResponse implements \ArrayAccess
         return $this->response->hasHeader($name);
     }
 
-    public function getHeader(string $name): null|string
+    public function getHeader(string $name): ?string
     {
         return $this->response->getHeader($name);
     }
