@@ -2,6 +2,7 @@
 
 namespace Asynit\Command;
 
+use Asynit\Attribute\HttpClientConfiguration;
 use Asynit\Output\OutputFactory;
 use Asynit\Parser\TestPoolBuilder;
 use Asynit\Parser\TestsFinder;
@@ -27,6 +28,8 @@ class AsynitCommand extends Command
             ->addOption('host', null, InputOption::VALUE_REQUIRED, 'Base host to use', null)
             ->addOption('allow-self-signed-certificate', null, InputOption::VALUE_NONE, 'Allow self signed ssl certificate')
             ->addOption('concurrency', null, InputOption::VALUE_REQUIRED, 'Max number of parallels requests', 10)
+            ->addOption('timeout', null, InputOption::VALUE_REQUIRED, 'Default timeout for http request', 10)
+            ->addOption('retry', null, InputOption::VALUE_REQUIRED, 'Default retry number for http request', 0)
             ->addOption('bootstrap', null, InputOption::VALUE_REQUIRED, 'A PHP file to include before anything else', $this->defaultBootstrapFilename)
             ->addOption('order', null, InputOption::VALUE_NONE, 'Output tests execution order')
         ;
@@ -47,8 +50,14 @@ class AsynitCommand extends Command
 
         list($chainOutput, $countOutput) = (new OutputFactory($input->getOption('order')))->buildOutput(\count($testMethods));
 
+        $defaultHttpConfiguration = new HttpClientConfiguration(
+            timeout: $input->getOption('timeout'),
+            retry: $input->getOption('retry'),
+            allowSelfSignedCertificate: $input->hasOption('allow-self-signed-certificate'),
+        );
+
         $builder = new TestPoolBuilder();
-        $runner = new PoolRunner(new TestWorkflow($chainOutput), $input->getOption('concurrency'));
+        $runner = new PoolRunner($defaultHttpConfiguration, new TestWorkflow($chainOutput), $input->getOption('concurrency'));
 
         // Build a list of tests from the directory
         $pool = $builder->build($testMethods);

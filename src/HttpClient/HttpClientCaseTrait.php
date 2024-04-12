@@ -21,15 +21,11 @@ trait HttpClientCaseTrait
 
     private ?HttpClient $httpClient = null;
 
-    private ?\Closure $configureRequest = null;
-
-    protected $allowSelfSignedCertificate = false;
-
-    protected function createHttpClient(bool $allowSelfSignedCertificate = false, HttpClientConfiguration $httpClientConfiguration = new HttpClientConfiguration()): HttpClient
+    protected function createHttpClient(HttpClientConfiguration $httpClientConfiguration = new HttpClientConfiguration()): HttpClient
     {
         $tlsContext = new ClientTlsContext('');
 
-        if ($allowSelfSignedCertificate) {
+        if ($httpClientConfiguration->allowSelfSignedCertificate) {
             $tlsContext = $tlsContext->withoutPeerVerification();
         }
 
@@ -39,31 +35,23 @@ trait HttpClientCaseTrait
         $builder = new HttpClientBuilder();
         $builder = $builder->retry($httpClientConfiguration->retry);
         $builder = $builder->usingPool(new UnlimitedConnectionPool(new DefaultConnectionFactory(null, $connectContext)));
+        $builder = $builder->intercept(new ConfigurationInterceptor($httpClientConfiguration));
 
         return $builder->build();
     }
 
     #[OnCreate]
-    final public function setUpHttpClient(): void
+    final public function setUpHttpClient(HttpClientConfiguration $httpClientConfiguration): void
     {
         $reflection = new \ReflectionClass($this);
 
-        $httpClientConfiguration = $reflection->getAttributes(HttpClientConfiguration::class);
+        $httpClientConfigurationAttribute = $reflection->getAttributes(HttpClientConfiguration::class);
 
-        if (!$httpClientConfiguration) {
-            $httpClientConfiguration = new HttpClientConfiguration();
-        } else {
-            $httpClientConfiguration = $httpClientConfiguration[0]->newInstance();
+        if ($httpClientConfigurationAttribute) {
+            $httpClientConfiguration = $httpClientConfigurationAttribute[0]->newInstance();
         }
 
-        $this->httpClient = $this->createHttpClient($this->allowSelfSignedCertificate, $httpClientConfiguration);
-
-        $this->configureRequest = function (Request $request) use ($httpClientConfiguration) {
-            $request->setInactivityTimeout($httpClientConfiguration->timeout);
-            $request->setTcpConnectTimeout($httpClientConfiguration->timeout);
-            $request->setTlsHandshakeTimeout($httpClientConfiguration->timeout);
-            $request->setTransferTimeout($httpClientConfiguration->timeout);
-        };
+        $this->httpClient = $this->createHttpClient($httpClientConfiguration);
     }
 
     /**
@@ -71,11 +59,6 @@ trait HttpClientCaseTrait
      */
     final protected function sendRequest(Request $request): Response
     {
-        if (null !== $this->configureRequest) {
-            $configureRequest = $this->configureRequest;
-            $configureRequest($request);
-        }
-
         return $this->httpClient->request($request);
     }
 }

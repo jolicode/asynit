@@ -5,6 +5,7 @@ namespace Asynit\Runner;
 use Amp\Future;
 use Amp\Sync\LocalSemaphore;
 use Amp\Sync\Semaphore;
+use Asynit\Attribute\HttpClientConfiguration;
 use Asynit\Attribute\OnCreate;
 use Asynit\Pool;
 use Asynit\Test;
@@ -22,8 +23,11 @@ class PoolRunner
     /**
      * @param positive-int $concurrency
      */
-    public function __construct(private TestWorkflow $workflow, int $concurrency = 10)
-    {
+    public function __construct(
+        private HttpClientConfiguration $defaultHttpConfiguration,
+        private TestWorkflow $workflow,
+        int $concurrency = 10
+    ) {
         $this->semaphore = new LocalSemaphore($concurrency);
     }
 
@@ -102,7 +106,7 @@ class PoolRunner
                     continue;
                 }
 
-                $testCase->{$reflectionMethod->getName()}();
+                $testCase->{$reflectionMethod->getName()}($this->defaultHttpConfiguration);
             }
 
             $this->testCases[$reflectionClass->getName()] = $testCase;

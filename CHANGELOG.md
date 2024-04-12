@@ -1,7 +1,9 @@
 ## Changes
 
-## 0.13.0 - 10/04/2024
+## 0.13.0 - 12/04/2024
 
+* Add commaand line argument to configure default http client configuration
+* Fixed allow self signed certificate not used
 * **[BC BREAK]** HTTP test case now rely exclusively on amp http client (no more psr7 or psr18)
 * Fix assertions count
 * Add a new attribute to configure HttpClient (allow to set timeout)
