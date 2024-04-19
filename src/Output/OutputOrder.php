@@ -7,23 +7,23 @@ use Asynit\Test;
 class OutputOrder implements OutputInterface
 {
     /** @var Test[] */
-    private $tests = [];
+    private array $tests = [];
 
-    public function outputStep(Test $test, $debugOutput)
+    public function outputStep(Test $test, string $debugOutput): void
     {
     }
 
-    public function outputFailure(Test $test, $debugOutput, $failure)
-    {
-        $this->tests[] = $test;
-    }
-
-    public function outputSuccess(Test $test, $debugOutput)
+    public function outputFailure(Test $test, string $debugOutput, \Throwable $failure): void
     {
         $this->tests[] = $test;
     }
 
-    public function outputSkipped(Test $test, $debugOutput)
+    public function outputSuccess(Test $test, string $debugOutput): void
+    {
+        $this->tests[] = $test;
+    }
+
+    public function outputSkipped(Test $test, string $debugOutput): void
     {
     }
 
@@ -48,6 +48,11 @@ class OutputOrder implements OutputInterface
         }
     }
 
+    /**
+     * @param array<string, int> $orders
+     *
+     * @return int[]
+     */
     public function createDepends(Test $test, array $orders = []): array
     {
         $depends = [];

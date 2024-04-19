@@ -2,7 +2,10 @@
 
 namespace Asynit;
 
-class Test
+/**
+ * @internal
+ */
+final class Test
 {
     public const STATE_PENDING = 'pending';
     public const STATE_RUNNING = 'running';
@@ -13,7 +16,7 @@ class Test
     /** @var Test[] */
     private array $parents = [];
 
-    /** @var Test[] */
+    /** @var array<array{ test: Test, skipIfFailed: bool }> */
     private array $children = [];
 
     /** @var mixed[] */

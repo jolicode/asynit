@@ -6,6 +6,7 @@ use Asynit\Attribute\Depend;
 use Asynit\Attribute\DisplayName;
 use Asynit\Pool;
 use Asynit\Test;
+use Asynit\TestSuite;
 
 /**
  * Build test.
@@ -15,19 +16,26 @@ final class TestPoolBuilder
     /**
      * Build the initial test pool.
      *
-     * @param Test[] $tests
+     * @param TestSuite<object>[] $testSuites
      *
      * @throws \RuntimeException
      */
-    public function build(array $tests): Pool
+    public function build(array $testSuites): Pool
     {
         $pool = new Pool();
 
-        $tests = new \ArrayObject($tests);
+        /** @var \ArrayObject<string, Test> $tests */
+        $tests = new \ArrayObject();
+
+        foreach ($testSuites as $testSuite) {
+            foreach ($testSuite->tests as $test) {
+                $tests[$test->getIdentifier()] = $test;
+            }
+        }
 
         foreach ($tests as $test) {
             $this->processTestAnnotations($tests, $test);
-            $pool->addTest($test);
+            $pool->tests[] = $test;
         }
 
         return $pool;

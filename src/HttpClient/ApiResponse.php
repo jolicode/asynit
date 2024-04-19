@@ -14,7 +14,7 @@ class ApiResponse extends HttpResponse implements \ArrayAccess
     /**
      * @var array<string, mixed>|null
      */
-    private ?array $data = null;
+    private mixed $data = null;
 
     public function __construct(private readonly Response $response)
     {
@@ -24,7 +24,13 @@ class ApiResponse extends HttpResponse implements \ArrayAccess
     private function ensureBodyIsRead(bool $associative = true): void
     {
         if (null === $this->data) {
-            $this->data = json_decode($this->response->getBody()->read(), $associative, flags: JSON_THROW_ON_ERROR);
+            $data = json_decode((string) $this->response->getBody(), $associative, flags: JSON_THROW_ON_ERROR);
+
+            if (!is_array($data)) {
+                throw new \InvalidArgumentException('The response body is not a valid JSON object.');
+            }
+
+            $this->data = $data;
         }
     }
 

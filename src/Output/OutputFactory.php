@@ -6,16 +6,18 @@ namespace Asynit\Output;
 
 /**
  * Allow to detect current environment and choose the best output.
+ *
+ * @internal
  */
-class OutputFactory
+final class OutputFactory
 {
-    private $order = false;
-
-    public function __construct(bool $order = false)
+    public function __construct(public readonly bool $order = false)
     {
-        $this->order = $order;
     }
 
+    /**
+     * @return array{Chain, Count}
+     */
     public function buildOutput(int $testCount): array
     {
         $countOutput = new Count();

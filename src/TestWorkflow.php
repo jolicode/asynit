@@ -4,7 +4,10 @@ namespace Asynit;
 
 use Asynit\Output\OutputInterface;
 
-class TestWorkflow
+/**
+ * @internal
+ */
+final class TestWorkflow
 {
     public function __construct(private OutputInterface $output)
     {
@@ -21,7 +24,7 @@ class TestWorkflow
         $debugOutput = ob_get_contents();
         ob_clean();
 
-        $this->output->outputStep($test, $debugOutput);
+        $this->output->outputStep($test, false === $debugOutput ? '' : $debugOutput);
     }
 
     public function markTestAsSuccess(Test $test): void
@@ -34,7 +37,7 @@ class TestWorkflow
 
         $debugOutput = ob_get_contents();
         ob_clean();
-        $this->output->outputSuccess($test, $debugOutput);
+        $this->output->outputSuccess($test, false === $debugOutput ? '' : $debugOutput);
     }
 
     public function markTestAsFailed(Test $test, \Throwable $error): void
@@ -71,6 +74,6 @@ class TestWorkflow
 
         $debugOutput = ob_get_contents();
         ob_clean();
-        $this->output->outputSkipped($test, $debugOutput);
+        $this->output->outputSkipped($test, false === $debugOutput ? '' : $debugOutput);
     }
 }

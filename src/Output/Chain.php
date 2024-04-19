@@ -9,38 +9,38 @@ use Asynit\Test;
 class Chain implements OutputInterface
 {
     /** @var OutputInterface[] */
-    private $outputs = [];
+    private array $outputs = [];
 
     /**
      * Add output to the chain.
      */
-    public function addOutput(OutputInterface $output)
+    public function addOutput(OutputInterface $output): void
     {
         $this->outputs[] = $output;
     }
 
-    public function outputStep(Test $test, $debugOutput)
+    public function outputStep(Test $test, string $debugOutput): void
     {
         foreach ($this->outputs as $output) {
             $output->outputStep($test, $debugOutput);
         }
     }
 
-    public function outputFailure(Test $test, $debugOutput, $failure)
+    public function outputFailure(Test $test, string $debugOutput, \Throwable $failure): void
     {
         foreach ($this->outputs as $output) {
             $output->outputFailure($test, $debugOutput, $failure);
         }
     }
 
-    public function outputSuccess(Test $test, $debugOutput)
+    public function outputSuccess(Test $test, string $debugOutput): void
     {
         foreach ($this->outputs as $output) {
             $output->outputSuccess($test, $debugOutput);
         }
     }
 
-    public function outputSkipped(Test $test, $debugOutput)
+    public function outputSkipped(Test $test, string $debugOutput): void
     {
         foreach ($this->outputs as $output) {
             $output->outputSkipped($test, $debugOutput);

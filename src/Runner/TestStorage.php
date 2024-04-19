@@ -7,6 +7,7 @@ use Asynit\Test;
 /** @internal */
 final class TestStorage
 {
+    /** @var \WeakMap<\Fiber<void, void, void, void>, Test|null>|null */
     private static ?\WeakMap $localStorage = null;
 
     public static function set(Test $test): void
@@ -17,7 +18,9 @@ final class TestStorage
             return;
         }
 
+        /* @phpstan-ignore-next-line */
         self::$localStorage ??= new \WeakMap();
+        /* @phpstan-ignore-next-line */
         self::$localStorage[$fiber] = $test;
     }
 
@@ -29,8 +32,10 @@ final class TestStorage
             return null;
         }
 
+        /* @phpstan-ignore-next-line */
         self::$localStorage ??= new \WeakMap();
 
+        /* @phpstan-ignore-next-line */
         return self::$localStorage[$fiber] ?? null;
     }
 }

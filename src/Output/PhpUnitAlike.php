@@ -10,14 +10,15 @@ class PhpUnitAlike implements OutputInterface
     public const SPLIT_AT = 60;
     public const MAX_TRACE = 10;
 
-    private $outputFormatFail;
-    private $outputFormatSuccess;
-    private $outputFormatSkipped;
-    private $testOutputed;
-    private $failures;
-    private $assertionCount;
-    private $start;
-    private $testCount;
+    private OutputFormatterStyle $outputFormatFail;
+    private OutputFormatterStyle $outputFormatSuccess;
+    private OutputFormatterStyle $outputFormatSkipped;
+    private int $testOutputed;
+    /** @var array<array{test: Test, failure: \Throwable}> */
+    private array $failures;
+    private int $assertionCount;
+    private float $start;
+    private int $testCount;
 
     public function __construct(int $testCount)
     {
@@ -34,11 +35,11 @@ class PhpUnitAlike implements OutputInterface
         $this->failures = [];
     }
 
-    public function outputStep(Test $test, $debugOutput)
+    public function outputStep(Test $test, string $debugOutput): void
     {
     }
 
-    public function outputFailure(Test $test, $debugOutput, $failure)
+    public function outputFailure(Test $test, string $debugOutput, \Throwable $failure): void
     {
         $text = 'F';
 
@@ -57,7 +58,7 @@ class PhpUnitAlike implements OutputInterface
         ];
     }
 
-    public function outputSuccess(Test $test, $debugOutput)
+    public function outputSuccess(Test $test, string $debugOutput): void
     {
         $this->writeTest($test, $this->outputFormatSuccess->apply('.'));
         fwrite(STDOUT, $debugOutput);
@@ -65,7 +66,7 @@ class PhpUnitAlike implements OutputInterface
         $this->assertionCount += \count($test->getAssertions());
     }
 
-    public function outputSkipped(Test $test, $debugOutput)
+    public function outputSkipped(Test $test, string $debugOutput): void
     {
         $this->writeTest($test, $this->outputFormatSkipped->apply('S'));
         fwrite(STDOUT, $debugOutput);
@@ -73,7 +74,7 @@ class PhpUnitAlike implements OutputInterface
         $this->assertionCount += \count($test->getAssertions());
     }
 
-    private function writeTest(Test $test, $text)
+    private function writeTest(Test $test, string $text): void
     {
         if (!$test->isRealTest) {
             return;
@@ -89,7 +90,7 @@ class PhpUnitAlike implements OutputInterface
         ++$this->testOutputed;
     }
 
-    private function writeFailure($step, Test $test, $failure)
+    private function writeFailure(int $step, Test $test, \Throwable $failure): void
     {
         fwrite(STDOUT, $step + 1 .') '.$test->getDisplayName()." failed\n");
 
@@ -143,7 +144,7 @@ class PhpUnitAlike implements OutputInterface
         fwrite(STDOUT, $outputFormatSuccess->apply("OK, Tests: $this->testOutputed, Assertions: $this->assertionCount.\n"));
     }
 
-    private function getDisplayableMemory($memory)
+    private function getDisplayableMemory(int $memory): string
     {
         $unit = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
 

@@ -38,9 +38,8 @@
         "amphp/http-client": "To use the web test case trait"
     },
     "require-dev": {
-        "amphp/http-client": "^5.0.1",
         "friendsofphp/php-cs-fixer": "^3.53.0",
-        "phpstan/phpstan": "^1.10"
+        "phpstan/phpstan": "^1.10.67"
     },
     "conflict": {
         "amphp/http-client": "<5.0.1",

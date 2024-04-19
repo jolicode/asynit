@@ -14,7 +14,10 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class AsynitCommand extends Command
+/**
+ * @internal
+ */
+final class AsynitCommand extends Command
 {
     private string $defaultBootstrapFilename = '';
 
@@ -45,22 +48,40 @@ class AsynitCommand extends Command
             throw new \InvalidArgumentException("The bootstrap file '$bootstrapFilename' does not exist.");
         }
 
-        $testsFinder = new TestsFinder();
-        $testMethods = $testsFinder->findTests($input->getArgument('target'));
+        /** @var string $target */
+        $target = $input->getArgument('target');
 
-        list($chainOutput, $countOutput) = (new OutputFactory($input->getOption('order')))->buildOutput(\count($testMethods));
+        $testsFinder = new TestsFinder();
+        $testsSuites = $testsFinder->findTests($target);
+        $testsCount = array_reduce($testsSuites, fn (int $carry, $suite) => $carry + \count($suite->tests), 0);
+
+        /** @phpstan-ignore-next-line */
+        $useOrder = (boolean) $input->getOption('order');
+
+        list($chainOutput, $countOutput) = (new OutputFactory($useOrder))->buildOutput($testsCount);
+
+        /** @phpstan-ignore-next-line */
+        $timeout = (float) $input->getOption('timeout');
+        /** @phpstan-ignore-next-line */
+        $retry = (int) $input->getOption('retry');
+        /** @phpstan-ignore-next-line */
+        $concurrency = (int) $input->getOption('concurrency');
+
+        if ($concurrency < 1) {
+            throw new \InvalidArgumentException('Concurrency must be greater than 0');
+        }
 
         $defaultHttpConfiguration = new HttpClientConfiguration(
-            timeout: $input->getOption('timeout'),
-            retry: $input->getOption('retry'),
+            timeout: $timeout,
+            retry: $retry,
             allowSelfSignedCertificate: $input->hasOption('allow-self-signed-certificate'),
         );
 
         $builder = new TestPoolBuilder();
-        $runner = new PoolRunner($defaultHttpConfiguration, new TestWorkflow($chainOutput), $input->getOption('concurrency'));
+        $runner = new PoolRunner($defaultHttpConfiguration, new TestWorkflow($chainOutput), $concurrency);
 
         // Build a list of tests from the directory
-        $pool = $builder->build($testMethods);
+        $pool = $builder->build($testsSuites);
         $runner->loop($pool);
 
         // Return the number of failed tests

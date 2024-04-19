@@ -4,24 +4,13 @@ namespace Asynit;
 
 /**
  * Pool containing test, running tests and running http calls.
+ *
+ * @internal
  */
-class Pool
+final class Pool
 {
     /** @var Test[] */
-    private $tests;
-
-    public function __construct()
-    {
-        $this->tests = [];
-    }
-
-    /**
-     * Queue a test.
-     */
-    public function addTest(Test $test): void
-    {
-        $this->tests[] = $test;
-    }
+    public array $tests = [];
 
     public function isEmpty(): bool
     {
@@ -32,7 +21,7 @@ class Pool
         return 0 === count($notCompletedTests);
     }
 
-    public function getTestToRun(): ?Test
+    public function getNextTestToRun(): ?Test
     {
         foreach ($this->tests as $test) {
             if ($test->canBeRun()) {

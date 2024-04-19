@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Asynit\Assert;
 
 use Asynit\Runner\TestStorage;
-use Asynit\Test;
 use bovigo\assert\Assertion as BaseAssertion;
 use bovigo\assert\AssertionFailure;
 use bovigo\assert\predicate\Predicate;

@@ -6,18 +6,16 @@ use Asynit\Test;
 
 /**
  * Interface for displaying tests.
+ *
+ * @internal
  */
 interface OutputInterface
 {
-    public function outputStep(Test $test, $debugOutput);
+    public function outputStep(Test $test, string $debugOutput): void;
 
-    /**
-     * @param string                $debugOutput
-     * @param \Throwable|\Exception $failure
-     */
-    public function outputFailure(Test $test, $debugOutput, $failure);
+    public function outputFailure(Test $test, string $debugOutput, \Throwable $failure): void;
 
-    public function outputSuccess(Test $test, $debugOutput);
+    public function outputSuccess(Test $test, string $debugOutput): void;
 
-    public function outputSkipped(Test $test, $debugOutput);
+    public function outputSkipped(Test $test, string $debugOutput): void;
 }

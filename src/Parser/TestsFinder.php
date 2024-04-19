@@ -5,11 +5,15 @@ namespace Asynit\Parser;
 use Asynit\Attribute\Test as TestAnnotation;
 use Asynit\Attribute\TestCase;
 use Asynit\Test;
+use Asynit\TestSuite;
 use Symfony\Component\Finder\Finder;
 
-class TestsFinder
+/**
+ * @internal
+ */
+final class TestsFinder
 {
-    /** @return Test[] */
+    /** @return TestSuite<object>[] */
     public function findTests(string $path): array
     {
         if (\is_file($path)) {
@@ -28,13 +32,11 @@ class TestsFinder
     /**
      * @param iterable<string|\SplFileInfo> $files
      *
-     * @return Test[]
-     *
-     * @throws \ReflectionException
+     * @return TestSuite<object>[]
      */
     private function doFindTests(iterable $files): array
     {
-        $methods = [];
+        $suites = [];
 
         foreach ($files as $file) {
             $existingClasses = get_declared_classes();
@@ -56,6 +58,9 @@ class TestsFinder
                     continue;
                 }
 
+                $testSuite = new TestSuite($reflectionClass);
+                $suites[] = $testSuite;
+
                 foreach ($reflectionClass->getMethods(\ReflectionMethod::IS_PUBLIC) as $reflectionMethod) {
                     $tests = $reflectionMethod->getAttributes(TestAnnotation::class);
                     $test = null;
@@ -67,12 +72,12 @@ class TestsFinder
                     }
 
                     if (null !== $test) {
-                        $methods[$test->getIdentifier()] = $test;
+                        $testSuite->tests[$test->getIdentifier()] = $test;
                     }
                 }
             }
         }
 
-        return $methods;
+        return $suites;
     }
 }

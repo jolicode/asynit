@@ -38,7 +38,7 @@ class PoolRunner
         $futures = [];
 
         while (!$pool->isEmpty()) {
-            $test = $pool->getTestToRun();
+            $test = $pool->getNextTestToRun();
 
             if (null === $test) {
                 Future\awaitAny($futures);

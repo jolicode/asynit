@@ -8,41 +8,35 @@ use Asynit\Test;
 
 class Count implements OutputInterface
 {
-    private $succeed = 0;
-    private $failed = 0;
-    private $skipped = 0;
+    private int $succeed = 0;
+    private int $failed = 0;
+    private int $skipped = 0;
 
-    public function outputStep(Test $test, $debugOutput)
+    public function outputStep(Test $test, string $debugOutput): void
     {
     }
 
-    public function outputFailure(Test $test, $debugOutput, $failure)
+    public function outputFailure(Test $test, string $debugOutput, \Throwable $failure): void
     {
         ++$this->failed;
     }
 
-    public function outputSuccess(Test $test, $debugOutput)
+    public function outputSuccess(Test $test, string $debugOutput): void
     {
         ++$this->succeed;
     }
 
-    public function outputSkipped(Test $test, $debugOutput)
+    public function outputSkipped(Test $test, string $debugOutput): void
     {
         ++$this->skipped;
     }
 
-    /**
-     * @return int
-     */
-    public function getSucceed()
+    public function getSucceed(): int
     {
         return $this->succeed;
     }
 
-    /**
-     * @return int
-     */
-    public function getFailed()
+    public function getFailed(): int
     {
         return $this->failed;
     }
