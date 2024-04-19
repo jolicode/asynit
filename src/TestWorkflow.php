@@ -19,11 +19,10 @@ final class TestWorkflow
             return;
         }
 
-        $test->setState(Test::STATE_RUNNING);
-
         $debugOutput = ob_get_contents();
         ob_clean();
 
+        $test->start();
         $this->output->outputStep($test, false === $debugOutput ? '' : $debugOutput);
     }
 
@@ -33,10 +32,10 @@ final class TestWorkflow
             return;
         }
 
-        $test->setState(Test::STATE_SUCCESS);
-
         $debugOutput = ob_get_contents();
         ob_clean();
+
+        $test->success(false === $debugOutput ? '' : $debugOutput);
         $this->output->outputSuccess($test, false === $debugOutput ? '' : $debugOutput);
     }
 
@@ -46,14 +45,11 @@ final class TestWorkflow
             return;
         }
 
-        $test->setState(Test::STATE_FAILURE);
-
         $debugOutput = ob_get_contents();
         ob_clean();
 
-        if (is_string($debugOutput)) {
-            $this->output->outputFailure($test, $debugOutput, $error);
-        }
+        $test->failure(false === $debugOutput ? '' : $debugOutput, $error);
+        $this->output->outputFailure($test, false === $debugOutput ? '' : $debugOutput, $error);
 
         foreach ($test->getChildren(true) as $child) {
             $this->markTestAsSkipped($child);
@@ -66,7 +62,7 @@ final class TestWorkflow
             return;
         }
 
-        $test->setState(Test::STATE_SKIPPED);
+        $test->skipped();
 
         foreach ($test->getChildren() as $child) {
             $this->markTestAsSkipped($child);

@@ -72,7 +72,7 @@ final class TestPoolBuilder
                 throw new \RuntimeException(sprintf('Failed to build test pool "%s" dependency is not resolvable for "%s::%s".', $dependency->dependency, $test->getMethod()->getDeclaringClass()->getName(), $test->getMethod()->getName()));
             }
 
-            $dependentTest = new Test(new \ReflectionMethod($class, $method), null, false);
+            $dependentTest = new Test(null, new \ReflectionMethod($class, $method), null, false);
 
             if (isset($tests[$dependentTest->getIdentifier()])) {
                 $dependentTest = $tests[$dependentTest->getIdentifier()];

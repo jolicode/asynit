@@ -6,6 +6,7 @@ use Asynit\Attribute\HttpClientConfiguration;
 use Asynit\Output\OutputFactory;
 use Asynit\Parser\TestPoolBuilder;
 use Asynit\Parser\TestsFinder;
+use Asynit\Report\JUnitReport;
 use Asynit\Runner\PoolRunner;
 use Asynit\TestWorkflow;
 use Symfony\Component\Console\Command\Command;
@@ -35,6 +36,7 @@ final class AsynitCommand extends Command
             ->addOption('retry', null, InputOption::VALUE_REQUIRED, 'Default retry number for http request', 0)
             ->addOption('bootstrap', null, InputOption::VALUE_REQUIRED, 'A PHP file to include before anything else', $this->defaultBootstrapFilename)
             ->addOption('order', null, InputOption::VALUE_NONE, 'Output tests execution order')
+            ->addOption('report', null, InputOption::VALUE_REQUIRED, 'JUnit report directory')
         ;
     }
 
@@ -55,8 +57,7 @@ final class AsynitCommand extends Command
         $testsSuites = $testsFinder->findTests($target);
         $testsCount = array_reduce($testsSuites, fn (int $carry, $suite) => $carry + \count($suite->tests), 0);
 
-        /** @phpstan-ignore-next-line */
-        $useOrder = (boolean) $input->getOption('order');
+        $useOrder = (bool) $input->getOption('order');
 
         list($chainOutput, $countOutput) = (new OutputFactory($useOrder))->buildOutput($testsCount);
 
@@ -82,7 +83,18 @@ final class AsynitCommand extends Command
 
         // Build a list of tests from the directory
         $pool = $builder->build($testsSuites);
+        $start = microtime(true);
         $runner->loop($pool);
+        $end = microtime(true);
+
+        /** @var string|null $reportDir */
+        $reportDir = $input->getOption('report');
+
+        if (null !== $reportDir) {
+            $report = new JUnitReport($reportDir);
+            $time = $end - $start;
+            $report->generate($time, $testsSuites);
+        }
 
         // Return the number of failed tests
         return $countOutput->getFailed();
