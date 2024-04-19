@@ -27,12 +27,24 @@ final class Test
 
     private string $identifier;
 
-    private string $state;
-
     private string $displayName;
 
+    public string $state;
+
+    public float $startTime;
+
+    public float $endTime;
+
+    public string $output;
+
+    public \Throwable $failure;
+
+    /**
+     * @param TestSuite<object>|null $suite
+     */
     public function __construct(
-        private readonly \ReflectionMethod $method,
+        public readonly ?TestSuite $suite,
+        public readonly \ReflectionMethod $method,
         ?string $identifier = null,
         public readonly bool $isRealTest = true,
     ) {
@@ -75,14 +87,37 @@ final class Test
         return true;
     }
 
-    public function getState(): string
+    public function start(): void
     {
-        return $this->state;
+        $this->suite?->start();
+        $this->startTime = microtime(true);
+        $this->state = self::STATE_RUNNING;
     }
 
-    public function setState(string $state): void
+    public function success(string $output): void
     {
-        $this->state = $state;
+        $this->endTime = microtime(true);
+        $this->output = $output;
+        $this->state = self::STATE_SUCCESS;
+        $this->suite?->tryEnd();
+    }
+
+    public function failure(string $output, \Throwable $error): void
+    {
+        $this->endTime = microtime(true);
+        $this->output = $output;
+        $this->state = self::STATE_FAILURE;
+        $this->failure = $error;
+        $this->suite?->tryEnd();
+    }
+
+    public function skipped(): void
+    {
+        $this->startTime = microtime(true);
+        $this->endTime = microtime(true);
+        $this->output = '';
+        $this->state = self::STATE_SKIPPED;
+        $this->suite?->tryEnd();
     }
 
     public function getIdentifier(): string
@@ -122,6 +157,11 @@ final class Test
     public function getAssertions(): array
     {
         return $this->assertions;
+    }
+
+    public function getAssertionsCount(): int
+    {
+        return \count($this->assertions);
     }
 
     /**
@@ -170,5 +210,10 @@ final class Test
     public function setDisplayName(string $displayName): void
     {
         $this->displayName = $displayName;
+    }
+
+    public function getTime(): float
+    {
+        return $this->endTime - $this->startTime;
     }
 }

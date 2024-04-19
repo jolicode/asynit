@@ -3,16 +3,14 @@ on:
     push:
         branches:
             - master
-    pull_request: null
-    schedule:
-        - cron: "0 0 * * MON"
+    pull_request: ~
 jobs:
     tests:
         runs-on: ubuntu-latest
         strategy:
             fail-fast: false
             matrix:
-                php-version: ["8.2", "8.3"]
+                php-version: ["8.3"]
                 composer-flags: [""]
                 name: [""]
                 include:
@@ -34,4 +32,13 @@ jobs:
             - name: Run docker
               run: docker run -d --rm -p 8081:80 httpbin
             - name: tests
-              run: composer test
+              run: bin/asynit tests --report report/asynit.xml
+
+            - name: Test Report
+              uses: dorny/test-reporter@v1
+              if: success() || failure()    # run this step even if previous step failed
+              with:
+                  name: Asynit Tests ${{ matrix.php-version }}
+                  path: report/asynit.xml
+                  reporter: java-junit
+

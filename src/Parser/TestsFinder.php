@@ -66,9 +66,9 @@ final class TestsFinder
                     $test = null;
 
                     if (count($tests) > 0) {
-                        $test = new Test($reflectionMethod);
+                        $test = new Test($testSuite, $reflectionMethod);
                     } elseif (preg_match('/^test(.+)$/', $reflectionMethod->getName())) {
-                        $test = new Test($reflectionMethod);
+                        $test = new Test($testSuite, $reflectionMethod);
                     }
 
                     if (null !== $test) {
