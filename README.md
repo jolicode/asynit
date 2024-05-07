@@ -28,8 +28,8 @@ class ApiTest
 Then you can add some tests that will use the API of the TestCase class:
 
 ```php
-use Asynit\TestCase;
-use Asynit\Test;
+use Asynit\Attribute\Test;
+use Asynit\Attribute\TestCase;
 
 #[TestCase]
 class ApiTest
@@ -52,8 +52,8 @@ A test fail when an exception occurs during the test
 Asynit provide trait to ease the writing of test. You can use the `Asynit\AssertCaseTrait` trait to use the assertion.
 
 ```php
-use Asynit\TestCase;
-use Asynit\Test;
+use Asynit\Attribute\Test;
+use Asynit\Attribute\TestCase;
 
 #[TestCase]
 class ApiTest
@@ -93,6 +93,9 @@ Asynit provide an optional `Asynit\HttpClient\HttpClientWebCaseTrait` trait that
 `nyholm/psr7` to use it.
 
 ```php
+use Asynit\Attribute\TestCase;
+use Asynit\HttpClient\HttpClientWebCaseTrait;
+
 #[TestCase]
 class FunctionalHttpTests
 {
@@ -112,6 +115,9 @@ You can also use a more oriented API trait `Asynit\HttpClient\HttpClientApiCaseT
 
 
 ```php
+use Asynit\Attribute\TestCase;
+use Asynit\HttpClient\HttpClientApiCaseTrait;
+
 #[TestCase]
 class FunctionalHttpTests
 {
@@ -143,6 +149,10 @@ successful, `C` will be run with the result from `A`.
 Let's see an example:
 
 ```php
+use Asynit\Attribute\Depend;
+use Asynit\Attribute\TestCase;
+use Asynit\HttpClient\HttpClientApiCaseTrait;
+
 #[TestCase]
 class SecurityTest extends TestCase
 {
@@ -173,6 +183,10 @@ test case is under the `Application\ApiTest` namespace and thus we can write
 another test case like this:
 
 ```php
+use Asynit\Attribute\Depend;
+use Asynit\Attribute\TestCase;
+use Asynit\HttpClient\HttpClientApiCaseTrait;
+
 #[TestCase]
 class PostTest
 {
@@ -196,7 +210,7 @@ So you could write a `TokenFetcherClass` that will fetch the token and then use 
 ```php
 namespace App\Tests;
 
-use Asynit\TestCase;
+use Asynit\HttpClient\HttpClientApiCaseTrait;
 
 class TokenFetcher
 {
@@ -226,11 +240,17 @@ Then in your test class you will be able to call this method:
 ```php
 namespace App\Tests;
 
+use Asynit\Attribute\Depend;
+use Asynit\Attribute\TestCase;
+use Asynit\HttpClient\HttpClientApiCaseTrait;
+
 #[TestCase]
 class OrganizationTest
 {
+    use HttpClientApiCaseTrait;
+
     #[Depend("App\Tests\TokenFetcher::fetchUserToken")]
-    public function test_api_method_with_token()
+    public function test_api_method_with_token(string $token)
     {
         $response = $this->get('/api', headers: ['X-Auth-Token' => $token]);
 
