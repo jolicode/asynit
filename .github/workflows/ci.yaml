@@ -27,18 +27,16 @@ jobs:
                   php-version: ${{ matrix.php-version }}
             - name: composer install
               run: composer update --prefer-dist --no-interaction ${{ matrix.composer-flags }}
-            - name: Build docker
+            - name: docker build
               run: docker build -t httpbin .
-            - name: Run docker
+            - name: docker run
               run: docker run -d --rm -p 8081:80 httpbin
             - name: tests
               run: bin/asynit tests --report report/asynit.xml
-
-            - name: Test Report
+            - name: check report
               uses: dorny/test-reporter@v1
               if: success() || failure()    # run this step even if previous step failed
               with:
                   name: Asynit Tests ${{ matrix.php-version }}
                   path: report/asynit.xml
                   reporter: java-junit
-
