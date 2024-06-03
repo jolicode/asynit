@@ -1,5 +1,9 @@
 ## Changes
 
+## 0.15.0 - 03/06/2024
+
+* Symfony 7 support
+
 ## 0.14.0 - 19/04/2024
 
 * Add JUnit report
