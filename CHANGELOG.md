@@ -2,19 +2,19 @@
 
 ## 0.15.0 - 03/06/2024
 
-* Symfony 7 support
+* **Add** Symfony 7 support
 
 ## 0.14.0 - 19/04/2024
 
-* Add JUnit report
+* **Add** JUnit report
 
 ## 0.13.0 - 12/04/2024
 
-* Add command line argument to configure default http client configuration
-* Fixed allow self signed certificate not used
+* **Add** command line argument to configure default http client configuration
+* **Fix** allow self signed certificate not used
 * **[BC BREAK]** HTTP test case now rely exclusively on amp http client (no more psr7 or psr18)
-* Fix assertions count
-* Add a new attribute to configure HttpClient (allow to set timeout)
+* **Fix** assertions count
+* **Add** a new attribute to configure HttpClient (allow to set timeout)
 
 ## 0.12.0 - 11/05/2023
 
@@ -22,7 +22,7 @@
  * **[BC BREAK]** Make http test case as an option
  * **[BC BREAK]** No more global test case case
  * **[BC BREAK]** Use PHP attribute instead of annotation
- * Add a new test case trait for API
+ * **Add** a new test case trait for API
 
 ### Migrating from 0.11
 
