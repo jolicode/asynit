@@ -20,7 +20,7 @@ final class TestSuite
      * @param \ReflectionClass<T> $reflectionClass
      */
     public function __construct(
-        public readonly \ReflectionClass $reflectionClass
+        public readonly \ReflectionClass $reflectionClass,
     ) {
     }
 

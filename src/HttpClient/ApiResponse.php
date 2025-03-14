@@ -12,7 +12,7 @@ use Amp\Http\HttpResponse;
 class ApiResponse extends HttpResponse implements \ArrayAccess
 {
     /**
-     * @var array<string, mixed>|null
+     * @var array<string|int, mixed>|null
      */
     private mixed $data = null;
 

@@ -34,12 +34,12 @@
         "symfony/console": "^5.4 || ^6.4 || ^7.0",
         "symfony/finder": "^5.4 || ^6.4 || ^7.0"
     },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.72.0",
+        "phpstan/phpstan": "^2.1.8"
+    },
     "suggest": {
         "amphp/http-client": "To use the web test case trait"
-    },
-    "require-dev": {
-        "friendsofphp/php-cs-fixer": "^3.53.0",
-        "phpstan/phpstan": "^1.10.67"
     },
     "conflict": {
         "amphp/http-client": "<5.0.1",

@@ -94,21 +94,19 @@ class PhpUnitAlike implements OutputInterface
     {
         fwrite(STDOUT, $step + 1 .') '.$test->getDisplayName()." failed\n");
 
-        if ($failure instanceof \Throwable) {
-            fwrite(STDOUT, "\n");
-            fwrite(STDOUT, get_class($failure).': '.$failure->getMessage().' at '.$failure->getFile().':'.$failure->getLine()."\n");
-            fwrite(STDOUT, "\n");
-            $trace = $failure->getTrace();
+        fwrite(STDOUT, "\n");
+        fwrite(STDOUT, get_class($failure).': '.$failure->getMessage().' at '.$failure->getFile().':'.$failure->getLine()."\n");
+        fwrite(STDOUT, "\n");
+        $trace = $failure->getTrace();
 
-            for ($i = 0, $count = min(\count($trace), self::MAX_TRACE); $i < $count; ++$i) {
-                $class = isset($trace[$i]['class']) ? $trace[$i]['class'] : '';
-                $type = isset($trace[$i]['type']) ? $trace[$i]['type'] : '';
-                $function = $trace[$i]['function'];
-                $file = isset($trace[$i]['file']) ? $trace[$i]['file'] : 'n/a';
-                $line = isset($trace[$i]['line']) ? $trace[$i]['line'] : 'n/a';
+        for ($i = 0, $count = min(\count($trace), self::MAX_TRACE); $i < $count; ++$i) {
+            $class = isset($trace[$i]['class']) ? $trace[$i]['class'] : '';
+            $type = isset($trace[$i]['type']) ? $trace[$i]['type'] : '';
+            $function = $trace[$i]['function'];
+            $file = isset($trace[$i]['file']) ? $trace[$i]['file'] : 'n/a';
+            $line = isset($trace[$i]['line']) ? $trace[$i]['line'] : 'n/a';
 
-                fwrite(STDOUT, sprintf("#%s %s%s%s() at %s:%s\n", $i, $class, $type, $function, $file, $line));
-            }
+            fwrite(STDOUT, sprintf("#%s %s%s%s() at %s:%s\n", $i, $class, $type, $function, $file, $line));
         }
 
         fwrite(STDOUT, "\n");
