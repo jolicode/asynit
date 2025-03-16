@@ -9,7 +9,7 @@ use bovigo\assert\AssertionFailure;
 final class JUnitReport
 {
     public function __construct(
-        private readonly string $filename
+        private readonly string $filename,
     ) {
     }
 

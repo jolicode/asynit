@@ -26,7 +26,7 @@ class PoolRunner
     public function __construct(
         private HttpClientConfiguration $defaultHttpConfiguration,
         private TestWorkflow $workflow,
-        int $concurrency = 10
+        int $concurrency = 10,
     ) {
         $this->semaphore = new LocalSemaphore($concurrency);
     }
