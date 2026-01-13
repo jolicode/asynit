@@ -7,7 +7,7 @@ use Amp\Http\Client\Response;
 use Amp\Http\HttpResponse;
 
 /**
- * @implements \ArrayAccess<string, mixed>
+ * @implements \ArrayAccess<string|int, mixed>
  */
 class ApiResponse extends HttpResponse implements \ArrayAccess
 {
@@ -62,6 +62,12 @@ class ApiResponse extends HttpResponse implements \ArrayAccess
     public function offsetSet(mixed $offset, mixed $value): void
     {
         $this->ensureBodyIsRead();
+
+        if (null === $offset) {
+            $this->data[] = $value;
+
+            return;
+        }
 
         $this->data[$offset] = $value;
     }

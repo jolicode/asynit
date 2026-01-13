@@ -1,0 +1,62 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "911d6b423e4eff39f0644a7949798f8b",
+    "packages": [
+        {
+            "name": "castor-php/php-qa",
+            "version": "0.3.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/castor-php/php-qa.git",
+                "reference": "e07419eef665508df2fec960d920e74de82396b9"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/castor-php/php-qa/zipball/e07419eef665508df2fec960d920e74de82396b9",
+                "reference": "e07419eef665508df2fec960d920e74de82396b9",
+                "shasum": ""
+            },
+            "require-dev": {
+                "jolicode/castor": "^0.22.1"
+            },
+            "type": "castor-plugin",
+            "autoload": {
+                "files": [
+                    "src/functions.php"
+                ],
+                "psr-4": {
+                    "CastorPhp\\PhpQa\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Joel Wurtz",
+                    "email": "jwurtz@jolicode.com"
+                }
+            ],
+            "description": "PHP Quality tools functions for castor",
+            "support": {
+                "issues": "https://github.com/castor-php/php-qa/issues",
+                "source": "https://github.com/castor-php/php-qa/tree/0.3.3"
+            },
+            "time": "2026-01-07T11:06:34+00:00"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": {},
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": {},
+    "platform-dev": {},
+    "plugin-api-version": "2.9.0"
+}

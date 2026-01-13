@@ -13,8 +13,14 @@ if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
     throw new \RuntimeException('Unable to load autoloader.');
 }
 
+if (method_exists(Application::class, 'addCommand')) {
+    $method = 'addCommand';
+} else {
+    $method = 'add';
+}
+
 (new Application('asynit'))
-    ->add(new AsynitCommand())
+    ->$method(new AsynitCommand())
     ->getApplication()
     ->setDefaultCommand('asynit', true)
     ->run()

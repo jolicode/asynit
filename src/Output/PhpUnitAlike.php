@@ -150,7 +150,7 @@ class PhpUnitAlike implements OutputInterface
             return '0 '.$unit[0];
         }
 
-        return @round($memory / pow(1000, $i = floor(log($memory, 1000))), 2).(isset($unit[$i]) ? $unit[$i] : 'B');
+        return @round($memory / (1000 ** $i = (int) floor(log($memory, 1000))), 2).($unit[$i] ?? 'B');
     }
 
     private function getDisplayableTime(float $time): string
