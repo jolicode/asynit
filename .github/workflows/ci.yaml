@@ -10,7 +10,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                php-version: ["8.3", "8.4"]
+                php-version: ["8.3", "8.4", "8.5"]
                 composer-flags: [""]
                 name: [""]
                 include:
@@ -25,8 +25,15 @@ jobs:
               uses: shivammathur/setup-php@v2
               with:
                   php-version: ${{ matrix.php-version }}
+                  tools: castor
             - name: composer install
               run: composer update --prefer-dist --no-interaction ${{ matrix.composer-flags }}
+            - name: Check cs
+              run: castor qa:cs:check
+              if: matrix.php-version == '8.5'
+            - name: Check phpstan
+              run: castor qa:phpstan
+              if: matrix.php-version == '8.5'
             - name: docker build
               run: docker build -t httpbin .
             - name: docker run
