@@ -37,6 +37,7 @@ final class AsynitCommand extends Command
             ->addOption('bootstrap', null, InputOption::VALUE_REQUIRED, 'A PHP file to include before anything else', $this->defaultBootstrapFilename)
             ->addOption('order', null, InputOption::VALUE_NONE, 'Output tests execution order')
             ->addOption('report', null, InputOption::VALUE_REQUIRED, 'JUnit report directory')
+            ->addOption('filter', null, InputOption::VALUE_REQUIRED, 'Filter test with a regex')
         ;
     }
 
@@ -52,9 +53,11 @@ final class AsynitCommand extends Command
 
         /** @var string $target */
         $target = $input->getArgument('target');
+        /** @var ?string $filter */
+        $filter = $input->getOption('filter');
 
         $testsFinder = new TestsFinder();
-        $testsSuites = $testsFinder->findTests($target);
+        $testsSuites = $testsFinder->findTests($target, $filter);
         $testsCount = array_reduce($testsSuites, fn (int $carry, $suite) => $carry + \count($suite->tests), 0);
 
         $useOrder = (bool) $input->getOption('order');
