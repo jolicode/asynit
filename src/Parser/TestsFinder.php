@@ -14,10 +14,10 @@ use Symfony\Component\Finder\Finder;
 final class TestsFinder
 {
     /** @return TestSuite<object>[] */
-    public function findTests(string $path): array
+    public function findTests(string $path, ?string $filter): array
     {
         if (\is_file($path)) {
-            return $this->doFindTests([$path]);
+            return $this->doFindTests([$path], $filter);
         }
 
         $finder = Finder::create()
@@ -26,7 +26,7 @@ final class TestsFinder
             ->in($path)
         ;
 
-        return $this->doFindTests($finder);
+        return $this->doFindTests($finder, $filter);
     }
 
     /**
@@ -34,7 +34,7 @@ final class TestsFinder
      *
      * @return TestSuite<object>[]
      */
-    private function doFindTests(iterable $files): array
+    private function doFindTests(iterable $files, ?string $filter): array
     {
         $suites = [];
 
@@ -64,6 +64,11 @@ final class TestsFinder
                 foreach ($reflectionClass->getMethods(\ReflectionMethod::IS_PUBLIC) as $reflectionMethod) {
                     $tests = $reflectionMethod->getAttributes(TestAnnotation::class);
                     $test = null;
+                    $testName = $reflectionClass->getName().'::'.$reflectionMethod->getName();
+
+                    if (null !== $filter && !preg_match('/'.$filter.'/', $testName)) {
+                        continue;
+                    }
 
                     if (count($tests) > 0) {
                         $test = new Test($testSuite, $reflectionMethod);
