@@ -66,7 +66,7 @@ final class TestsFinder
                     $test = null;
                     $testName = $reflectionClass->getName().'::'.$reflectionMethod->getName();
 
-                    if (null !== $filter && !preg_match('/'.$filter.'/', $testName)) {
+                    if (null !== $filter && !preg_match('{'.$filter.'}', $testName)) {
                         continue;
                     }
 
