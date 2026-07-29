@@ -2,17 +2,14 @@
 
 namespace Asynit\Tests;
 
-use Asynit\Assert\AssertCaseTrait;
 use Asynit\Attribute\Depend;
 use Asynit\Attribute\TestCase;
 
 use function Amp\delay;
 
 #[TestCase]
-class FunctionalTests
+class FunctionalTests extends \PHPUnit\Framework\TestCase
 {
-    use AssertCaseTrait;
-
     public function testReturn()
     {
         return 'tata';

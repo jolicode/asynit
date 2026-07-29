@@ -7,6 +7,7 @@ use Asynit\Attribute\DisplayName;
 use Asynit\Pool;
 use Asynit\Test;
 use Asynit\TestSuite;
+use PHPUnit\Framework\TestCase as PHPUnitTestCase;
 
 /**
  * Build test.
@@ -16,7 +17,7 @@ final class TestPoolBuilder
     /**
      * Build the initial test pool.
      *
-     * @param TestSuite<object>[] $testSuites
+     * @param TestSuite<PHPUnitTestCase>[] $testSuites
      *
      * @throws \RuntimeException
      */
@@ -90,15 +91,20 @@ final class TestPoolBuilder
             throw new \RuntimeException(sprintf('Failed to build test pool "%s" dependency is not resolvable for "%s".', $dependency, $test->getIdentifier()));
         }
 
-        $reflectionClass = new \ReflectionClass($class);
-        $identifier = sprintf('%s::%s', $reflectionClass->getName(), $method);
+        $identifier = sprintf('%s::%s', $class, $method);
 
         if (isset($tests[$identifier])) {
             return $tests[$identifier];
         }
 
+        if (!is_subclass_of($class, PHPUnitTestCase::class)) {
+            throw new \RuntimeException(sprintf('Failed to build test pool "%s" dependency of "%s" is declared on "%s", which does not extend "%s".', $dependency, $test->getIdentifier(), $class, PHPUnitTestCase::class));
+        }
+
+        $reflectionClass = new \ReflectionClass($class);
+
         if ($reflectionClass->isAbstract()) {
-            throw new \RuntimeException(sprintf('Failed to build test pool "%s" dependency of "%s" is declared on abstract class "%s", which cannot be instantiated.', $dependency, $test->getIdentifier(), $reflectionClass->getName()));
+            throw new \RuntimeException(sprintf('Failed to build test pool "%s" dependency of "%s" is declared on abstract class "%s", which cannot be instantiated.', $dependency, $test->getIdentifier(), $class));
         }
 
         $dependentTest = new Test(null, $reflectionClass, $reflectionClass->getMethod($method), false);

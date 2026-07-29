@@ -2,6 +2,8 @@
 
 namespace Asynit;
 
+use PHPUnit\Framework\TestCase as PHPUnitTestCase;
+
 /**
  * @internal
  */
@@ -19,11 +21,8 @@ final class Test
     /** @var array<array{ test: Test, skipIfFailed: bool }> */
     private array $children = [];
 
-    /** @var mixed[] */
+    /** @var array<string, mixed> */
     private array $arguments = [];
-
-    /** @var string[] */
-    private array $assertions = [];
 
     private string $identifier;
 
@@ -43,13 +42,18 @@ final class Test
 
     public string $output = '';
 
-    public ?\Throwable $failure = null;
+    public ?\PHPUnit\Event\Code\Throwable $failure = null;
+
+    /** Whether {@see $failure} is an assertion failure rather than an unexpected error. */
+    public bool $failureIsAssertion = false;
+
+    public int $assertionCount = 0;
 
     /**
-     * @param TestSuite<object>|null   $suite         the suite this test is reported in, or null for a test that is
-     *                                                only run because something else depends on it
-     * @param \ReflectionClass<object> $testCaseClass the class to instantiate to run this test, which is not
-     *                                                necessarily the class declaring the method (inheritance)
+     * @param TestSuite<PHPUnitTestCase>|null   $suite         the suite this test is reported in, or null for a test that is
+     *                                                         only run because something else depends on it
+     * @param \ReflectionClass<PHPUnitTestCase> $testCaseClass the class to instantiate to run this test, which is not
+     *                                                         necessarily the class declaring the method (inheritance)
      */
     public function __construct(
         public readonly ?TestSuite $suite,
@@ -111,11 +115,12 @@ final class Test
         $this->suite?->tryEnd();
     }
 
-    public function failure(\Throwable $error): void
+    public function failure(?\PHPUnit\Event\Code\Throwable $error, bool $isAssertion = false): void
     {
         $this->endTime = microtime(true);
         $this->state = self::STATE_FAILURE;
         $this->failure = $error;
+        $this->failureIsAssertion = $isAssertion;
         $this->suite?->tryEnd();
     }
 
@@ -164,20 +169,9 @@ final class Test
         $this->arguments[$test->getIdentifier()] = $argument;
     }
 
-    public function addAssertion(string $assertion): void
-    {
-        $this->assertions[] = $assertion;
-    }
-
-    /** @return string[] */
-    public function getAssertions(): array
-    {
-        return $this->assertions;
-    }
-
     public function getAssertionsCount(): int
     {
-        return \count($this->assertions);
+        return $this->assertionCount;
     }
 
     /**
@@ -202,20 +196,27 @@ final class Test
         }
     }
 
-    /** @return mixed[] */
+    /**
+     * Values produced by the parents, in parent declaration order. PHPUnit takes them keyed by dependency and
+     * passes array_values() of that to the test method, so the keys are only there to identify the producer.
+     *
+     * @return array<string, mixed>
+     */
     public function getArguments(): array
     {
         $args = [];
         $arguments = $this->arguments;
 
         foreach ($this->getParents() as $parent) {
-            if (array_key_exists($parent->getIdentifier(), $arguments)) {
-                $args[] = $arguments[$parent->getIdentifier()];
-                unset($arguments[$parent->getIdentifier()]);
+            $identifier = $parent->getIdentifier();
+
+            if (array_key_exists($identifier, $arguments)) {
+                $args[$identifier] = $arguments[$identifier];
+                unset($arguments[$identifier]);
             }
         }
 
-        return array_merge($args, array_values($arguments));
+        return array_merge($args, $arguments);
     }
 
     public function getDisplayName(): string

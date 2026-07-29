@@ -13,7 +13,7 @@ class OutputOrder implements OutputInterface
     {
     }
 
-    public function outputFailure(Test $test, string $debugOutput, \Throwable $failure): void
+    public function outputFailure(Test $test, string $debugOutput, ?\PHPUnit\Event\Code\Throwable $failure): void
     {
         $this->tests[] = $test;
     }

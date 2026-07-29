@@ -9,7 +9,7 @@ use Asynit\HttpClient\HttpClientApiCaseTrait;
 use Asynit\HttpClient\HttpClientWebCaseTrait;
 
 #[TestCase]
-class WebAndApiTests
+class WebAndApiTests extends \PHPUnit\Framework\TestCase
 {
     use HttpClientWebCaseTrait, HttpClientApiCaseTrait {
         HttpClientWebCaseTrait::get insteadof HttpClientApiCaseTrait;

@@ -15,7 +15,14 @@
     "autoload": {
         "psr-4": {
             "Asynit\\": "src/"
-        }
+        },
+        "classmap": [
+            "src/PHPUnit/Override/"
+        ],
+        "exclude-from-classmap": [
+            "vendor/phpunit/phpunit/src/Framework/TestCase/OutputBuffer.php",
+            "vendor/phpunit/phpunit/src/Framework/TestRunner/TestRunner.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {
@@ -30,7 +37,7 @@
         "amphp/amp": "^3.0",
         "amphp/http-client": "^v5.0.1",
         "amphp/sync": "^2.0",
-        "bovigo/assert": "^7.0 || ^8.0",
+        "phpunit/phpunit": "~13.2.0",
         "symfony/console": "^5.4 || ^6.4 || ^7.4 || ^8.0",
         "symfony/finder": "^5.4 || ^6.4 || ^7.4 || ^8.0"
     },
@@ -38,14 +45,15 @@
         "amphp/http-client": "To use the web test case trait"
     },
     "conflict": {
-        "amphp/http-client": "<5.0.1",
         "amphp/byte-stream": "<2.1",
-        "amphp/http": "<2.1",
-        "symfony/options-resolver": "<4.4.30 || <5.3 >= 5.0"
+        "amphp/http": "<2.1"
     },
     "prefer-stable": true,
     "minimum-stability": "dev",
     "config": {
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "phpunit/phpunit": true
+        }
     }
 }

@@ -6,6 +6,7 @@ use Asynit\Attribute\Test as TestAnnotation;
 use Asynit\Attribute\TestCase;
 use Asynit\Test;
 use Asynit\TestSuite;
+use PHPUnit\Framework\TestCase as PHPUnitTestCase;
 use Symfony\Component\Finder\Finder;
 
 /**
@@ -13,7 +14,7 @@ use Symfony\Component\Finder\Finder;
  */
 final class TestsFinder
 {
-    /** @return TestSuite<object>[] */
+    /** @return TestSuite<PHPUnitTestCase>[] */
     public function findTests(string $path, ?string $filter): array
     {
         if (\is_file($path)) {
@@ -32,7 +33,7 @@ final class TestsFinder
     /**
      * @param iterable<string|\SplFileInfo> $files
      *
-     * @return TestSuite<object>[]
+     * @return TestSuite<PHPUnitTestCase>[]
      */
     private function doFindTests(iterable $files, ?string $filter): array
     {
@@ -62,6 +63,10 @@ final class TestsFinder
                 // the concrete classes extending it instead.
                 if ($reflectionClass->isAbstract()) {
                     continue;
+                }
+
+                if (!$reflectionClass->isSubclassOf(PHPUnitTestCase::class)) {
+                    throw new \RuntimeException(sprintf('Test case "%s" must extend "%s".', $reflectionClass->getName(), PHPUnitTestCase::class));
                 }
 
                 $testSuite = new TestSuite($reflectionClass);

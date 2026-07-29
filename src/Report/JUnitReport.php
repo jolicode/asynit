@@ -4,7 +4,7 @@ namespace Asynit\Report;
 
 use Asynit\Test;
 use Asynit\TestSuite;
-use bovigo\assert\AssertionFailure;
+use PHPUnit\Framework\TestCase as PHPUnitTestCase;
 
 final class JUnitReport
 {
@@ -14,7 +14,7 @@ final class JUnitReport
     }
 
     /**
-     * @param TestSuite<object>[] $testSuites
+     * @param TestSuite<PHPUnitTestCase>[] $testSuites
      */
     public function generate(float $time, array $testSuites): void
     {
@@ -31,7 +31,7 @@ final class JUnitReport
         $totalSKipped = 0;
         $totalAssertions = 0;
 
-        /** @var TestSuite<object> $testSuite */
+        /** @var TestSuite<PHPUnitTestCase> $testSuite */
         foreach ($testSuites as $testSuite) {
             $testsCount = count($testSuite->tests);
 
@@ -93,10 +93,14 @@ final class JUnitReport
                     $testcase->appendChild($systemOut);
                 }
 
-                if (Test::STATE_FAILURE === $test->state && null !== $test->failure) {
-                    $failure = $xml->createElement($test->failure instanceof AssertionFailure ? 'failure' : 'error');
-                    $failure->setAttribute('message', $test->failure->getMessage());
-                    $failure->setAttribute('type', $test->failure::class);
+                if (Test::STATE_FAILURE === $test->state) {
+                    $failure = $xml->createElement($test->failureIsAssertion ? 'failure' : 'error');
+                    $failure->setAttribute('message', $test->failure?->message() ?? 'Test failed');
+                    $failure->setAttribute('type', $test->failure?->className() ?? 'Exception');
+
+                    if (null !== $test->failure) {
+                        $failure->appendChild($xml->createCDATASection($test->failure->stackTrace()));
+                    }
 
                     $testcase->appendChild($failure);
                 }

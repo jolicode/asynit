@@ -7,7 +7,7 @@ use Asynit\HttpClient\ApiResponse;
 use Asynit\HttpClient\HttpClientApiCaseTrait;
 
 #[TestCase]
-class FunctionalApiTests
+class FunctionalApiTests extends \PHPUnit\Framework\TestCase
 {
     use HttpClientApiCaseTrait;
 

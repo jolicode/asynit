@@ -7,7 +7,7 @@ use Asynit\Attribute\Test;
 use Asynit\Attribute\TestCase;
 
 #[TestCase]
-class Simple
+class Simple extends \PHPUnit\Framework\TestCase
 {
     #[Test]
     public function i_want_to_test_something()

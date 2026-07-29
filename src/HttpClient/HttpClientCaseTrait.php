@@ -13,7 +13,6 @@ use Amp\Socket\ConnectContext;
 use Asynit\Assert\AssertWebCaseTrait;
 use Asynit\Attribute\HttpClientConfiguration;
 use Asynit\Attribute\OnCreate;
-use Asynit\Test;
 
 trait HttpClientCaseTrait
 {

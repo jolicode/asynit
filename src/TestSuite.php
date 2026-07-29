@@ -2,12 +2,10 @@
 
 namespace Asynit;
 
-use bovigo\assert\AssertionFailure;
-
 /**
  * @internal
  *
- * @template T of object
+ * @template T of \PHPUnit\Framework\TestCase
  */
 final class TestSuite
 {
@@ -46,7 +44,7 @@ final class TestSuite
     {
         $failure = 0;
         foreach ($this->tests as $test) {
-            if (Test::STATE_FAILURE === $test->state && $test->failure instanceof AssertionFailure) {
+            if (Test::STATE_FAILURE === $test->state && $test->failureIsAssertion) {
                 ++$failure;
             }
         }
@@ -58,7 +56,7 @@ final class TestSuite
     {
         $errors = 0;
         foreach ($this->tests as $test) {
-            if (Test::STATE_FAILURE === $test->state && !$test->failure instanceof AssertionFailure) {
+            if (Test::STATE_FAILURE === $test->state && !$test->failureIsAssertion) {
                 ++$errors;
             }
         }

@@ -14,7 +14,7 @@ class PhpUnitAlike implements OutputInterface
     private OutputFormatterStyle $outputFormatSuccess;
     private OutputFormatterStyle $outputFormatSkipped;
     private int $testOutputed;
-    /** @var array<array{test: Test, failure: \Throwable}> */
+    /** @var array<array{test: Test, failure: ?\PHPUnit\Event\Code\Throwable}> */
     private array $failures;
     private int $assertionCount;
     private float $start;
@@ -39,18 +39,14 @@ class PhpUnitAlike implements OutputInterface
     {
     }
 
-    public function outputFailure(Test $test, string $debugOutput, \Throwable $failure): void
+    public function outputFailure(Test $test, string $debugOutput, ?\PHPUnit\Event\Code\Throwable $failure): void
     {
-        $text = 'F';
-
-        if ($failure instanceof \Error || $failure instanceof \ErrorException) {
-            $text = 'E';
-        }
+        $text = $test->failureIsAssertion ? 'F' : 'E';
 
         $this->writeTest($test, $this->outputFormatFail->apply($text));
         fwrite(STDOUT, $debugOutput);
 
-        $this->assertionCount += \count($test->getAssertions());
+        $this->assertionCount += $test->getAssertionsCount();
 
         $this->failures[] = [
             'test' => $test,
@@ -63,7 +59,7 @@ class PhpUnitAlike implements OutputInterface
         $this->writeTest($test, $this->outputFormatSuccess->apply('.'));
         fwrite(STDOUT, $debugOutput);
 
-        $this->assertionCount += \count($test->getAssertions());
+        $this->assertionCount += $test->getAssertionsCount();
     }
 
     public function outputSkipped(Test $test, string $debugOutput): void
@@ -71,7 +67,7 @@ class PhpUnitAlike implements OutputInterface
         $this->writeTest($test, $this->outputFormatSkipped->apply('S'));
         fwrite(STDOUT, $debugOutput);
 
-        $this->assertionCount += \count($test->getAssertions());
+        $this->assertionCount += $test->getAssertionsCount();
     }
 
     private function writeTest(Test $test, string $text): void
@@ -90,23 +86,23 @@ class PhpUnitAlike implements OutputInterface
         ++$this->testOutputed;
     }
 
-    private function writeFailure(int $step, Test $test, \Throwable $failure): void
+    private function writeFailure(int $step, Test $test, ?\PHPUnit\Event\Code\Throwable $failure): void
     {
-        fwrite(STDOUT, $step + 1 .') '.$test->getDisplayName()." failed\n");
+        fwrite(STDOUT, $step + 1 .') '.$test->getDisplayName()." failed\n\n");
 
-        fwrite(STDOUT, "\n");
-        fwrite(STDOUT, get_class($failure).': '.$failure->getMessage().' at '.$failure->getFile().':'.$failure->getLine()."\n");
-        fwrite(STDOUT, "\n");
-        $trace = $failure->getTrace();
+        if (null === $failure) {
+            fwrite(STDOUT, "No details available.\n\n");
 
-        for ($i = 0, $count = min(\count($trace), self::MAX_TRACE); $i < $count; ++$i) {
-            $class = isset($trace[$i]['class']) ? $trace[$i]['class'] : '';
-            $type = isset($trace[$i]['type']) ? $trace[$i]['type'] : '';
-            $function = $trace[$i]['function'];
-            $file = isset($trace[$i]['file']) ? $trace[$i]['file'] : 'n/a';
-            $line = isset($trace[$i]['line']) ? $trace[$i]['line'] : 'n/a';
+            return;
+        }
 
-            fwrite(STDOUT, sprintf("#%s %s%s%s() at %s:%s\n", $i, $class, $type, $function, $file, $line));
+        fwrite(STDOUT, $failure->className().': '.$failure->message()."\n\n");
+
+        // PHPUnit hands the stack trace over already formatted and filtered.
+        $trace = array_slice(explode("\n", trim($failure->stackTrace())), 0, self::MAX_TRACE);
+
+        foreach ($trace as $line) {
+            fwrite(STDOUT, $line."\n");
         }
 
         fwrite(STDOUT, "\n");

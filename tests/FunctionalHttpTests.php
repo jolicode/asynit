@@ -8,7 +8,7 @@ use Asynit\Attribute\TestCase;
 use Asynit\HttpClient\HttpClientWebCaseTrait;
 
 #[TestCase]
-class FunctionalHttpTests
+class FunctionalHttpTests extends \PHPUnit\Framework\TestCase
 {
     use HttpClientWebCaseTrait;
 
@@ -104,7 +104,7 @@ class FunctionalHttpTests
 
     #[Depend('get_a')]
     #[Depend('get_b')]
-    public function test_c($a, $b)
+    public function testC($a, $b)
     {
         $this->assertSame('a', $a);
         $this->assertSame('b', $b);
@@ -113,7 +113,7 @@ class FunctionalHttpTests
     #[Depend('get_a')]
     #[Depend('get_b')]
     #[Depend("Asynit\Tests\AnotherTest::get_d")]
-    public function test_c_with_d($a, $b, $d)
+    public function testCWithD($a, $b, $d)
     {
         $this->assertSame('a', $a);
         $this->assertSame('b', $b);

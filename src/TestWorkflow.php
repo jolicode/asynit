@@ -3,6 +3,8 @@
 namespace Asynit;
 
 use Asynit\Output\OutputInterface;
+use PHPUnit\Event\Code\Throwable;
+use PHPUnit\Event\Code\ThrowableBuilder;
 
 /**
  * @internal
@@ -33,18 +35,26 @@ final class TestWorkflow
         $this->output->outputSuccess($test, $test->output);
     }
 
-    public function markTestAsFailed(Test $test, \Throwable $error): void
+    public function markTestAsFailed(Test $test, ?Throwable $error, bool $isAssertion): void
     {
         if ($test->isCompleted()) {
             return;
         }
 
-        $test->failure($error);
+        $test->failure($error, $isAssertion);
         $this->output->outputFailure($test, $test->output, $error);
 
         foreach ($test->getChildren(true) as $child) {
             $this->markTestAsSkipped($child);
         }
+    }
+
+    /**
+     * The test case could not even be built, so PHPUnit never saw it and emitted no event.
+     */
+    public function markTestAsFailedToStart(Test $test, \Throwable $error): void
+    {
+        $this->markTestAsFailed($test, ThrowableBuilder::from($error), false);
     }
 
     public function markTestAsSkipped(Test $test): void

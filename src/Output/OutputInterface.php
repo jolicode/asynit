@@ -13,7 +13,7 @@ interface OutputInterface
 {
     public function outputStep(Test $test, string $debugOutput): void;
 
-    public function outputFailure(Test $test, string $debugOutput, \Throwable $failure): void;
+    public function outputFailure(Test $test, string $debugOutput, ?\PHPUnit\Event\Code\Throwable $failure): void;
 
     public function outputSuccess(Test $test, string $debugOutput): void;
 

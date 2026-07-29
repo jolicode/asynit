@@ -26,7 +26,7 @@ class Chain implements OutputInterface
         }
     }
 
-    public function outputFailure(Test $test, string $debugOutput, \Throwable $failure): void
+    public function outputFailure(Test $test, string $debugOutput, ?\PHPUnit\Event\Code\Throwable $failure): void
     {
         foreach ($this->outputs as $output) {
             $output->outputFailure($test, $debugOutput, $failure);

@@ -6,6 +6,8 @@ use Asynit\Attribute\HttpClientConfiguration;
 use Asynit\Output\OutputFactory;
 use Asynit\Parser\TestPoolBuilder;
 use Asynit\Parser\TestsFinder;
+use Asynit\PHPUnit\Bootstrap;
+use Asynit\PHPUnit\ResultCollector;
 use Asynit\Report\JUnitReport;
 use Asynit\Runner\PoolRunner;
 use Asynit\TestWorkflow;
@@ -50,6 +52,10 @@ final class AsynitCommand extends Command
         } elseif ($bootstrapFilename !== $this->defaultBootstrapFilename) {
             throw new \InvalidArgumentException("The bootstrap file '$bootstrapFilename' does not exist.");
         }
+
+        // PHPUnit's TestCase needs its configuration registry and event facade up before any test is built.
+        $results = new ResultCollector();
+        Bootstrap::boot($results);
 
         /** @var string $target */
         $target = $input->getArgument('target');

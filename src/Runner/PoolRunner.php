@@ -10,15 +10,13 @@ use Asynit\Attribute\OnCreate;
 use Asynit\Pool;
 use Asynit\Test;
 use Asynit\TestWorkflow;
+use PHPUnit\Framework\TestCase;
 
 use function Amp\async;
 
 class PoolRunner
 {
     private Semaphore $semaphore;
-
-    /** @var object[] */
-    private $testCases = [];
 
     /**
      * @param positive-int $concurrency
@@ -33,9 +31,11 @@ class PoolRunner
 
     public function loop(Pool $pool): void
     {
-        // A chunk size of 1 makes PHP call the handler on every write, from the fiber that wrote it, which is
-        // what allows output to be attributed to the test that produced it while tests run concurrently.
-        ob_start($this->captureOutput(...), 1);
+        // One error handler for the whole run rather than one per test: set_error_handler() is a process wide
+        // LIFO stack, and concurrent tests do not unwind it in order.
+        set_error_handler(static function (int $errno, string $errstr, string $errfile, int $errline) {
+            throw new \ErrorException("$errstr in $errfile:$errline", 0, $errno, $errfile, $errline);
+        });
 
         try {
             /** @var Future<mixed>[] $futures */
@@ -54,8 +54,6 @@ class PoolRunner
                     continue;
                 }
 
-                // Claim the test before yielding to the event loop, so the scheduler does not pick it up again
-                // while it waits for a slot on the semaphore.
                 $test->markAsScheduled();
 
                 $futures[$test->getIdentifier()] = async(function () use ($test, &$futures) {
@@ -64,8 +62,6 @@ class PoolRunner
                         TestStorage::set($test);
 
                         try {
-                            // Marking the test as running here rather than at scheduling time keeps the time
-                            // spent waiting for the semaphore out of the test duration.
                             $this->workflow->markTestAsRunning($test);
                             $this->run($test);
                         } finally {
@@ -78,77 +74,68 @@ class PoolRunner
                 });
             }
         } finally {
-            ob_end_flush();
+            restore_error_handler();
         }
     }
 
     protected function run(Test $test): void
     {
         try {
-            $testCase = $this->getTestCase($test);
+            $testCase = $this->createTestCase($test);
+        } catch (\Throwable $error) {
+            // Nothing ran, so PHPUnit emitted no event we could collect a throwable from.
+            $this->workflow->markTestAsFailedToStart($test, $error);
 
-            $method = $test->getMethod()->getName();
-            $args = $test->getArguments();
+            return;
+        }
 
-            set_error_handler(static function (int $errno, string $errstr, string $errfile, int $errline) {
-                $message = "$errstr in $errfile:$errline";
+        // Asynit resolves the dependency graph itself, including dependencies on methods that are not tests
+        // and on other classes, then feeds the produced values in as the test method arguments.
+        $testCase->setDependencyInput($test->getArguments());
 
-                throw new \ErrorException($message, 0, $errno, $errfile, $errline);
-            });
+        $testCase->run();
 
-            try {
-                $result = $testCase->$method(...$args);
-            } finally {
-                restore_error_handler();
-            }
+        $test->output = $testCase->output();
+        $test->assertionCount = $testCase->numberOfAssertionsPerformed();
 
+        $status = $testCase->status();
+
+        if ($status->isSuccess()) {
             foreach ($test->getChildren() as $childTest) {
-                $childTest->addArgument($result, $test);
+                $childTest->addArgument($testCase->result(), $test);
             }
 
             $this->workflow->markTestAsSuccess($test);
-        } catch (\Throwable $error) {
-            $this->workflow->markTestAsFailed($test, $error);
-        }
-    }
 
-    /**
-     * Output handler: everything a test writes is buffered on the test itself, anything else goes through.
-     */
-    private function captureOutput(string $buffer, int $phase): string
-    {
-        $test = TestStorage::get();
-
-        if (null === $test) {
-            return $buffer;
+            return;
         }
 
-        $test->appendOutput($buffer);
+        if ($status->isSkipped() || $status->isIncomplete()) {
+            $this->workflow->markTestAsSkipped($test);
 
-        return '';
+            return;
+        }
+
+        // The throwable was pushed onto the test by ResultCollector while the test was still on its own fiber.
+        $this->workflow->markTestAsFailed($test, $test->failure, $test->failureIsAssertion);
     }
 
-    private function getTestCase(Test $test): object
+    private function createTestCase(Test $test): TestCase
     {
-        $reflectionClass = $test->testCaseClass;
+        $className = $test->testCaseClass->getName();
 
-        if (!isset($this->testCases[$reflectionClass->getName()])) {
-            $testCase = $reflectionClass->newInstance();
+        // Unlike asynit's own engine, PHPUnit binds one instance to one test method, so there is no instance
+        // to share across the tests of a class.
+        $testCase = new $className($test->getMethod()->getName());
 
-            // Find all methods with attribute OnCreate
-            foreach ($reflectionClass->getMethods() as $reflectionMethod) {
-                $onCreate = $reflectionMethod->getAttributes(OnCreate::class);
-
-                if (0 === count($onCreate)) {
-                    continue;
-                }
-
-                $testCase->{$reflectionMethod->getName()}($this->defaultHttpConfiguration);
+        foreach ($test->testCaseClass->getMethods() as $reflectionMethod) {
+            if (0 === count($reflectionMethod->getAttributes(OnCreate::class))) {
+                continue;
             }
 
-            $this->testCases[$reflectionClass->getName()] = $testCase;
+            $testCase->{$reflectionMethod->getName()}($this->defaultHttpConfiguration);
         }
 
-        return $this->testCases[$reflectionClass->getName()];
+        return $testCase;
     }
 }
