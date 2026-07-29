@@ -4,14 +4,14 @@ namespace Asynit\Tests;
 
 use Amp\Http\HttpResponse;
 use Asynit\Attribute\Depend;
-use Asynit\Attribute\TestCase;
 use Asynit\HttpClient\HttpClientWebCaseTrait;
+use PHPUnit\Framework\Attributes\DoesNotPerformAssertions;
 
-#[TestCase]
-class FunctionalHttpTests extends \PHPUnit\Framework\TestCase
+class FunctionalHttpTest extends \PHPUnit\Framework\TestCase
 {
     use HttpClientWebCaseTrait;
 
+    #[DoesNotPerformAssertions]
     public function testReturn()
     {
         return 'tata';
@@ -46,12 +46,13 @@ class FunctionalHttpTests extends \PHPUnit\Framework\TestCase
         $this->assertSame('foo', $value);
     }
 
-    #[Depend("Asynit\Tests\AnotherTestHttp::test_from_another_file")]
+    #[Depend("Asynit\Tests\AnotherHttpTest::test_from_another_file")]
     public function testDependFromAnotherFile($value)
     {
-        $this->assertSame('Asynit\Tests\AnotherTestHttp::test_from_another_file', $value);
+        $this->assertSame('Asynit\Tests\AnotherHttpTest::test_from_another_file', $value);
     }
 
+    #[DoesNotPerformAssertions]
     public function testStartParallel()
     {
         return time();

@@ -10,3 +10,6 @@ report
 # composer.lock
 
 .castor.stub.php
+
+.phpunit.cache/
+.phpunit.result.cache

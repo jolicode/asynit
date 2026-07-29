@@ -12,7 +12,7 @@ use Amp\Socket\ClientTlsContext;
 use Amp\Socket\ConnectContext;
 use Asynit\Assert\AssertWebCaseTrait;
 use Asynit\Attribute\HttpClientConfiguration;
-use Asynit\Attribute\OnCreate;
+use PHPUnit\Framework\Attributes\Before;
 
 trait HttpClientCaseTrait
 {
@@ -39,16 +39,16 @@ trait HttpClientCaseTrait
         return $builder->build();
     }
 
-    #[OnCreate]
-    final public function setUpHttpClient(HttpClientConfiguration $httpClientConfiguration): void
+    #[Before]
+    final public function setUpHttpClient(): void
     {
-        $reflection = new \ReflectionClass($this);
+        $httpClientConfiguration = HttpClientConfiguration::fromEnvironment();
 
-        $httpClientConfigurationAttribute = $reflection->getAttributes(HttpClientConfiguration::class);
+        $httpClientConfigurationAttribute = (new \ReflectionClass($this))->getAttributes(HttpClientConfiguration::class);
 
         if ($httpClientConfigurationAttribute) {
             // The base URI describes the environment under test rather than the test case, so a class
-            // configuring its client still inherits the one given on the command line.
+            // configuring its client still inherits the one given for the run.
             $httpClientConfiguration = $httpClientConfigurationAttribute[0]->newInstance()->withBaseUri($httpClientConfiguration->baseUri);
         }
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PHPUnit\Framework\TestRunner;
 
+use Asynit\Runner\NodeStorage;
 use PHPUnit\Event\Facade;
 use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\AssertionFailedError;
@@ -71,7 +72,12 @@ final class TestRunner
 
         $test->addToAssertionCount(max(0, Assert::getCount() - $assertionsBefore));
 
+        // A producer only exists because something depends on the value it returns, so it is not held to the
+        // "a test must assert something" rule the way a real test is.
+        $isProducer = false === NodeStorage::get()?->isReported();
+
         if ($this->configuration->reportUselessTests()
+            && !$isProducer
             && !$test->doesNotPerformAssertions()
             && 0 === $test->numberOfAssertionsPerformed()) {
             $risky = true;

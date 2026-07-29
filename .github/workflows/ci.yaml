@@ -39,7 +39,7 @@ jobs:
             - name: docker run
               run: docker run -d --rm -p 8081:80 httpbin
             - name: tests
-              run: bin/asynit tests --report report/asynit.xml
+              run: bin/asynit --log-junit report/asynit.xml
             - name: check report
               uses: dorny/test-reporter@v1
               if: success() || failure()    # run this step even if previous step failed

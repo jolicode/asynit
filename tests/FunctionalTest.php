@@ -3,13 +3,13 @@
 namespace Asynit\Tests;
 
 use Asynit\Attribute\Depend;
-use Asynit\Attribute\TestCase;
+use PHPUnit\Framework\Attributes\DoesNotPerformAssertions;
 
 use function Amp\delay;
 
-#[TestCase]
-class FunctionalTests extends \PHPUnit\Framework\TestCase
+class FunctionalTest extends \PHPUnit\Framework\TestCase
 {
+    #[DoesNotPerformAssertions]
     public function testReturn()
     {
         return 'tata';
@@ -21,6 +21,7 @@ class FunctionalTests extends \PHPUnit\Framework\TestCase
         $this->assertSame('Asynit\Tests\AnotherTest::test_from_another_file', $value);
     }
 
+    #[DoesNotPerformAssertions]
     public function testStartParallel()
     {
         return time();
