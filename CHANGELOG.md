@@ -1,5 +1,17 @@
 ## Changes
 
+* Fix self signed certificates being always allowed, whether `--allow-self-signed-certificate` was passed or not.
+  TLS peer verification is now enabled unless the flag is given, so runs against a server with an untrusted
+  certificate that used to pass will now fail without the flag.
+* Fix tests inherited from a parent class: they were all collapsed into a single test and ran against the parent
+  class instead of the test case class. A `#[TestCase]` class that is abstract is now skipped.
+* Fix a fatal error when generating a report for a suite whose tests were all skipped
+* Implement `--host`, which was accepted but ignored: it is now used as the base URI for requests made with a
+  relative URI. A class configuring its own client with `#[HttpClientConfiguration]` still inherits it.
+* Detect circular dependencies between tests and report them instead of failing with an unrelated error
+* Fix output of concurrent tests being attributed to whichever test finished first
+* Fix test durations including the time spent waiting for a free concurrency slot
+
 ## 0.15.0 - 03/06/2024
 
 * Add Symfony 7 support

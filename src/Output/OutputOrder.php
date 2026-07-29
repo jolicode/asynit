@@ -49,16 +49,22 @@ class OutputOrder implements OutputInterface
     }
 
     /**
-     * @param array<string, int> $orders
+     * @param array<string, int>  $orders
+     * @param array<string, true> $seen   guards against walking a dependency cycle forever
      *
      * @return int[]
      */
-    public function createDepends(Test $test, array $orders = []): array
+    public function createDepends(Test $test, array $orders = [], array &$seen = []): array
     {
+        if (isset($seen[$test->getIdentifier()])) {
+            return [];
+        }
+
+        $seen[$test->getIdentifier()] = true;
         $depends = [];
 
         foreach ($test->getParents() as $parentTest) {
-            $depends = array_merge($depends, $this->createDepends($parentTest, $orders));
+            $depends = array_merge($depends, $this->createDepends($parentTest, $orders, $seen));
         }
 
         if (\array_key_exists($test->getDisplayName(), $orders)) {

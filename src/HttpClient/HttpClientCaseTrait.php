@@ -48,7 +48,9 @@ trait HttpClientCaseTrait
         $httpClientConfigurationAttribute = $reflection->getAttributes(HttpClientConfiguration::class);
 
         if ($httpClientConfigurationAttribute) {
-            $httpClientConfiguration = $httpClientConfigurationAttribute[0]->newInstance();
+            // The base URI describes the environment under test rather than the test case, so a class
+            // configuring its client still inherits the one given on the command line.
+            $httpClientConfiguration = $httpClientConfigurationAttribute[0]->newInstance()->withBaseUri($httpClientConfiguration->baseUri);
         }
 
         $this->httpClient = $this->createHttpClient($httpClientConfiguration);

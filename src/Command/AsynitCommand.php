@@ -29,7 +29,7 @@ final class AsynitCommand extends Command
         $this
             ->setName('asynit')
             ->addArgument('target', InputArgument::REQUIRED, 'File or directory to test')
-            ->addOption('host', null, InputOption::VALUE_REQUIRED, 'Base host to use', null)
+            ->addOption('host', null, InputOption::VALUE_REQUIRED, 'Base URI prepended to requests made with a relative URI, e.g. https://api.example.com', null)
             ->addOption('allow-self-signed-certificate', null, InputOption::VALUE_NONE, 'Allow self signed ssl certificate')
             ->addOption('concurrency', null, InputOption::VALUE_REQUIRED, 'Max number of parallels requests', 10)
             ->addOption('timeout', null, InputOption::VALUE_REQUIRED, 'Default timeout for http request', 10)
@@ -60,6 +60,11 @@ final class AsynitCommand extends Command
         $testsSuites = $testsFinder->findTests($target, $filter);
         $testsCount = array_reduce($testsSuites, fn (int $carry, $suite) => $carry + \count($suite->tests), 0);
 
+        // Build the pool before anything is displayed, so that a pool that cannot be built (an unresolvable or
+        // circular dependency) reports the error on its own instead of below a test suite summary.
+        $builder = new TestPoolBuilder();
+        $pool = $builder->build($testsSuites);
+
         $useOrder = (bool) $input->getOption('order');
 
         list($chainOutput, $countOutput) = (new OutputFactory($useOrder))->buildOutput($testsCount);
@@ -75,17 +80,22 @@ final class AsynitCommand extends Command
             throw new \InvalidArgumentException('Concurrency must be greater than 0');
         }
 
+        /** @var string|null $host */
+        $host = $input->getOption('host');
+
+        if (null !== $host && !preg_match('#^https?://[^/]+#i', $host)) {
+            throw new \InvalidArgumentException(sprintf('The host "%s" must be an absolute URI, e.g. https://api.example.com.', $host));
+        }
+
         $defaultHttpConfiguration = new HttpClientConfiguration(
             timeout: $timeout,
             retry: $retry,
-            allowSelfSignedCertificate: $input->hasOption('allow-self-signed-certificate'),
+            allowSelfSignedCertificate: (bool) $input->getOption('allow-self-signed-certificate'),
+            baseUri: $host,
         );
 
-        $builder = new TestPoolBuilder();
         $runner = new PoolRunner($defaultHttpConfiguration, new TestWorkflow($chainOutput), $concurrency);
 
-        // Build a list of tests from the directory
-        $pool = $builder->build($testsSuites);
         $start = microtime(true);
         $runner->loop($pool);
         $end = microtime(true);

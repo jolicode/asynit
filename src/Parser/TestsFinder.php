@@ -58,6 +58,12 @@ final class TestsFinder
                     continue;
                 }
 
+                // A base class holding shared tests cannot be instantiated: its tests are collected on each of
+                // the concrete classes extending it instead.
+                if ($reflectionClass->isAbstract()) {
+                    continue;
+                }
+
                 $testSuite = new TestSuite($reflectionClass);
                 $suites[] = $testSuite;
 
@@ -71,9 +77,9 @@ final class TestsFinder
                     }
 
                     if (count($tests) > 0) {
-                        $test = new Test($testSuite, $reflectionMethod);
+                        $test = new Test($testSuite, $reflectionClass, $reflectionMethod);
                     } elseif (preg_match('/^test(.+)$/', $reflectionMethod->getName())) {
-                        $test = new Test($testSuite, $reflectionMethod);
+                        $test = new Test($testSuite, $reflectionClass, $reflectionMethod);
                     }
 
                     if (null !== $test) {

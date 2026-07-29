@@ -22,6 +22,12 @@ final readonly class ConfigurationInterceptor implements ApplicationInterceptor
         $request->setTlsHandshakeTimeout($this->configuration->timeout);
         $request->setTransferTimeout($this->configuration->timeout);
 
+        $baseUri = $this->configuration->baseUri;
+
+        if (null !== $baseUri && '' === $request->getUri()->getHost()) {
+            $request->setUri(rtrim($baseUri, '/').'/'.ltrim((string) $request->getUri(), '/'));
+        }
+
         return $httpClient->request($request, $cancellation);
     }
 }

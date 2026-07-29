@@ -2,7 +2,9 @@
 
 namespace Asynit;
 
-use bovigo\assert\AssertionFailure; /**
+use bovigo\assert\AssertionFailure;
+
+/**
  * @internal
  *
  * @template T of object
@@ -12,9 +14,9 @@ final class TestSuite
     /** @var array<string, Test> */
     public array $tests = [];
 
-    public float $startTime;
+    public ?float $startTime = null;
 
-    public float $endTime;
+    public ?float $endTime = null;
 
     /**
      * @param \ReflectionClass<T> $reflectionClass
@@ -26,11 +28,7 @@ final class TestSuite
 
     public function start(): void
     {
-        if (isset($this->startTime)) {
-            return;
-        }
-
-        $this->startTime = microtime(true);
+        $this->startTime ??= microtime(true);
     }
 
     public function tryEnd(): void
@@ -104,7 +102,7 @@ final class TestSuite
 
     public function getTime(): float
     {
-        if (!isset($this->endTime)) {
+        if (null === $this->startTime || null === $this->endTime) {
             return 0.0;
         }
 

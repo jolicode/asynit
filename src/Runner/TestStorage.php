@@ -24,6 +24,21 @@ final class TestStorage
         self::$localStorage[$fiber] = $test;
     }
 
+    /**
+     * Fibers are pooled and reused by the event loop, so the mapping has to be dropped once a test is done to
+     * avoid attributing anything the recycled fiber does afterwards to that test.
+     */
+    public static function clear(): void
+    {
+        $fiber = \Fiber::getCurrent();
+
+        if (null === $fiber || null === self::$localStorage) {
+            return;
+        }
+
+        unset(self::$localStorage[$fiber]);
+    }
+
     public static function get(): ?Test
     {
         $fiber = \Fiber::getCurrent();

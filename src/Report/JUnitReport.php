@@ -61,10 +61,10 @@ final class JUnitReport
             $testsuites->setAttribute('assertions', (string) $assertions);
             $testsuites->setAttribute('time', (string) $testSuite->getTime());
             // timestamp in ISO 8601 format
-            $date = \DateTime::createFromFormat('U.u', (string) $testSuite->startTime);
+            $date = self::createTimestamp($testSuite->startTime);
 
-            if ($date) {
-                $testsuites->setAttribute('timestamp', $date->format(\DateTimeInterface::ISO8601_EXPANDED));
+            if (null !== $date) {
+                $testsuites->setAttribute('timestamp', $date);
             }
 
             $testsuites->setAttribute('file', (string) $testSuite->reflectionClass->getFileName());
@@ -79,10 +79,10 @@ final class JUnitReport
                 $testcase->setAttribute('time', (string) $test->getTime());
                 $testcase->setAttribute('file', (string) $testSuite->reflectionClass->getFileName());
                 $testcase->setAttribute('line', (string) $test->method->getStartLine());
-                $date = \DateTime::createFromFormat('U.u', (string) $test->startTime);
+                $date = self::createTimestamp($test->startTime);
 
-                if ($date) {
-                    $testcase->setAttribute('timestamp', $date->format(\DateTimeInterface::ISO8601_EXPANDED));
+                if (null !== $date) {
+                    $testcase->setAttribute('timestamp', $date);
                 }
 
                 $testsuites->appendChild($testcase);
@@ -93,20 +93,12 @@ final class JUnitReport
                     $testcase->appendChild($systemOut);
                 }
 
-                if (Test::STATE_FAILURE === $test->state) {
-                    if ($test->failure instanceof AssertionFailure) {
-                        $failure = $xml->createElement('failure');
-                        $failure->setAttribute('message', $test->failure->getMessage());
-                        $failure->setAttribute('type', get_class($test->failure));
+                if (Test::STATE_FAILURE === $test->state && null !== $test->failure) {
+                    $failure = $xml->createElement($test->failure instanceof AssertionFailure ? 'failure' : 'error');
+                    $failure->setAttribute('message', $test->failure->getMessage());
+                    $failure->setAttribute('type', $test->failure::class);
 
-                        $testcase->appendChild($failure);
-                    } else {
-                        $failure = $xml->createElement('error');
-                        $failure->setAttribute('message', $test->failure->getMessage());
-                        $failure->setAttribute('type', get_class($test->failure));
-
-                        $testcase->appendChild($failure);
-                    }
+                    $testcase->appendChild($failure);
                 }
 
                 if (Test::STATE_SKIPPED === $test->state) {
@@ -132,5 +124,24 @@ final class JUnitReport
         $xml->appendChild($root);
 
         $xml->save($this->filename);
+    }
+
+    /**
+     * A test that never started has no timestamp to report.
+     */
+    private static function createTimestamp(?float $time): ?string
+    {
+        if (null === $time) {
+            return null;
+        }
+
+        // A plain cast would drop the microseconds the "U.u" format expects.
+        $date = \DateTime::createFromFormat('U.u', sprintf('%.6F', $time));
+
+        if (false === $date) {
+            return null;
+        }
+
+        return $date->format(\DateTimeInterface::ISO8601_EXPANDED);
     }
 }

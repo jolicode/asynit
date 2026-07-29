@@ -29,30 +29,35 @@ final class Test
 
     private string $displayName;
 
+    /**
+     * Whether the test has been handed over to the runner. A scheduled test may not have started yet, as it
+     * still has to acquire a slot on the concurrency semaphore, but it must not be picked up a second time.
+     */
+    private bool $scheduled = false;
+
     public string $state;
 
-    public float $startTime;
+    public ?float $startTime = null;
 
-    public float $endTime;
+    public ?float $endTime = null;
 
-    public string $output;
+    public string $output = '';
 
-    public \Throwable $failure;
+    public ?\Throwable $failure = null;
 
     /**
-     * @param TestSuite<object>|null $suite
+     * @param TestSuite<object>|null   $suite         the suite this test is reported in, or null for a test that is
+     *                                                only run because something else depends on it
+     * @param \ReflectionClass<object> $testCaseClass the class to instantiate to run this test, which is not
+     *                                                necessarily the class declaring the method (inheritance)
      */
     public function __construct(
         public readonly ?TestSuite $suite,
+        public readonly \ReflectionClass $testCaseClass,
         public readonly \ReflectionMethod $method,
-        ?string $identifier = null,
         public readonly bool $isRealTest = true,
     ) {
-        $this->identifier = $identifier ?: sprintf(
-            '%s::%s',
-            $this->method->getDeclaringClass()->getName(),
-            $this->method->getName()
-        );
+        $this->identifier = sprintf('%s::%s', $testCaseClass->getName(), $method->getName());
         $this->displayName = $this->identifier;
         $this->state = self::STATE_PENDING;
     }
@@ -74,7 +79,7 @@ final class Test
 
     public function canBeRun(): bool
     {
-        if ($this->isCompleted() || $this->isRunning()) {
+        if ($this->scheduled || $this->isCompleted() || $this->isRunning()) {
             return false;
         }
 
@@ -87,6 +92,11 @@ final class Test
         return true;
     }
 
+    public function markAsScheduled(): void
+    {
+        $this->scheduled = true;
+    }
+
     public function start(): void
     {
         $this->suite?->start();
@@ -94,18 +104,16 @@ final class Test
         $this->state = self::STATE_RUNNING;
     }
 
-    public function success(string $output): void
+    public function success(): void
     {
         $this->endTime = microtime(true);
-        $this->output = $output;
         $this->state = self::STATE_SUCCESS;
         $this->suite?->tryEnd();
     }
 
-    public function failure(string $output, \Throwable $error): void
+    public function failure(\Throwable $error): void
     {
         $this->endTime = microtime(true);
-        $this->output = $output;
         $this->state = self::STATE_FAILURE;
         $this->failure = $error;
         $this->suite?->tryEnd();
@@ -113,11 +121,19 @@ final class Test
 
     public function skipped(): void
     {
+        $this->suite?->start();
         $this->startTime = microtime(true);
-        $this->endTime = microtime(true);
-        $this->output = '';
+        $this->endTime = $this->startTime;
         $this->state = self::STATE_SKIPPED;
         $this->suite?->tryEnd();
+    }
+
+    /**
+     * Output written by the test itself, captured per test even when tests run concurrently.
+     */
+    public function appendOutput(string $output): void
+    {
+        $this->output .= $output;
     }
 
     public function getIdentifier(): string
@@ -214,6 +230,10 @@ final class Test
 
     public function getTime(): float
     {
+        if (null === $this->startTime || null === $this->endTime) {
+            return 0.0;
+        }
+
         return $this->endTime - $this->startTime;
     }
 }

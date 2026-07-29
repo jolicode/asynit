@@ -33,10 +33,14 @@ final class TestPoolBuilder
             }
         }
 
+        // processTestAnnotations may register new tests for dependencies that are not part of any suite; the
+        // ArrayObject iterator picks them up so that they get their own dependencies resolved too.
         foreach ($tests as $test) {
             $this->processTestAnnotations($tests, $test);
             $pool->tests[] = $test;
         }
+
+        $this->assertNoCircularDependency($pool);
 
         return $pool;
     }
@@ -53,32 +57,7 @@ final class TestPoolBuilder
             /** @var Depend $dependency */
             $dependency = $attribute->newInstance();
 
-            if (isset($tests[$dependency->dependency])) {
-                $dependentTest = $tests[$dependency->dependency];
-
-                $dependentTest->addChildren($test, $dependency->skipIfFailed);
-                $test->addParent($dependentTest);
-                continue;
-            }
-
-            if (false === strpos($dependency->dependency, '::')) {
-                $class = $test->getMethod()->getDeclaringClass()->getName();
-                $method = $dependency->dependency;
-            } else {
-                [$class, $method] = explode('::', $dependency->dependency, 2);
-            }
-
-            if (!method_exists($class, $method)) {
-                throw new \RuntimeException(sprintf('Failed to build test pool "%s" dependency is not resolvable for "%s::%s".', $dependency->dependency, $test->getMethod()->getDeclaringClass()->getName(), $test->getMethod()->getName()));
-            }
-
-            $dependentTest = new Test(null, new \ReflectionMethod($class, $method), null, false);
-
-            if (isset($tests[$dependentTest->getIdentifier()])) {
-                $dependentTest = $tests[$dependentTest->getIdentifier()];
-            } else {
-                $tests[$dependentTest->getIdentifier()] = $dependentTest;
-            }
+            $dependentTest = $this->resolveDependency($tests, $test, $dependency->dependency);
 
             $dependentTest->addChildren($test, $dependency->skipIfFailed);
             $test->addParent($dependentTest);
@@ -89,5 +68,87 @@ final class TestPoolBuilder
         if (\count($displayName) > 0) {
             $test->setDisplayName($displayName[0]->newInstance()->name);
         }
+    }
+
+    /**
+     * @param \ArrayObject<string, Test> $tests
+     *
+     * @throws \RuntimeException
+     */
+    private function resolveDependency(\ArrayObject $tests, Test $test, string $dependency): Test
+    {
+        if (false === strpos($dependency, '::')) {
+            // A dependency without a class is looked up on the test case class, not on the class declaring the
+            // method, so that a test inherited from a base class depends on its own class' method.
+            $class = $test->testCaseClass->getName();
+            $method = $dependency;
+        } else {
+            [$class, $method] = explode('::', $dependency, 2);
+        }
+
+        if (!class_exists($class) || !method_exists($class, $method)) {
+            throw new \RuntimeException(sprintf('Failed to build test pool "%s" dependency is not resolvable for "%s".', $dependency, $test->getIdentifier()));
+        }
+
+        $reflectionClass = new \ReflectionClass($class);
+        $identifier = sprintf('%s::%s', $reflectionClass->getName(), $method);
+
+        if (isset($tests[$identifier])) {
+            return $tests[$identifier];
+        }
+
+        if ($reflectionClass->isAbstract()) {
+            throw new \RuntimeException(sprintf('Failed to build test pool "%s" dependency of "%s" is declared on abstract class "%s", which cannot be instantiated.', $dependency, $test->getIdentifier(), $reflectionClass->getName()));
+        }
+
+        $dependentTest = new Test(null, $reflectionClass, $reflectionClass->getMethod($method), false);
+        $tests[$identifier] = $dependentTest;
+
+        return $dependentTest;
+    }
+
+    /**
+     * @throws \RuntimeException
+     */
+    private function assertNoCircularDependency(Pool $pool): void
+    {
+        /** @var array<string, bool> $resolved true once the whole subtree of a test is known to be acyclic */
+        $resolved = [];
+
+        foreach ($pool->tests as $test) {
+            $this->walkParents($test, $resolved, []);
+        }
+    }
+
+    /**
+     * @param array<string, bool> $resolved
+     * @param string[]            $path
+     *
+     * @throws \RuntimeException
+     */
+    private function walkParents(Test $test, array &$resolved, array $path): void
+    {
+        $identifier = $test->getIdentifier();
+
+        if (isset($resolved[$identifier])) {
+            return;
+        }
+
+        $position = array_search($identifier, $path, true);
+
+        if (false !== $position) {
+            $cycle = \array_slice($path, (int) $position);
+            $cycle[] = $identifier;
+
+            throw new \RuntimeException(sprintf('Circular dependency detected between tests: %s.', implode(' -> ', $cycle)));
+        }
+
+        $path[] = $identifier;
+
+        foreach ($test->getParents() as $parent) {
+            $this->walkParents($parent, $resolved, $path);
+        }
+
+        $resolved[$identifier] = true;
     }
 }

@@ -33,32 +33,53 @@ class PoolRunner
 
     public function loop(Pool $pool): void
     {
-        ob_start();
-        /** @var Future<mixed>[] $futures */
-        $futures = [];
+        // A chunk size of 1 makes PHP call the handler on every write, from the fiber that wrote it, which is
+        // what allows output to be attributed to the test that produced it while tests run concurrently.
+        ob_start($this->captureOutput(...), 1);
 
-        while (!$pool->isEmpty()) {
-            $test = $pool->getNextTestToRun();
+        try {
+            /** @var Future<mixed>[] $futures */
+            $futures = [];
 
-            if (null === $test) {
-                Future\awaitAny($futures);
+            while (!$pool->isEmpty()) {
+                $test = $pool->getNextTestToRun();
 
-                continue;
+                if (null === $test) {
+                    if ([] === $futures) {
+                        throw new \RuntimeException('Deadlock detected: some tests are still pending but none of them can be run, and no test is running.');
+                    }
+
+                    Future\awaitAny($futures);
+
+                    continue;
+                }
+
+                // Claim the test before yielding to the event loop, so the scheduler does not pick it up again
+                // while it waits for a slot on the semaphore.
+                $test->markAsScheduled();
+
+                $futures[$test->getIdentifier()] = async(function () use ($test, &$futures) {
+                    try {
+                        $lock = $this->semaphore->acquire();
+                        TestStorage::set($test);
+
+                        try {
+                            // Marking the test as running here rather than at scheduling time keeps the time
+                            // spent waiting for the semaphore out of the test duration.
+                            $this->workflow->markTestAsRunning($test);
+                            $this->run($test);
+                        } finally {
+                            TestStorage::clear();
+                            $lock->release();
+                        }
+                    } finally {
+                        unset($futures[$test->getIdentifier()]);
+                    }
+                });
             }
-
-            $this->workflow->markTestAsRunning($test);
-
-            $futures[$test->getIdentifier()] = async(function () use ($test, &$futures) {
-                $lock = $this->semaphore->acquire();
-                TestStorage::set($test);
-
-                $this->run($test);
-                $lock->release();
-
-                unset($futures[$test->getIdentifier()]);
-            });
+        } finally {
+            ob_end_flush();
         }
-        ob_end_flush();
     }
 
     protected function run(Test $test): void
@@ -91,9 +112,25 @@ class PoolRunner
         }
     }
 
+    /**
+     * Output handler: everything a test writes is buffered on the test itself, anything else goes through.
+     */
+    private function captureOutput(string $buffer, int $phase): string
+    {
+        $test = TestStorage::get();
+
+        if (null === $test) {
+            return $buffer;
+        }
+
+        $test->appendOutput($buffer);
+
+        return '';
+    }
+
     private function getTestCase(Test $test): object
     {
-        $reflectionClass = $test->getMethod()->getDeclaringClass();
+        $reflectionClass = $test->testCaseClass;
 
         if (!isset($this->testCases[$reflectionClass->getName()])) {
             $testCase = $reflectionClass->newInstance();
