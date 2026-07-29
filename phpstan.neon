@@ -4,5 +4,3 @@ parameters:
         - src/
     ignoreErrors:
         - identifier: trait.unused
-    excludePaths:
-        - src/Assert/Assertion.php
