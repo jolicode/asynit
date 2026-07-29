@@ -41,7 +41,8 @@
         "phpunit/phpunit": "~13.2.0"
     },
     "suggest": {
-        "amphp/http-client": "To use the web test case trait"
+        "amphp/http-client": "To use the web test case trait",
+        "rector/rector": "To migrate a test suite written against the pre-PHPUnit engine, see UPGRADE.md"
     },
     "conflict": {
         "amphp/byte-stream": "<2.1",
@@ -54,5 +55,8 @@
         "allow-plugins": {
             "phpunit/phpunit": true
         }
+    },
+    "require-dev": {
+        "rector/rector": "^2.5"
     }
 }
