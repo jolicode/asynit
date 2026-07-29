@@ -34,7 +34,7 @@
         "test": "bin/asynit"
     },
     "require": {
-        "php": "^8.2",
+        "php": "^8.4",
         "amphp/amp": "^3.0",
         "amphp/http-client": "^v5.0.1",
         "amphp/sync": "^2.0",
