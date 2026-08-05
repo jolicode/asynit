@@ -12,7 +12,11 @@ use PHPUnit\Framework\TestCase;
  */
 final class TestNode
 {
-    /** @var array<array{node: TestNode, skipIfFailed: bool}> */
+    public const CLONE_NONE = 'none';
+    public const CLONE_SHALLOW = 'shallow';
+    public const CLONE_DEEP = 'deep';
+
+    /** @var array<array{node: TestNode, skipIfFailed: bool, clone: self::CLONE_*}> */
     private array $children = [];
 
     /** @var TestNode[] */
@@ -83,8 +87,10 @@ final class TestNode
             return;
         }
 
+        $identifier = DependencyGraph::identify($this->test::class, $this->test->name());
+
         foreach ($this->children as $child) {
-            $child['node']->arguments[DependencyGraph::identify($this->test::class, $this->test->name())] = $result;
+            $child['node']->arguments[$identifier] = self::handOver($result, $child['clone']);
         }
     }
 
@@ -109,6 +115,25 @@ final class TestNode
         return $skipped;
     }
 
+    /**
+     * @param self::CLONE_* $clone
+     */
+    private static function handOver(mixed $result, string $clone): mixed
+    {
+        if (self::CLONE_DEEP === $clone) {
+            $deepCopy = new \DeepCopy\DeepCopy();
+            $deepCopy->skipUncloneable(false);
+
+            return $deepCopy->copy($result);
+        }
+
+        if (self::CLONE_SHALLOW === $clone && is_object($result)) {
+            return clone $result;
+        }
+
+        return $result;
+    }
+
     /** @return TestNode[] the children that asked to be skipped when this node fails */
     public function childrenToSkipOnFailure(): array
     {
@@ -123,10 +148,14 @@ final class TestNode
         return $children;
     }
 
-    public function addParent(self $parent, bool $skipIfFailed): void
+    /**
+     * @param self::CLONE_* $clone how the produced value is handed over, for PHPUnit's UsingDeepClone and
+     *                             UsingShallowClone dependency variants
+     */
+    public function addParent(self $parent, bool $skipIfFailed, string $clone = self::CLONE_NONE): void
     {
         $this->parents[] = $parent;
-        $parent->children[] = ['node' => $this, 'skipIfFailed' => $skipIfFailed];
+        $parent->children[] = ['node' => $this, 'skipIfFailed' => $skipIfFailed, 'clone' => $clone];
     }
 
     /** @return TestNode[] */

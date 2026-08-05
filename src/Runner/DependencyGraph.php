@@ -3,6 +3,7 @@
 namespace Asynit\Runner;
 
 use Asynit\Attribute\Depend;
+use PHPUnit\Framework\Attributes;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -16,6 +17,21 @@ use PHPUnit\Framework\TestCase;
  */
 final class DependencyGraph
 {
+    /**
+     * PHPUnit's dependency attributes, mapped to whether they name another class and how the produced value
+     * is handed over.
+     *
+     * @var array<class-string, array{bool, TestNode::CLONE_*}>
+     */
+    private const PHPUNIT_DEPENDS = [
+        Attributes\Depends::class => [false, TestNode::CLONE_NONE],
+        Attributes\DependsUsingDeepClone::class => [false, TestNode::CLONE_DEEP],
+        Attributes\DependsUsingShallowClone::class => [false, TestNode::CLONE_SHALLOW],
+        Attributes\DependsExternal::class => [true, TestNode::CLONE_NONE],
+        Attributes\DependsExternalUsingDeepClone::class => [true, TestNode::CLONE_DEEP],
+        Attributes\DependsExternalUsingShallowClone::class => [true, TestNode::CLONE_SHALLOW],
+    ];
+
     /** @var array<string, TestNode> */
     private array $nodes = [];
 
@@ -39,18 +55,15 @@ final class DependencyGraph
         while ([] !== $queue) {
             $node = $graph->nodes[array_shift($queue)];
 
-            foreach ($node->reflectionMethod()->getAttributes(Depend::class) as $attribute) {
-                /** @var Depend $depend */
-                $depend = $attribute->newInstance();
-
-                $identifier = $graph->resolve($node, $depend->dependency);
+            foreach (self::dependenciesOf($node) as [$dependency, $skipIfFailed, $clone]) {
+                $identifier = $graph->resolve($node, $dependency);
 
                 if (!isset($graph->nodes[$identifier])) {
                     $graph->nodes[$identifier] = $graph->createProducer($identifier);
                     $queue[] = $identifier;
                 }
 
-                $node->addParent($graph->nodes[$identifier], $depend->skipIfFailed);
+                $node->addParent($graph->nodes[$identifier], $skipIfFailed, $clone);
             }
         }
 
@@ -85,6 +98,47 @@ final class DependencyGraph
         }
 
         return null;
+    }
+
+    /**
+     * Both dependency dialects are read: asynit's own #[Depend], and PHPUnit's #[Depends] family.
+     *
+     * PHPUnit resolves its own at run time against the tests that already passed, which under concurrency
+     * means a dependent can start before its producer finished and be skipped for no good reason. Feeding them
+     * through the same graph makes them an ordering constraint instead of a race.
+     *
+     * @return list<array{string, bool, TestNode::CLONE_*}>
+     */
+    private static function dependenciesOf(TestNode $node): array
+    {
+        $method = $node->reflectionMethod();
+        $dependencies = [];
+
+        foreach ($method->getAttributes(Depend::class) as $attribute) {
+            /** @var Depend $depend */
+            $depend = $attribute->newInstance();
+
+            $dependencies[] = [$depend->dependency, $depend->skipIfFailed, TestNode::CLONE_NONE];
+        }
+
+        foreach (self::PHPUNIT_DEPENDS as $attributeClass => [$isExternal, $clone]) {
+            foreach ($method->getAttributes($attributeClass) as $attribute) {
+                // Read off the attribute arguments rather than the instance: only the External variants carry
+                // a class name, so there is no common accessor to call.
+                $arguments = array_values(array_map(
+                    static fn (mixed $argument): string => \is_string($argument) ? $argument : '',
+                    $attribute->getArguments(),
+                ));
+                $dependency = $isExternal
+                    ? self::identify($arguments[0], $arguments[1] ?? '')
+                    : $arguments[0];
+
+                // A failed PHPUnit dependency always skips the dependent, there is no opting out of it.
+                $dependencies[] = [$dependency, true, $clone];
+            }
+        }
+
+        return $dependencies;
     }
 
     private function resolve(TestNode $node, string $dependency): string

@@ -23,22 +23,42 @@ added to the suite before the run is announced, so the progress counter and the 
 not held to the "a test must assert something" rule.
 
 Values reach the test through `TestCase::setDependencyInput()`, the same channel PHPUnit uses for its own
-`#[Depends]`. That is why asynit keeps `#[Depend]`: PHPUnit's version can only depend on another *test*, in the
-same class unless the producer class happens to run first, while asynit's resolves any method of any class and
-orders the whole graph.
+`#[Depends]`.
 
-## The other two overrides
+**Both dependency dialects go through the graph.** `#[Depend]` is asynit's, and can point at any method of any
+class whether or not it is a test. PHPUnit's `#[Depends]`, `#[DependsExternal]` and their `UsingDeepClone` /
+`UsingShallowClone` variants are read too, and deliberately so: PHPUnit resolves those at run time against the
+tests that have already passed, which under concurrency means a dependent can start before its producer
+finished and be skipped for no reason. Reading them into the graph turns a race into an ordering constraint.
+`#[DependsOnClass]` is not supported.
 
-PHPUnit assumes one test at a time. Two pieces of process global state break when tests overlap:
+## Why classes are overridden at all, and why only two
 
-* **`Framework\TestCase\OutputBuffer`** — the original calls `ob_start()` per test and asserts on
-  `ob_get_level()` when stopping. PHP's output buffer stack is process global, not fiber local, so concurrent
-  tests unwind it out of order: every test is reported risky ("did not close its own output buffers"), even
-  ones that print nothing, and output lands on the wrong test. The replacement installs one process wide
-  buffer with a chunk size of 1, which makes PHP call the handler on every write from the writing fiber, and
-  routes each chunk to that fiber's test.
-* **`Framework\TestRunner\TestRunner`** — the original enables `Runner\ErrorHandler`, a singleton bound to a
-  single test that asserts on `!$this->enabled`, so the second concurrent test aborts the run.
+PHPUnit has no dependency injection: there is no container, no factory, no setter. Every collaborator is
+constructed with `new` at its point of use, and the extension API (`Runner\Extension\Extension`) only lets you
+subscribe to events, register a tracer and replace output. So a class can only be replaced by taking over its
+name, through `exclude-from-classmap` in `composer.json`.
+
+Two are replaced, and both because there is genuinely no other way in:
+
+* **`TextUI\TestRunner`** — `Application::run()` does `$runner = new TestRunner;` inline, and `Application` is
+  `final readonly`. Nothing can be injected, subclassed or configured.
+* **`Framework\TestCase\OutputBuffer`** — `TestCase::__construct()` does `$this->outputBuffer = new OutputBuffer;`.
+  The property is `private OutputBuffer`, typed, so even reflecting into it only accepts that exact class, and
+  the class is `final`, so it cannot be subclassed. Replacing the name is the only option.
+
+  It has to be replaced because the original calls `ob_start()` per test and asserts on `ob_get_level()` when
+  stopping. PHP's output buffer stack is process global, not fiber local, so concurrent tests unwind it out of
+  order: every test is reported risky ("did not close its own output buffers"), even ones that print nothing,
+  and output lands on the wrong test. The replacement installs one process wide buffer with a chunk size of 1,
+  which makes PHP call the handler on every write from the writing fiber, and routes each chunk to that
+  fiber's test.
+
+`Framework\TestRunner\TestRunner` used to be overridden too, to get away from `Runner\ErrorHandler` — a
+singleton bound to a single test that asserts on `!$this->enabled`, so the second concurrent test aborts the
+run. It no longer is: `TestCase::runBare()` is `final public`, so `Asynit\Runner\TestExecutor` calls it
+directly and does the surrounding bookkeeping itself, in asynit's own namespace. The only thing skipping
+`TestCase::run()` costs is its `handleDependencies()`, which is handled below.
 
 ## Configuration
 
@@ -67,6 +87,9 @@ unless it sets a base URI itself.
 * **PHPUnit issue reporting (deprecations, notices) is lost**, since `ErrorHandler` is what produces it.
 * **`testSuiteStarted`/`testSuiteFinished` are emitted once for the whole run**, not per class: with classes
   running concurrently there is no point at which one class is done and another has not started.
+* **`#[RunInSeparateProcess]` and `#[RunTestsInSeparateProcesses]` are ignored.** Process isolation cannot be
+  reconciled with running a test on a fiber alongside others.
+* **`#[DependsOnClass]` is not supported**; use `#[DependsExternal]` or asynit's `#[Depend]`.
 * **PHPUnit's `--order-by` is ignored**, since asynit orders by the dependency graph.
 * **Every replaced class is `@internal` and carries no backward compatibility promise.** A PHPUnit patch
   release can change them without warning, hence the narrow `~13.2.0` constraint in `composer.json`.

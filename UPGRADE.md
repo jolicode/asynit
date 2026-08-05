@@ -48,6 +48,9 @@ only match once that is true, so they land on the second pass.
 `#[Depend]`, `#[HttpClientConfiguration]`, the HTTP client traits (`$this->get()`, `$this->post()`, …) and
 `assertStatusCode` / `assertContentType` / `assertHtml` are unchanged.
 
+PHPUnit's own `#[Depends]` and `#[DependsExternal]` work too, and are ordered by the same graph, so you can
+mix them or move to them over time. `#[DependsOnClass]` is not supported.
+
 A class that already extends something is left alone rather than having its parent rewritten — make it extend
 `PHPUnit\Framework\TestCase` yourself, or have its own base class do so.
 

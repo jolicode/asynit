@@ -21,7 +21,6 @@
         ],
         "exclude-from-classmap": [
             "vendor/phpunit/phpunit/src/Framework/TestCase/OutputBuffer.php",
-            "vendor/phpunit/phpunit/src/Framework/TestRunner/TestRunner.php",
             "vendor/phpunit/phpunit/src/TextUI/TestRunner.php"
         ]
     },

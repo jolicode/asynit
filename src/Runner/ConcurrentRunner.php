@@ -90,10 +90,7 @@ final class ConcurrentRunner
         try {
             $this->startClass($test);
 
-            // Asynit resolves the dependency graph itself and feeds the produced values in as the test
-            // method arguments, which is what PHPUnit does for its own #[Depends].
-            $test->setDependencyInput($node->arguments());
-            $test->run();
+            new TestExecutor()->execute($node);
 
             $passed = $test->status()->isSuccess();
             $node->complete($passed, $test->result());
