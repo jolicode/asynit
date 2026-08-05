@@ -15,16 +15,25 @@ final class StackTraceFilter
 {
     public static function register(): void
     {
-        /** @var non-empty-string $asynit */
-        $asynit = \dirname(__DIR__);
-        ExcludeList::addDirectory($asynit);
+        $root = \dirname(__DIR__, 2);
+
+        // src/ is asynit's own code, override/ the classes it substitutes for PHPUnit's; a failure should
+        // point at the test, not at either of them.
+        foreach (['src', 'override'] as $directory) {
+            self::exclude($root.'/'.$directory);
+        }
 
         foreach (['amphp/amp', 'amphp/sync', 'revolt/event-loop'] as $package) {
-            $directory = \dirname(__DIR__, 2).'/vendor/'.$package;
-
-            if (is_dir($directory)) {
-                ExcludeList::addDirectory($directory);
-            }
+            self::exclude($root.'/vendor/'.$package);
         }
+    }
+
+    private static function exclude(string $directory): void
+    {
+        if ('' === $directory || !is_dir($directory)) {
+            return;
+        }
+
+        ExcludeList::addDirectory($directory);
     }
 }

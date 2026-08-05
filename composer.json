@@ -17,7 +17,7 @@
             "Asynit\\": "src/"
         },
         "classmap": [
-            "src/PHPUnit/Override/"
+            "override/"
         ],
         "exclude-from-classmap": [
             "vendor/phpunit/phpunit/src/Framework/TestCase/OutputBuffer.php",

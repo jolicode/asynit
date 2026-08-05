@@ -11,5 +11,5 @@ if (file_exists(__DIR__.'/../vendor/autoload.php')) {
 
 // Asynit is PHPUnit: same CLI, same output, same loggers, same exit codes. What asynit replaces, through the
 // class overrides declared in composer.json, is how the tests are executed - concurrently, in the order its
-// #[Depend] graph allows. See src/PHPUnit/README.md.
+// #[Depend] graph allows. See ARCHITECTURE.md.
 exit((new PHPUnit\TextUI\Application())->run($_SERVER['argv']));

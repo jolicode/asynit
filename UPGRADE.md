@@ -131,4 +131,4 @@ public function testProducesAToken(): string
   the test, as they did under asynit.
 * **Per-test assertion counts** are only accurate with `ASYNIT_CONCURRENCY=1`. The run total is always right.
 
-`src/PHPUnit/README.md` explains why for each of these.
+`ARCHITECTURE.md` explains why for each of these.

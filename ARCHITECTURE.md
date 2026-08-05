@@ -18,6 +18,16 @@ its assertion layer — is gone, replaced by the PHPUnit equivalent.
 suite tree and calls `$test->run()` one test at a time; asynit's flattens the tree, builds the `#[Depend]`
 graph over the collected tests and hands it to `ConcurrentRunner`.
 
+Replacements live under `override/`, in a path mirroring the namespace they take over, so what is being
+substituted is legible from the file name and diffable against PHPUnit's own tree:
+
+```
+override/PHPUnit/TextUI/TestRunner.php                 -> PHPUnit\TextUI\TestRunner
+override/PHPUnit/Framework/TestCase/OutputBuffer.php   -> PHPUnit\Framework\TestCase\OutputBuffer
+```
+
+`src/` is asynit's own code and holds nothing that pretends to be PHPUnit's.
+
 Producers pulled in by `#[Depend]` — methods something depends on that PHPUnit did not collect as tests — are
 added to the suite before the run is announced, so the progress counter and the totals include them. They are
 not held to the "a test must assert something" rule.
