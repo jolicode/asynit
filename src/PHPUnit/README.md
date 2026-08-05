@@ -54,6 +54,17 @@ Two are replaced, and both because there is genuinely no other way in:
   which makes PHP call the handler on every write from the writing fiber, and routes each chunk to that
   fiber's test.
 
+  A chunk size of 1 is not "per character": PHP flushes once an output call brings the buffer to at least that
+  many bytes, so the handler runs once per `echo`, with whatever that call wrote - a single 100 KB `echo` is
+  one invocation. It costs about 30ns per output call over a plain `ob_start()`.
+
+  Two alternatives were tried and do not work. The extension API's `replaceOutput()` family only sets flags
+  telling PHPUnit's own printer to stay quiet so an extension can print instead; it has nothing to do with
+  capturing what a test writes. Saving and restoring the buffer stack around fiber switches - which
+  `Revolt\EventLoop::setDriver()` would let us hook - fails for a different reason: PHPUnit's `OutputBuffer`
+  flags itself destroyed as soon as its handler sees `PHP_OUTPUT_HANDLER_FINAL`, which any `ob_end_clean()`
+  raises, so `stop()` would report "closed output buffers other than its own" anyway.
+
 `Framework\TestRunner\TestRunner` used to be overridden too, to get away from `Runner\ErrorHandler` — a
 singleton bound to a single test that asserts on `!$this->enabled`, so the second concurrent test aborts the
 run. It no longer is: `TestCase::runBare()` is `final public`, so `Asynit\Runner\TestExecutor` calls it

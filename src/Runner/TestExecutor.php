@@ -65,6 +65,13 @@ final class TestExecutor
 
         if ($test->hasUnexpectedOutput()) {
             EventFacade::emitter()->testPrintedUnexpectedOutput($test->output());
+
+            if (ConfigurationRegistry::get()->disallowTestOutput()) {
+                EventFacade::emitter()->testConsideredRisky(
+                    $test->valueObjectForEvents(),
+                    sprintf('Test code or tested code printed unexpected output: %s', $test->output()),
+                );
+            }
         }
 
         if ($test->wasPrepared()) {
