@@ -13,12 +13,21 @@ use PHPUnit\Framework\Assert;
  * buffer stack is process global and not fiber local, so as soon as two tests are in flight the levels
  * interleave and both tests are reported as risky.
  *
- * This version installs a single process wide buffer with a chunk size of 1, which makes PHP invoke the
- * handler on every write, from the fiber that wrote it. Each chunk is then routed to the buffer registered
- * for that fiber.
+ * This version installs a single process wide buffer whose handler runs on every output call, from the fiber
+ * that made it. Each piece of output is then routed to the buffer registered for that fiber.
  */
 final class OutputBuffer
 {
+    /**
+     * ob_start()'s $chunk_size, expressed by what it buys us rather than by its value.
+     *
+     * PHP flushes the buffer as soon as an output call brings it to at least $chunk_size bytes, so the
+     * smallest possible value makes the handler run once per echo/print, receiving whatever that single call
+     * wrote. It is not "once per character": one 100 KB echo is still one invocation. That is what lets us
+     * attribute output to a fiber, since the handler runs in the fiber that produced it.
+     */
+    private const FLUSH_PER_OUTPUT_CALL = 1;
+
     /** @var array<int, self> buffer currently collecting output, per fiber */
     private static array $active = [];
 
@@ -79,11 +88,6 @@ final class OutputBuffer
         self::register($this);
     }
 
-    // Note on the chunk size below: 1 does not mean "call the handler per character". PHP flushes once an
-    // output call brings the buffer to at least that many bytes, so the handler runs once per echo/print,
-    // receiving whatever that call wrote - one 100 KB echo is still a single invocation. Measured overhead is
-    // about 30ns per output call over PHPUnit's plain ob_start().
-
     public function stop(): OutputBufferStopResult
     {
         self::unregister($this);
@@ -113,17 +117,18 @@ final class OutputBuffer
 
         self::$installed = true;
 
-        ob_start(static function (string $chunk, int $phase): string {
+        ob_start(static function (string $output, int $phase): string {
             $buffer = self::current();
 
+            // Output produced outside a test, by PHPUnit's own printer for instance, is passed through.
             if (null === $buffer) {
-                return $chunk;
+                return $output;
             }
 
-            $buffer->captured .= $chunk;
+            $buffer->captured .= $output;
 
             return '';
-        }, 1);
+        }, self::FLUSH_PER_OUTPUT_CALL);
     }
 
     private static function current(): ?self

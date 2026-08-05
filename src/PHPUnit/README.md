@@ -50,13 +50,13 @@ Two are replaced, and both because there is genuinely no other way in:
   It has to be replaced because the original calls `ob_start()` per test and asserts on `ob_get_level()` when
   stopping. PHP's output buffer stack is process global, not fiber local, so concurrent tests unwind it out of
   order: every test is reported risky ("did not close its own output buffers"), even ones that print nothing,
-  and output lands on the wrong test. The replacement installs one process wide buffer with a chunk size of 1,
-  which makes PHP call the handler on every write from the writing fiber, and routes each chunk to that
-  fiber's test.
+  and output lands on the wrong test. The replacement installs one process wide buffer whose handler runs on
+  every output call, in the fiber that made it, and routes the output to that fiber's test.
 
-  A chunk size of 1 is not "per character": PHP flushes once an output call brings the buffer to at least that
-  many bytes, so the handler runs once per `echo`, with whatever that call wrote - a single 100 KB `echo` is
-  one invocation. It costs about 30ns per output call over a plain `ob_start()`.
+  That is `ob_start()`'s `$chunk_size`, which the class names `FLUSH_PER_OUTPUT_CALL` rather than `1`: PHP
+  flushes as soon as an output call brings the buffer to at least that many bytes, so the smallest value makes
+  the handler run once per `echo`, with whatever that single call wrote. It is not "once per character" - a
+  100 KB `echo` is one invocation - and costs about 30ns per output call over a plain `ob_start()`.
 
   Two alternatives were tried and do not work. The extension API's `replaceOutput()` family only sets flags
   telling PHPUnit's own printer to stay quiet so an extension can print instead; it has nothing to do with
