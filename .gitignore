@@ -13,3 +13,6 @@ report
 
 .phpunit.cache/
 .phpunit.result.cache
+
+# Local-only: proposed upstream PHPUnit patches, not part of the package
+patches/
