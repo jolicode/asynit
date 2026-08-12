@@ -3,13 +3,13 @@
 namespace Asynit\Tests;
 
 use Asynit\Attribute\Depend;
-use Asynit\Attribute\Test;
-use Asynit\Attribute\TestCase;
+use PHPUnit\Framework\Attributes\DoesNotPerformAssertions;
+use PHPUnit\Framework\Attributes\Test;
 
-#[TestCase]
-class Simple
+class SimpleTest extends \PHPUnit\Framework\TestCase
 {
     #[Test]
+    #[DoesNotPerformAssertions]
     public function i_want_to_test_something()
     {
     }
@@ -25,8 +25,9 @@ class Simple
         return $value.'_bar';
     }
 
-    #[Test]
     #[Depend('depend_of_depend_but_not_a_test')]
+    #[Test]
+    #[DoesNotPerformAssertions]
     public function i_want_to_test_depend($value)
     {
         if ('foo_bar' !== $value) {

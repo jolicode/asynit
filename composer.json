@@ -15,7 +15,14 @@
     "autoload": {
         "psr-4": {
             "Asynit\\": "src/"
-        }
+        },
+        "classmap": [
+            "override/"
+        ],
+        "exclude-from-classmap": [
+            "vendor/phpunit/phpunit/src/Framework/TestCase/OutputBuffer.php",
+            "vendor/phpunit/phpunit/src/TextUI/TestRunner.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {
@@ -23,29 +30,32 @@
         }
     },
     "scripts": {
-        "test": "bin/asynit tests/"
+        "test": "bin/asynit"
     },
     "require": {
-        "php": "^8.2",
+        "php": "^8.4",
         "amphp/amp": "^3.0",
         "amphp/http-client": "^v5.0.1",
         "amphp/sync": "^2.0",
-        "bovigo/assert": "^7.0 || ^8.0",
-        "symfony/console": "^5.4 || ^6.4 || ^7.4 || ^8.0",
-        "symfony/finder": "^5.4 || ^6.4 || ^7.4 || ^8.0"
+        "phpunit/phpunit": "~13.2.0"
     },
     "suggest": {
-        "amphp/http-client": "To use the web test case trait"
+        "amphp/http-client": "To use the web test case trait",
+        "rector/rector": "To migrate a test suite written against the pre-PHPUnit engine, see UPGRADE.md"
     },
     "conflict": {
-        "amphp/http-client": "<5.0.1",
         "amphp/byte-stream": "<2.1",
-        "amphp/http": "<2.1",
-        "symfony/options-resolver": "<4.4.30 || <5.3 >= 5.0"
+        "amphp/http": "<2.1"
     },
     "prefer-stable": true,
     "minimum-stability": "dev",
     "config": {
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "phpunit/phpunit": true
+        }
+    },
+    "require-dev": {
+        "rector/rector": "^2.5"
     }
 }

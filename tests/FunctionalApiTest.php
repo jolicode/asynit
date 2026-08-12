@@ -2,12 +2,10 @@
 
 namespace Asynit\Tests;
 
-use Asynit\Attribute\TestCase;
 use Asynit\HttpClient\ApiResponse;
 use Asynit\HttpClient\HttpClientApiCaseTrait;
 
-#[TestCase]
-class FunctionalApiTests
+class FunctionalApiTest extends \PHPUnit\Framework\TestCase
 {
     use HttpClientApiCaseTrait;
 

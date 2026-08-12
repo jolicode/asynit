@@ -5,7 +5,7 @@ namespace Asynit\Tests;
 use Amp\Http\HttpResponse;
 use Asynit\HttpClient\HttpClientWebCaseTrait;
 
-class AnotherTestHttp
+class AnotherHttpTest extends \PHPUnit\Framework\TestCase
 {
     use HttpClientWebCaseTrait;
 

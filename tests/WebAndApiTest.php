@@ -3,13 +3,11 @@
 namespace Asynit\Tests;
 
 use Amp\Http\HttpResponse;
-use Asynit\Attribute\TestCase;
 use Asynit\HttpClient\ApiResponse;
 use Asynit\HttpClient\HttpClientApiCaseTrait;
 use Asynit\HttpClient\HttpClientWebCaseTrait;
 
-#[TestCase]
-class WebAndApiTests
+class WebAndApiTest extends \PHPUnit\Framework\TestCase
 {
     use HttpClientWebCaseTrait, HttpClientApiCaseTrait {
         HttpClientWebCaseTrait::get insteadof HttpClientApiCaseTrait;

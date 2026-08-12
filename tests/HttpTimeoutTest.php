@@ -3,12 +3,10 @@
 namespace Asynit\Tests;
 
 use Asynit\Attribute\HttpClientConfiguration;
-use Asynit\Attribute\TestCase;
 use Asynit\HttpClient\HttpClientWebCaseTrait;
 
-#[TestCase]
 #[HttpClientConfiguration(0.01)]
-class HttpTimeoutTest
+class HttpTimeoutTest extends \PHPUnit\Framework\TestCase
 {
     use HttpClientWebCaseTrait;
 
