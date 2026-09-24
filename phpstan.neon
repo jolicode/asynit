@@ -2,7 +2,6 @@ parameters:
     level: max
     paths:
         - src/
+        - override/
     ignoreErrors:
         - identifier: trait.unused
-    excludePaths:
-        - src/Assert/Assertion.php

@@ -2,15 +2,18 @@
 
 namespace Asynit\Runner;
 
-use Asynit\Test;
-
-/** @internal */
-final class TestStorage
+/**
+ * Fiber local pointer to the node a fiber is running, so anything happening inside a test (the output
+ * handler, an event subscriber) can find out which test it belongs to while other tests are in flight.
+ *
+ * @internal
+ */
+final class NodeStorage
 {
-    /** @var \WeakMap<\Fiber<void, void, void, void>, Test|null>|null */
+    /** @var \WeakMap<\Fiber<mixed, mixed, mixed, mixed>, TestNode>|null */
     private static ?\WeakMap $localStorage = null;
 
-    public static function set(Test $test): void
+    public static function set(TestNode $node): void
     {
         $fiber = \Fiber::getCurrent();
 
@@ -21,7 +24,7 @@ final class TestStorage
         /* @phpstan-ignore-next-line */
         self::$localStorage ??= new \WeakMap();
         /* @phpstan-ignore-next-line */
-        self::$localStorage[$fiber] = $test;
+        self::$localStorage[$fiber] = $node;
     }
 
     /**
@@ -39,18 +42,14 @@ final class TestStorage
         unset(self::$localStorage[$fiber]);
     }
 
-    public static function get(): ?Test
+    public static function get(): ?TestNode
     {
         $fiber = \Fiber::getCurrent();
 
-        if (null === $fiber) {
+        if (null === $fiber || null === self::$localStorage) {
             return null;
         }
 
-        /* @phpstan-ignore-next-line */
-        self::$localStorage ??= new \WeakMap();
-
-        /* @phpstan-ignore-next-line */
         return self::$localStorage[$fiber] ?? null;
     }
 }

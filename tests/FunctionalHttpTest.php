@@ -4,14 +4,14 @@ namespace Asynit\Tests;
 
 use Amp\Http\HttpResponse;
 use Asynit\Attribute\Depend;
-use Asynit\Attribute\TestCase;
 use Asynit\HttpClient\HttpClientWebCaseTrait;
+use PHPUnit\Framework\Attributes\DoesNotPerformAssertions;
 
-#[TestCase]
-class FunctionalHttpTests
+class FunctionalHttpTest extends \PHPUnit\Framework\TestCase
 {
     use HttpClientWebCaseTrait;
 
+    #[DoesNotPerformAssertions]
     public function testReturn()
     {
         return 'tata';
@@ -46,12 +46,13 @@ class FunctionalHttpTests
         $this->assertSame('foo', $value);
     }
 
-    #[Depend("Asynit\Tests\AnotherTestHttp::test_from_another_file")]
+    #[Depend("Asynit\Tests\AnotherHttpTest::test_from_another_file")]
     public function testDependFromAnotherFile($value)
     {
-        $this->assertSame('Asynit\Tests\AnotherTestHttp::test_from_another_file', $value);
+        $this->assertSame('Asynit\Tests\AnotherHttpTest::test_from_another_file', $value);
     }
 
+    #[DoesNotPerformAssertions]
     public function testStartParallel()
     {
         return time();
@@ -104,7 +105,7 @@ class FunctionalHttpTests
 
     #[Depend('get_a')]
     #[Depend('get_b')]
-    public function test_c($a, $b)
+    public function testC($a, $b)
     {
         $this->assertSame('a', $a);
         $this->assertSame('b', $b);
@@ -113,7 +114,7 @@ class FunctionalHttpTests
     #[Depend('get_a')]
     #[Depend('get_b')]
     #[Depend("Asynit\Tests\AnotherTest::get_d")]
-    public function test_c_with_d($a, $b, $d)
+    public function testCWithD($a, $b, $d)
     {
         $this->assertSame('a', $a);
         $this->assertSame('b', $b);

@@ -14,8 +14,29 @@ final readonly class HttpClientConfiguration
     }
 
     /**
+     * Run wide defaults. Asynit no longer owns the command line - it is PHPUnit's - so the settings that
+     * describe the environment under test rather than the test case come from the environment.
+     */
+    public static function fromEnvironment(): self
+    {
+        return new self(
+            timeout: (float) (self::env('ASYNIT_TIMEOUT') ?? 10),
+            retry: (int) (self::env('ASYNIT_RETRY') ?? 0),
+            allowSelfSignedCertificate: filter_var(self::env('ASYNIT_ALLOW_SELF_SIGNED_CERTIFICATE') ?? '', FILTER_VALIDATE_BOOL),
+            baseUri: self::env('ASYNIT_HOST'),
+        );
+    }
+
+    private static function env(string $name): ?string
+    {
+        $value = $_SERVER[$name] ?? getenv($name);
+
+        return \is_string($value) && '' !== $value ? $value : null;
+    }
+
+    /**
      * Returns a configuration using the given base URI, unless one was already set explicitly. Used to apply the
-     * base URI coming from the command line to a class that configures its own client through this attribute.
+     * run wide base URI to a class that configures its own client through this attribute.
      */
     public function withBaseUri(?string $baseUri): self
     {

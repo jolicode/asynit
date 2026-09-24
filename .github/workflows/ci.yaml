@@ -10,11 +10,11 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                php-version: ["8.3", "8.4", "8.5"]
+                php-version: ["8.4", "8.5"]
                 composer-flags: [""]
                 name: [""]
                 include:
-                    - php-version: "8.2"
+                    - php-version: "8.4"
                       composer-flags: "--prefer-lowest"
                       name: "(prefer lowest dependencies)"
         name: Tests PHP ${{ matrix.php-version }} ${{ matrix.name }}
@@ -39,7 +39,7 @@ jobs:
             - name: docker run
               run: docker run -d --rm -p 8081:80 httpbin
             - name: tests
-              run: bin/asynit tests --report report/asynit.xml
+              run: bin/asynit --log-junit report/asynit.xml
             - name: check report
               uses: dorny/test-reporter@v1
               if: success() || failure()    # run this step even if previous step failed

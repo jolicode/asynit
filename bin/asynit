@@ -1,27 +1,15 @@
 #!/usr/bin/env php
 <?php
 
-use Asynit\Command\AsynitCommand;
-use Doctrine\Common\Annotations\AnnotationRegistry;
-use Symfony\Component\Console\Application;
-
-if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
-    $loader = require(__DIR__ . '/../vendor/autoload.php');
-} elseif (file_exists(__DIR__ . '/../../../../vendor/autoload.php')) {
-    $loader = require(__DIR__ . '/../../../../vendor/autoload.php');
+if (file_exists(__DIR__.'/../vendor/autoload.php')) {
+    require __DIR__.'/../vendor/autoload.php';
+} elseif (file_exists(__DIR__.'/../../../../vendor/autoload.php')) {
+    require __DIR__.'/../../../../vendor/autoload.php';
 } else {
     throw new \RuntimeException('Unable to load autoloader.');
 }
 
-if (method_exists(Application::class, 'addCommand')) {
-    $method = 'addCommand';
-} else {
-    $method = 'add';
-}
-
-(new Application('asynit'))
-    ->$method(new AsynitCommand())
-    ->getApplication()
-    ->setDefaultCommand('asynit', true)
-    ->run()
-;
+// Asynit is PHPUnit: same CLI, same output, same loggers, same exit codes. What asynit replaces, through the
+// class overrides declared in composer.json, is how the tests are executed - concurrently, in the order its
+// #[Depend] graph allows. See ARCHITECTURE.md.
+exit((new PHPUnit\TextUI\Application())->run($_SERVER['argv']));
