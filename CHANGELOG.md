@@ -1,4 +1,4 @@
-## Unreleased
+## 0.18.0 - 25/09/2026
 
 * [BC BREAK] Asynit now runs on PHPUnit: `bin/asynit` boots PHPUnit, whose CLI, configuration, output, loggers
   and exit codes replace asynit's own. Test classes extend `PHPUnit\Framework\TestCase` and use its assertions.
