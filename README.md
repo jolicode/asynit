@@ -1,174 +1,178 @@
 # asynit
 
-Asynchronous (if library use fiber) testing library runner for HTTP / API and more...
+Concurrent test runner for HTTP / API and more, built on top of PHPUnit.
+
+Asynit is PHPUnit: same test classes, same assertions, same CLI, configuration, output, loggers and exit codes.
+What it adds is what PHPUnit cannot do:
+
+* tests run **concurrently** on fibers, so tests waiting on I/O (HTTP requests, …) overlap;
+* a **`#[Depend]` attribute** that orders tests and passes a test's return value to the tests depending on it,
+  pointing at any method of any class, whether it is a test or not.
+
+Coming from asynit 0.17 or earlier? See [UPGRADE.md](UPGRADE.md), a Rector set does most of the migration.
+How asynit plugs into PHPUnit is described in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Install
 
-```
+```console
 composer require --dev jolicode/asynit
 ```
 
-## Usage
+Asynit requires PHP 8.4 and ships with PHPUnit 13.2.
 
-### Writing a test
+## Writing a test
 
-Asynit will read PHP's classes to find available Test using the `Asynit\Attribute\TestCase` attribute. You need to
-create a test class in some directory, which will have the `TestCase` attribute of
-Asynit:
-
-```php
-use Asynit\Attribute\TestCase;
-
-#[TestCase]
-class ApiTest
-{
-}
-```
-
-Then you can add some tests that will use the API of the TestCase class:
+A test is a regular PHPUnit test: a class extending `PHPUnit\Framework\TestCase`, whose test methods are
+named `test*` or carry `#[PHPUnit\Framework\Attributes\Test]`. Assertions are PHPUnit's, and a test fails
+when an exception is thrown.
 
 ```php
-use Asynit\Attribute\Test;
-use Asynit\Attribute\TestCase;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
 
-#[TestCase]
-class ApiTest
+class ApiTest extends TestCase
 {
     #[Test]
-    public function my_test()
-    {
-        // do some test
-    }
-}
-```
-
-Note: All test methods should be prefixed by the `test` keyword or use the `Asynit\Attribute\Test` anotation. All others
-methods will not be executed automatically.
-
-A test fail when an exception occurs during the test
-
-### Using assertion
-
-Asynit provide trait to ease the writing of test. You can use the `Asynit\AssertCaseTrait` trait to use the assertion.
-
-```php
-use Asynit\Attribute\Test;
-use Asynit\Attribute\TestCase;
-
-#[TestCase]
-class ApiTest
-{
-    use Asynit\AssertCaseTrait;
-
-    #[Test]
-    public function my_test()
+    public function it_works(): void
     {
         $this->assertSame('foo', 'foo');
     }
 }
 ```
 
-All assertions supported by PHPUnit are also supported by Asynit thanks to the
-[bovigo-assert](https://github.com/mikey179/bovigo-assert) library.
-But you can use your own as long as it's throw an exception on failure.
+## Running the tests
 
-### Running the test
-
-For running this test you will only need to use the PHP file provided by this
-project:
-
-```bash
-$ php vendor/bin/asynit path/to/the/file.php
+```console
+vendor/bin/asynit
 ```
 
-If you have many test files, you can run Asynit with a directory
+Test discovery, paths, filters and reports are PHPUnit's, so they come from your `phpunit.xml` and from
+PHPUnit's options (`--filter`, `--log-junit`, `--bootstrap`, …):
 
-```bash
-$ php vendor/bin/asynit path/to/the/directory
+```xml
+<phpunit bootstrap="vendor/autoload.php">
+    <testsuites>
+        <testsuite name="api">
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>
 ```
 
-### Using HTTP Client
+Settings describing the run itself are read from the environment:
 
-Asynit provide an optional `Asynit\HttpClient\HttpClientWebCaseTrait` trait that you can use to make HTTP request. You will need to install `amphp/http-client` and
-`nyholm/psr7` to use it.
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `ASYNIT_CONCURRENCY` | `10` | how many tests may run at once |
+| `ASYNIT_HOST` | none | base URI prepended to requests made with a relative URI |
+| `ASYNIT_TIMEOUT` | `10` | default HTTP timeout, in seconds |
+| `ASYNIT_RETRY` | `0` | default number of HTTP retries |
+| `ASYNIT_ALLOW_SELF_SIGNED_CERTIFICATE` | `false` | disable TLS peer verification |
+
+```console
+ASYNIT_CONCURRENCY=20 ASYNIT_HOST=https://api.example.com vendor/bin/asynit --log-junit report.xml
+```
+
+## Using the HTTP client
+
+The `Asynit\HttpClient\HttpClientWebCaseTrait` trait gives your test case an HTTP client, built on
+[amphp/http-client](https://github.com/amphp/http-client), and a few HTTP assertions: `assertStatusCode()`,
+`assertContentType()` and `assertHtml()`.
 
 ```php
-use Asynit\Attribute\TestCase;
 use Asynit\HttpClient\HttpClientWebCaseTrait;
+use PHPUnit\Framework\TestCase;
 
-#[TestCase]
-class FunctionalHttpTests
+class HomepageTest extends TestCase
 {
     use HttpClientWebCaseTrait;
 
-    public function testGet()
+    public function testGet(): void
     {
-        $response = $this->get('https//example.com');
+        $response = $this->get('https://example.com', headers: ['Accept-Language' => 'fr']);
 
         $this->assertStatusCode(200, $response);
+        $this->assertHtml($response);
     }
 }
 ```
 
-You can also use a more oriented API trait `Asynit\HttpClient\HttpClientApiCaseTrait` that will allow you to write test like this:
+`get()`, `post()`, `put()`, `patch()`, `delete()` and `options()` take the URI, the headers and the body, and
+return an `Amp\Http\Client\Response`.
 
-
+For JSON APIs, use `Asynit\HttpClient\HttpClientApiCaseTrait` instead. Its methods take the URI, an array
+encoded as the JSON body, and the headers. The response can be read as an array:
 
 ```php
-use Asynit\Attribute\TestCase;
 use Asynit\HttpClient\HttpClientApiCaseTrait;
+use PHPUnit\Framework\TestCase;
 
-#[TestCase]
-class FunctionalHttpTests
+class PostApiTest extends TestCase
 {
     use HttpClientApiCaseTrait;
 
-    public function testGet()
+    public function testCreate(): void
     {
-        $response = $this->get('https//example.com');
+        $response = $this->post('/posts', ['title' => 'Hello']);
 
-        $this->assertStatusCode(200, $response);
-        $this->assertSame('bar', $response['foo']);
+        $this->assertStatusCode(201, $response);
+        $this->assertSame('Hello', $response['title']);
     }
 }
 ```
 
-### Dependency between tests
+Relative URIs such as `/posts` are resolved against `ASYNIT_HOST`.
 
-Sometime a test may need a value from the result of another test, like an
-authentication token that need to be available for some requests (or a cookie
-defining the session).
+### Configuring the client of a test case
 
-Asynit provides a `Depend` attribute which allows you to specify that a test is
-dependent from another one.
-
-So if you have 3 tests, `A`, `B` and `C` and you say that `C` depend on `A`;
-Test `A` and `B` will be run in parallel and once `A` is completed and
-successful, `C` will be run with the result from `A`.
-
-Let's see an example:
+The environment variables set the defaults for the whole run. A test case can use its own settings with the
+`Asynit\Attribute\HttpClientConfiguration` attribute:
 
 ```php
-use Asynit\Attribute\Depend;
-use Asynit\Attribute\TestCase;
+use Asynit\Attribute\HttpClientConfiguration;
 use Asynit\HttpClient\HttpClientApiCaseTrait;
+use PHPUnit\Framework\TestCase;
 
-#[TestCase]
+#[HttpClientConfiguration(timeout: 30, retry: 2, allowSelfSignedCertificate: true)]
+class SlowEndpointTest extends TestCase
+{
+    use HttpClientApiCaseTrait;
+}
+```
+
+It still inherits `ASYNIT_HOST`, unless it sets `baseUri` itself.
+
+## Dependency between tests
+
+Sometimes a test needs a value produced by another one, like an authentication token. The
+`Asynit\Attribute\Depend` attribute declares that a test depends on another method: it runs once that method
+has succeeded, and receives its return value as argument.
+
+Given three tests `A`, `B` and `C`, where `C` depends on `A`: `A` and `B` run concurrently, and `C` starts as
+soon as `A` has passed, with the value `A` returned.
+
+```php
+namespace App\Tests;
+
+use Asynit\Attribute\Depend;
+use Asynit\HttpClient\HttpClientApiCaseTrait;
+use PHPUnit\Framework\TestCase;
+
 class SecurityTest extends TestCase
 {
     use HttpClientApiCaseTrait;
 
-    public function testLogin()
+    public function testLogin(): string
     {
-        $response = $this->post('/', ['username' => user, 'password' => 'test']);
+        $response = $this->post('/login', ['username' => 'user', 'password' => 'test']);
 
         $this->assertStatusCode(200, $response);
 
-        return $response->getBody()->getContents();
+        return $response['token'];
     }
 
-    #[Depend("testLogin")]
-    public function testAuthenticatedRequest(string $token)
+    #[Depend('testLogin')]
+    public function testAuthenticatedRequest(string $token): void
     {
         $response = $this->get('/api', headers: ['X-Auth-Token' => $token]);
 
@@ -177,21 +181,21 @@ class SecurityTest extends TestCase
 }
 ```
 
-Here `testAuthenticatedRequest` will only be run after `testLogin` has been
-completed. You can also use dependency between different test case. The previous
-test case is under the `Application\ApiTest` namespace and thus we can write
-another test case like this:
+A dependency can live in another class, by using its fully qualified name:
 
 ```php
-use Asynit\Attribute\Depend;
-use Asynit\Attribute\TestCase;
-use Asynit\HttpClient\HttpClientApiCaseTrait;
+namespace App\Tests;
 
-#[TestCase]
-class PostTest
+use Asynit\Attribute\Depend;
+use Asynit\HttpClient\HttpClientApiCaseTrait;
+use PHPUnit\Framework\TestCase;
+
+class PostTest extends TestCase
 {
-    #[Depend("Application\ApiTest\SecurityTest::testLogin")]
-    public function testGet($token)
+    use HttpClientApiCaseTrait;
+
+    #[Depend('App\Tests\SecurityTest::testLogin')]
+    public function testGet(string $token): void
     {
         $response = $this->get('/posts', headers: ['X-Auth-Token' => $token]);
 
@@ -200,67 +204,74 @@ class PostTest
 }
 ```
 
-### Test Organization
+`#[Depend]` is repeatable: the values are passed in the order the attributes are declared. When a dependency
+fails, the tests depending on it are skipped; pass `skipIfFailed: false` to run them anyway, without the value
+of the failed dependency.
 
-It's really common to reuse this token in a lot of test, and maybe you don't need test when fetching the token.
-Asynit allow you to depend on any method of any class.
+PHPUnit's own `#[Depends]` and `#[DependsExternal]` (and their `UsingDeepClone` / `UsingShallowClone`
+variants) work too and are ordered by the same graph. `#[DependsOnClass]` is not supported.
 
-So you could write a `TokenFetcherClass` that will fetch the token and then use it in your test.
+A circular dependency is reported as an error before any test runs.
+
+## Test organization
+
+A token is often needed by many tests, and fetching it is not a test in itself. `#[Depend]` can point at any
+public method, not only tests: a method that is not a test is run once, before the tests depending on it,
+is not reported, and is not required to perform an assertion.
+
+The class declaring it must extend `PHPUnit\Framework\TestCase` and must not be abstract, since asynit
+instantiates it to run the method. Name its file so PHPUnit does not collect it as a test suite (with the
+default `*Test.php` suffix, `TokenFetcher.php` is left alone).
 
 ```php
 namespace App\Tests;
 
 use Asynit\HttpClient\HttpClientApiCaseTrait;
+use PHPUnit\Framework\TestCase;
 
-class TokenFetcher
+class TokenFetcher extends TestCase
 {
     use HttpClientApiCaseTrait;
 
-    protected function fetchToken(string $email, string $password = 'password')
+    public function fetchUserToken(): string
     {
-        $payload = [
-            'email' => $email,
-            'password' => $password,
-        ];
+        return $this->fetchToken('user@example.com', 'password');
+    }
 
-        $response = $this->post('/users/token', ['username' => 'user', 'password' => 'test']);
+    private function fetchToken(string $email, string $password): string
+    {
+        $response = $this->post('/users/token', ['email' => $email, 'password' => $password]);
 
         return $response['token'];
     }
-    
-    protected function fetchUserToken()
-    {
-        return $this->fetchToken('email@example.com', 'password');
-    }
 }
 ```
-
-Then in your test class you will be able to call this method:
 
 ```php
 namespace App\Tests;
 
 use Asynit\Attribute\Depend;
-use Asynit\Attribute\TestCase;
 use Asynit\HttpClient\HttpClientApiCaseTrait;
+use PHPUnit\Framework\TestCase;
 
-#[TestCase]
-class OrganizationTest
+class OrganizationTest extends TestCase
 {
     use HttpClientApiCaseTrait;
 
-    #[Depend("App\Tests\TokenFetcher::fetchUserToken")]
-    public function test_api_method_with_token(string $token)
+    #[Depend('App\Tests\TokenFetcher::fetchUserToken')]
+    public function testListOrganizations(string $token): void
     {
-        $response = $this->get('/api', headers: ['X-Auth-Token' => $token]);
+        $response = $this->get('/organizations', headers: ['X-Auth-Token' => $token]);
 
-        // ...
+        $this->assertStatusCode(200, $response);
     }
 }
 ```
 
-As you may notice, the `fetchUserToken` method does not start with `test`. Thus
-by default this method will not be included in the test suite. But as it is a
-dependency of a test, it will be included as a regular test in the global test
-suite and will leverage the cache system.
+Whatever the number of tests depending on it, `fetchUserToken()` runs only once.
 
+## Limitations
+
+Running tests concurrently has a few consequences on PHPUnit features: code coverage and deprecation / notice
+reporting are not available, process isolation and `--order-by` are ignored. See
+[ARCHITECTURE.md](ARCHITECTURE.md#known-limitations) for the full list.
