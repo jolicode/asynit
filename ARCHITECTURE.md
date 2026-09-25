@@ -81,6 +81,26 @@ run. It no longer is: `TestCase::runBare()` is `final public`, so `Asynit\Runner
 directly and does the surrounding bookkeeping itself, in asynit's own namespace. The only thing skipping
 `TestCase::run()` costs is its `handleDependencies()`, which is handled below.
 
+## Per test state PHPUnit keeps in statics
+
+Two pieces of per test state live in process wide statics, which interleaved tests would otherwise share:
+
+* **the assertion count**, `Assert::$count`, which PHPUnit reads around a test to know how many assertions it
+  made. Read that way, a test is credited with whatever the tests running alongside it asserted meanwhile, so
+  totals are inflated, a test that asserts nothing goes unnoticed and a `#[DoesNotPerformAssertions]` one is
+  flagged. `Asynit\Runner\AssertionCounter` credits each test only with what `Assert::$count` gained while its
+  own fiber was running.
+* **the error handler snapshot** `TestCase::runBare()` stores in the `Runner\ErrorHandler` singleton when a
+  test starts and restores when it ends, in a single slot. Tests overwrite each other's, and the last one to end
+  finds none: `runBare()` then throws a `TypeError` after the test has been reported as passed, which also
+  skips the "did not perform any assertions" check. `Asynit\Runner\ErrorHandlerBackup` gives each fiber its
+  own.
+
+Both hang off the one place fiber switches can be observed: amphp only ever suspends through
+`EventLoop::getSuspension()`, so `ConcurrentRunner` decorates the event loop driver with
+`Asynit\Runner\FiberSwitchDriver`, whose suspensions save that state before the fiber suspends and put it back
+when it resumes. Anything suspending with `\Fiber::suspend()` directly, bypassing the event loop, escapes it.
+
 ## Configuration
 
 PHPUnit's CLI is not asynit's to extend, so the few settings that describe the run rather than a test case are
@@ -99,10 +119,10 @@ unless it sets a base URI itself.
 
 ## Known limitations
 
-* **Per test assertion counts are only accurate with `ASYNIT_CONCURRENCY=1`.** `Assert::$count` is a private
-  static counter and the per test number is a delta read around the test, so concurrent tests inherit each
-  other's assertions. Fixing it properly means making `Assert::$count` fiber local — five lines in a 3300 line
-  class we do not want to fork, so it wants an upstream change.
+* **Assertions made in a fiber the test spawned itself** (`Amp\async()` inside a test) are not credited to it,
+  since they happen outside the test's own fiber. Await the future inside the test and assert there.
+* **The error handler stack is still process wide.** A test that sets an error handler and suspends before
+  removing it has that handler seen, and possibly removed, by the tests running alongside it.
 * **Code coverage is not collected.** `Runner\CodeCoverage` is another per test singleton with the same
   problem.
 * **PHPUnit issue reporting (deprecations, notices) is lost**, since `ErrorHandler` is what produces it.

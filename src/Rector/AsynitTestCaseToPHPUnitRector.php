@@ -93,26 +93,38 @@ final class AsynitTestCaseToPHPUnitRector extends AbstractRector
     private function removeTestCaseAttribute(Class_ $class): bool
     {
         $found = false;
+        $remaining = [];
 
-        foreach ($class->attrGroups as $groupKey => $attrGroup) {
-            foreach ($attrGroup->attrs as $attrKey => $attribute) {
-                if (self::TEST_CASE_ATTRIBUTE !== $attribute->name->toString()) {
-                    continue;
-                }
+        foreach ($class->attrGroups as $attrGroup) {
+            $attrs = array_values(array_filter(
+                $attrGroup->attrs,
+                fn (Node\Attribute $attribute): bool => self::TEST_CASE_ATTRIBUTE !== $attribute->name->toString(),
+            ));
 
-                $found = true;
-                unset($attrGroup->attrs[$attrKey]);
+            if (\count($attrs) === \count($attrGroup->attrs)) {
+                $remaining[] = $attrGroup;
+
+                continue;
             }
 
-            $attrGroup->attrs = array_values($attrGroup->attrs);
+            $found = true;
 
-            if ([] === $attrGroup->attrs) {
-                unset($class->attrGroups[$groupKey]);
+            if ([] !== $attrs) {
+                $attrGroup->attrs = $attrs;
+                $remaining[] = $attrGroup;
             }
         }
 
-        $class->attrGroups = array_values($class->attrGroups);
+        if (!$found) {
+            return false;
+        }
 
-        return $found;
+        if ([] === $remaining) {
+            EmptyList::clear($class, 'attrGroups', $this->file->getOldTokens());
+        } else {
+            $class->attrGroups = $remaining;
+        }
+
+        return true;
     }
 }

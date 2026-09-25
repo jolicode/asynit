@@ -19,6 +19,9 @@ declare(strict_types=1);
 use Asynit\Rector\AsynitTestCaseToPHPUnitRector;
 use Asynit\Rector\OnCreateToBeforeRector;
 use Rector\Config\RectorConfig;
+use Rector\PHPUnit\PHPUnit80\Rector\MethodCall\AssertEqualsParameterToSpecificMethodsTypeRector;
+use Rector\PHPUnit\PHPUnit80\Rector\MethodCall\SpecificAssertContainsRector;
+use Rector\PHPUnit\PHPUnit80\Rector\MethodCall\SpecificAssertInternalTypeRector;
 use Rector\Renaming\Rector\MethodCall\RenameMethodRector;
 use Rector\Renaming\Rector\Name\RenameClassRector;
 use Rector\Renaming\ValueObject\MethodCallRename;
@@ -27,6 +30,10 @@ return RectorConfig::configure()
     ->withRules([
         AsynitTestCaseToPHPUnitRector::class,
         OnCreateToBeforeRector::class,
+        // These only fire when the rewrite is unambiguous: a literal type, a haystack known to be a string.
+        SpecificAssertInternalTypeRector::class,
+        SpecificAssertContainsRector::class,
+        AssertEqualsParameterToSpecificMethodsTypeRector::class,
     ])
     ->withConfiguredRule(RenameClassRector::class, [
         // The attributes asynit no longer owns, because PHPUnit has its own.

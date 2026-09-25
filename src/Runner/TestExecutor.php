@@ -3,7 +3,6 @@
 namespace Asynit\Runner;
 
 use PHPUnit\Event\Facade as EventFacade;
-use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\AssertionFailedError;
 use PHPUnit\Runner\ShutdownHandler;
 use PHPUnit\TextUI\Configuration\Registry as ConfigurationRegistry;
@@ -39,7 +38,7 @@ final class TestExecutor
         // arguments, which is the channel PHPUnit uses for its own #[Depends].
         $test->setDependencyInput($node->arguments());
 
-        $assertionsBefore = Assert::getCount();
+        AssertionCounter::start();
         $error = false;
         $incomplete = false;
         $skipped = false;
@@ -59,7 +58,7 @@ final class TestExecutor
             ShutdownHandler::resetMessage();
         }
 
-        $test->addToAssertionCount(max(0, Assert::getCount() - $assertionsBefore));
+        $test->addToAssertionCount(AssertionCounter::stop());
 
         $this->reportRiskyness($node, $error, $incomplete, $skipped);
 

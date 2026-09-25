@@ -58,21 +58,25 @@ class FunctionalHttpTest extends \PHPUnit\Framework\TestCase
         return time();
     }
 
+    #[DoesNotPerformAssertions]
     public function testParallel1()
     {
         $this->get($this->createUri('/delay/1'));
     }
 
+    #[DoesNotPerformAssertions]
     public function testParallel2()
     {
         $this->get($this->createUri('/delay/3'));
     }
 
+    #[DoesNotPerformAssertions]
     public function testParallel3()
     {
         $this->get($this->createUri('/delay/5'));
     }
 
+    #[DoesNotPerformAssertions]
     public function testParallel4()
     {
         $this->get($this->createUri('/delay/7'));

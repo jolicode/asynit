@@ -44,6 +44,10 @@ only match once that is true, so they land on the second pass.
 | `#[OnCreate] public function boot(HttpClientConfiguration $c)` | `#[Before] public function boot()` |
 | `assertRegExp` / `assertNotRegExp` | `assertMatchesRegularExpression` / `assertDoesNotMatchRegularExpression` |
 | `assertFileNotExists` | `assertFileDoesNotExist` |
+| `assertInternalType('int', $v)` | `assertIsInt($v)`, and the rest of the `assertIs*` family |
+| `assertNotInternalType('int', $v)` | `assertIsNotInt($v)` |
+| `assertContains($needle, $haystack)` on a string | `assertStringContainsString($needle, $haystack)`, only when `$haystack` is known to be a string |
+| `assertEquals($e, $a, $message, $delta)` | `assertEqualsWithDelta($e, $a, $delta, $message)` |
 
 `#[Depend]`, `#[HttpClientConfiguration]`, the HTTP client traits (`$this->get()`, `$this->post()`, …) and
 `assertStatusCode` / `assertContentType` / `assertHtml` are unchanged.
@@ -98,23 +102,35 @@ These came from asynit's bovigo-backed trait and have to be rewritten by hand:
 
 | Before | Do this instead |
 | --- | --- |
-| `assertContains($needle, $haystack)` | `assertStringContainsString` for strings, `assertContains` for arrays — the old one accepted both, so Rector cannot pick for you |
+| `assertContains($needle, $haystack)` | `assertStringContainsString` for strings, `assertContains` for arrays — the old one accepted both, so Rector only rewrites it when it can tell `$haystack` is a string |
 | `assertNotContains($needle, $haystack)` | `assertStringNotContainsString` or `assertNotContains`, same reason |
-| `assertInternalType('int', $v)` | `assertIsInt($v)`, and the rest of the `assertIs*` family |
-| `assertNotInternalType('int', $v)` | `assertIsNotInt($v)` |
-| `assertEquals($e, $a, $message, $delta)` | `assertEqualsWithDelta($e, $a, $delta, $message)` — PHPUnit dropped the fourth argument |
+| `assertInternalType($type, $v)` | Rector handles a literal `$type`; a variable one has to be turned into the matching `assertIs*()` by hand |
 | `assertNotEquals($e, $a, $message, $delta)` | `assertNotEqualsWithDelta($e, $a, $delta, $message)` |
-| `assertContainsSubset($other, $subset)` | no PHPUnit equivalent; assert on the parts you care about |
+| `assertContainsSubset($array, $subset)` | no PHPUnit equivalent, see below |
 | `$this->assert($value, $predicate, $description)` | the bovigo escape hatch is gone; use the matching PHPUnit assertion |
 
-`assertContains` and `assertInternalType` are the two worth grepping for first — they are the most common and
-the least safe to rewrite blindly.
+`assertContains` is the one worth grepping for first: it is common, and whatever Rector left behind needs a
+look.
+
+`assertContainsSubset()` checked that `$subset` was contained in `$array`, recursively and by loose comparison
+(its `$strict` argument was ignored). If you use it a lot, rather than rewriting every call, put it back on your
+own base class or in a trait:
+
+```php
+public static function assertContainsSubset(array $array, array $subset, bool $strict = false, string $message = ''): void
+{
+    self::assertEquals($array, array_replace_recursive($array, $subset), $message);
+}
+```
+
+It behaves as it did, and a failure now shows a diff of what differs.
 
 ### Tests that assert nothing
 
 PHPUnit reports a test that performs no assertion as risky. Asynit did not. A test that only exists to produce
 a value for its dependents is not flagged — asynit knows it is a producer — but a method named `test*` that
-asserts nothing is. Either assert something or mark it:
+asserts nothing is. Expect a few to surface: a test that only sends a request, or only waits, used to pass
+silently. Either assert something or mark it:
 
 ```php
 #[\PHPUnit\Framework\Attributes\DoesNotPerformAssertions]
@@ -124,11 +140,26 @@ public function testProducesAToken(): string
 }
 ```
 
+### PHP CS Fixer renames snake_case tests
+
+Once your classes extend `PHPUnit\Framework\TestCase`, the `@Symfony` rule set turns on
+`php_unit_method_casing`, which renames `test_foo()` to `testFoo()`. Nothing updates the strings that point at
+those methods, so every `#[Depend('test_foo')]` breaks, and so does anything else relying on the method name.
+Turn the rule off before running the fixer on the migrated suite:
+
+```php
+// .php-cs-fixer.php
+return (new PhpCsFixer\Config())
+    ->setRules([
+        '@Symfony' => true,
+        'php_unit_method_casing' => false,
+    ]);
+```
+
 ### Things that are simply gone
 
 * **Code coverage** is not collected: PHPUnit drives it through a per-test singleton that concurrency breaks.
 * **PHPUnit's deprecation and notice reporting** is not produced, for the same reason. PHP errors still fail
   the test, as they did under asynit.
-* **Per-test assertion counts** are only accurate with `ASYNIT_CONCURRENCY=1`. The run total is always right.
 
 `ARCHITECTURE.md` explains why for each of these.
