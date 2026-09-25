@@ -2,6 +2,7 @@
 
 namespace Asynit\Runner;
 
+use Composer\InstalledVersions;
 use PHPUnit\Util\ExcludeList;
 
 /**
@@ -17,14 +18,24 @@ final class StackTraceFilter
     {
         $root = \dirname(__DIR__, 2);
 
-        // src/ is asynit's own code, override/ the classes it substitutes for PHPUnit's; a failure should
-        // point at the test, not at either of them.
-        foreach (['src', 'override'] as $directory) {
+        // src/ is asynit's own code, override/ the classes it substitutes for PHPUnit's and bin/ its entry
+        // point; a failure should point at the test, not at any of them.
+        foreach (['bin', 'src', 'override'] as $directory) {
             self::exclude($root.'/'.$directory);
         }
 
-        foreach (['amphp/amp', 'amphp/sync', 'revolt/event-loop'] as $package) {
-            self::exclude($root.'/vendor/'.$package);
+        // Resolved through Composer rather than from asynit's root: once asynit is itself a dependency, they
+        // sit next to it, not in a vendor/ of its own.
+        foreach (InstalledVersions::getInstalledPackages() as $package) {
+            if (!str_starts_with($package, 'amphp/') && !str_starts_with($package, 'revolt/')) {
+                continue;
+            }
+
+            $path = InstalledVersions::getInstallPath($package);
+
+            if (null !== $path) {
+                self::exclude(realpath($path) ?: $path);
+            }
         }
     }
 

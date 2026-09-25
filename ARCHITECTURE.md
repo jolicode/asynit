@@ -83,7 +83,7 @@ directly and does the surrounding bookkeeping itself, in asynit's own namespace.
 
 ## Per test state PHPUnit keeps in statics
 
-Two pieces of per test state live in process wide statics, which interleaved tests would otherwise share:
+Three pieces of per test state live in process wide statics, which interleaved tests would otherwise share:
 
 * **the assertion count**, `Assert::$count`, which PHPUnit reads around a test to know how many assertions it
   made. Read that way, a test is credited with whatever the tests running alongside it asserted meanwhile, so
@@ -93,8 +93,11 @@ Two pieces of per test state live in process wide statics, which interleaved tes
 * **the error handler snapshot** `TestCase::runBare()` stores in the `Runner\ErrorHandler` singleton when a
   test starts and restores when it ends, in a single slot. Tests overwrite each other's, and the last one to end
   finds none: `runBare()` then throws a `TypeError` after the test has been reported as passed, which also
-  skips the "did not perform any assertions" check. `Asynit\Runner\ErrorHandlerBackup` gives each fiber its
-  own.
+  skips the "did not perform any assertions" check.
+* **whether the running test is prepared**, a flag on PHPUnit's result collector deciding if an error or a skip
+  counts as a test run of its own. A test finishing in between resets it, and the other is counted twice.
+
+`Asynit\Runner\SingletonState` gives each fiber its own copy of the last two.
 
 Both hang off the one place fiber switches can be observed: amphp only ever suspends through
 `EventLoop::getSuspension()`, so `ConcurrentRunner` decorates the event loop driver with

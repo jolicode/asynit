@@ -32,12 +32,12 @@ final class FiberSwitchSuspension implements Suspension
     {
         $assertionCounter = AssertionCounter::current();
         $assertionCounter?->suspended();
-        $errorHandlers = ErrorHandlerBackup::get();
+        $singletonState = SingletonState::save();
 
         try {
             return $this->suspension->suspend();
         } finally {
-            ErrorHandlerBackup::set($errorHandlers);
+            SingletonState::restore($singletonState);
             $assertionCounter?->resumed();
         }
     }

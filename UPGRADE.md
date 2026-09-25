@@ -33,6 +33,15 @@ vendor/bin/rector process
 **Run it twice.** The first pass makes your classes extend `PHPUnit\Framework\TestCase`; the assertion renames
 only match once that is true, so they land on the second pass.
 
+**Assertions called from a trait are not rewritten.** The renames only apply to calls Rector can tell are made on
+a `TestCase`, and inside a trait `$this` could be anything. Grep your traits for the assertions listed below and
+fix them by hand.
+
+> [!WARNING]
+> If PHP CS Fixer runs on your tests with `@Symfony` or `@PhpCsFixer`, disable `php_unit_method_casing` before
+> its next run: once your classes extend `TestCase`, it renames `test_foo()` to `testFoo()` and silently breaks
+> every `#[Depend('test_foo')]`. See [below](#php-cs-fixer-renames-snake_case-tests).
+
 ### What it changes
 
 | Before | After |
@@ -142,7 +151,7 @@ public function testProducesAToken(): string
 
 ### PHP CS Fixer renames snake_case tests
 
-Once your classes extend `PHPUnit\Framework\TestCase`, the `@Symfony` rule set turns on
+Once your classes extend `PHPUnit\Framework\TestCase`, the `@Symfony` and `@PhpCsFixer` rule sets turn on
 `php_unit_method_casing`, which renames `test_foo()` to `testFoo()`. Nothing updates the strings that point at
 those methods, so every `#[Depend('test_foo')]` breaks, and so does anything else relying on the method name.
 Turn the rule off before running the fixer on the migrated suite:

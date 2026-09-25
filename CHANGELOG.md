@@ -1,16 +1,33 @@
-## Changes
+## Unreleased
 
-* Fix self signed certificates being always allowed, whether `--allow-self-signed-certificate` was passed or not.
-  TLS peer verification is now enabled unless the flag is given, so runs against a server with an untrusted
-  certificate that used to pass will now fail without the flag.
-* Fix tests inherited from a parent class: they were all collapsed into a single test and ran against the parent
-  class instead of the test case class. A `#[TestCase]` class that is abstract is now skipped.
-* Fix a fatal error when generating a report for a suite whose tests were all skipped
-* Implement `--host`, which was accepted but ignored: it is now used as the base URI for requests made with a
-  relative URI. A class configuring its own client with `#[HttpClientConfiguration]` still inherits it.
+* [BC BREAK] Asynit now runs on PHPUnit: `bin/asynit` boots PHPUnit, whose CLI, configuration, output, loggers
+  and exit codes replace asynit's own. Test classes extend `PHPUnit\Framework\TestCase` and use its assertions.
+  Asynit keeps concurrent execution and `#[Depend]`, which now also orders PHPUnit's `#[Depends]`. See
+  [UPGRADE.md](UPGRADE.md), and the Rector set in `config/rector/asynit-phpunit.php` for the mechanical part.
+* [BC BREAK] Run settings moved to environment variables: `ASYNIT_CONCURRENCY`, `ASYNIT_HOST`, `ASYNIT_TIMEOUT`,
+  `ASYNIT_RETRY` and `ASYNIT_ALLOW_SELF_SIGNED_CERTIFICATE`
+* [BC BREAK] Drop support for PHP 8.2 and 8.3
+* Fix self signed certificates being always allowed. TLS peer verification is now enabled unless
+  `ASYNIT_ALLOW_SELF_SIGNED_CERTIFICATE` is set, so runs against a server with an untrusted certificate that used
+  to pass will now fail.
+* Implement the base URI (`--host`, now `ASYNIT_HOST`), which was accepted but ignored. A class configuring its
+  own client with `#[HttpClientConfiguration]` still inherits it.
 * Detect circular dependencies between tests and report them instead of failing with an unrelated error
 * Fix output of concurrent tests being attributed to whichever test finished first
-* Fix test durations including the time spent waiting for a free concurrency slot
+* Fix per test assertion counts under concurrency, which also made the detection of tests performing no
+  assertion unreliable
+* Fix errored and skipped tests being counted twice under concurrency
+* Keep amphp and revolt frames out of stack traces when asynit is installed as a dependency
+
+## 0.17.0 - 15/01/2026
+
+* Add Symfony 8 support
+
+## 0.16.0 - 16/03/2025
+
+* Add PHP 8.4 support
+* Allow bovigo/assert ^8.0
+* Drop support for Symfony < 5.4, 6.0, 6.1, 6.2 and 6.3
 
 ## 0.15.0 - 03/06/2024
 
