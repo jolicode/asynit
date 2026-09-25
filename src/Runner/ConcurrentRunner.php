@@ -10,6 +10,7 @@ use PHPUnit\Event\Facade as EventFacade;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\TestCase\HookMethodInvoker;
 use PHPUnit\Metadata\Api\HookMethods;
+use Revolt\EventLoop;
 
 use function Amp\async;
 
@@ -39,6 +40,12 @@ final class ConcurrentRunner
 
     public function run(DependencyGraph $graph): void
     {
+        $driver = EventLoop::getDriver();
+
+        if (!$driver instanceof FiberSwitchDriver) {
+            EventLoop::setDriver(new FiberSwitchDriver($driver));
+        }
+
         foreach ($graph->nodes() as $node) {
             $class = $node->test()::class;
             $this->remainingPerClass[$class] = ($this->remainingPerClass[$class] ?? 0) + 1;

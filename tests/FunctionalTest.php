@@ -27,21 +27,25 @@ class FunctionalTest extends \PHPUnit\Framework\TestCase
         return time();
     }
 
+    #[DoesNotPerformAssertions]
     public function testParallel1()
     {
         delay(4);
     }
 
+    #[DoesNotPerformAssertions]
     public function testParallel2()
     {
         delay(5);
     }
 
+    #[DoesNotPerformAssertions]
     public function testParallel3()
     {
         delay(6);
     }
 
+    #[DoesNotPerformAssertions]
     public function testParallel4()
     {
         delay(7);

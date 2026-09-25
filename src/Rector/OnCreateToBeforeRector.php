@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Asynit\Rector;
 
 use PhpParser\Node;
-use PhpParser\Node\Attribute;
-use PhpParser\Node\AttributeGroup;
 use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\Stmt\ClassMethod;
 use Rector\Rector\AbstractRector;
@@ -61,45 +59,40 @@ final class OnCreateToBeforeRector extends AbstractRector
             return null;
         }
 
-        $node->params = array_values(array_filter(
+        $params = array_values(array_filter(
             $node->params,
             fn (Node\Param $param): bool => !$this->isConfigurationParam($param),
         ));
 
+        if ([] === $params && [] !== $node->params) {
+            EmptyList::clear($node, 'params', $this->file->getOldTokens());
+        } else {
+            $node->params = $params;
+        }
+
         return $node;
     }
 
+    /**
+     * Renamed in place rather than removed and added back, which would change the attribute lists and have the
+     * printer lay them out again.
+     */
     private function replaceAttribute(ClassMethod $classMethod): bool
     {
         $found = false;
 
-        foreach ($classMethod->attrGroups as $groupKey => $attrGroup) {
-            foreach ($attrGroup->attrs as $attrKey => $attribute) {
+        foreach ($classMethod->attrGroups as $attrGroup) {
+            foreach ($attrGroup->attrs as $attribute) {
                 if (self::ON_CREATE_ATTRIBUTE !== $attribute->name->toString()) {
                     continue;
                 }
 
                 $found = true;
-                unset($attrGroup->attrs[$attrKey]);
-            }
-
-            $attrGroup->attrs = array_values($attrGroup->attrs);
-
-            if ([] === $attrGroup->attrs) {
-                unset($classMethod->attrGroups[$groupKey]);
+                $attribute->name = new FullyQualified('PHPUnit\Framework\Attributes\Before');
             }
         }
 
-        if (!$found) {
-            return false;
-        }
-
-        $classMethod->attrGroups = array_values($classMethod->attrGroups);
-        $classMethod->attrGroups[] = new AttributeGroup([
-            new Attribute(new FullyQualified('PHPUnit\Framework\Attributes\Before')),
-        ]);
-
-        return true;
+        return $found;
     }
 
     private function isConfigurationParam(Node\Param $param): bool
