@@ -7,6 +7,8 @@ use Castor\Attribute\AsTask;
 use function Castor\PHPQa\php_cs_fixer;
 use function Castor\PHPQa\phpstan;
 
+defined('CASTOR_USE_CHDIR') || define('CASTOR_USE_CHDIR', true);
+
 #[AsTask('cs:check', namespace: 'qa', description: 'Check for coding standards without fixing them')]
 function qa_cs_check()
 {
