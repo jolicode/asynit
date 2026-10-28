@@ -120,7 +120,7 @@ final class AsynitTestCaseToPHPUnitRector extends AbstractRector
         }
 
         if ([] === $remaining) {
-            EmptyList::clear($class, 'attrGroups', $this->file->getOldTokens());
+            EmptyList::clear($class, 'attrGroups', $this->getFile()->getOldTokens());
         } else {
             $class->attrGroups = $remaining;
         }

@@ -65,7 +65,7 @@ final class OnCreateToBeforeRector extends AbstractRector
         ));
 
         if ([] === $params && [] !== $node->params) {
-            EmptyList::clear($node, 'params', $this->file->getOldTokens());
+            EmptyList::clear($node, 'params', $this->getFile()->getOldTokens());
         } else {
             $node->params = $params;
         }

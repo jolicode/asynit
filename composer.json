@@ -56,6 +56,7 @@
         }
     },
     "require-dev": {
+        "amphp/process": "^2.0",
         "rector/rector": "^2.5"
     }
 }
