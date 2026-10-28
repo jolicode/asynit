@@ -4,6 +4,7 @@
   whichever test started last, and the test that failed was missing from the report
 * Fix the progress output showing a test with the outcome of another one that failed meanwhile
 * Fix a test erroring in its setup not being counted when it had waited for a free slot
+* Fix the Rector migration set crashing with Rector 2.8
 
 ## 0.18.0 - 25/09/2026
 
