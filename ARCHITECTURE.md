@@ -83,7 +83,7 @@ directly and does the surrounding bookkeeping itself, in asynit's own namespace.
 
 ## Per test state PHPUnit keeps in statics
 
-Three pieces of per test state live in process wide statics, which interleaved tests would otherwise share:
+Per test state lives in process wide objects, which interleaved tests would otherwise share:
 
 * **the assertion count**, `Assert::$count`, which PHPUnit reads around a test to know how many assertions it
   made. Read that way, a test is credited with whatever the tests running alongside it asserted meanwhile, so
@@ -96,8 +96,15 @@ Three pieces of per test state live in process wide statics, which interleaved t
   skips the "did not perform any assertions" check.
 * **whether the running test is prepared**, a flag on PHPUnit's result collector deciding if an error or a skip
   counts as a test run of its own. A test finishing in between resets it, and the other is counted twice.
+* **the test being reported**: the progress printer, the TestDox collector and the JUnit, TeamCity and Open
+  Test Reporting loggers each hold the running test, its status and its start time in a single slot. A failure
+  lands on whichever test started last, the test that failed is missing from the report, and durations are
+  measured from another test's start.
 
-`Asynit\Runner\SingletonState` gives each fiber its own copy of the last two.
+`Asynit\Runner\SingletonState` gives each fiber its own copy of the last three, and resets them when a test
+starts: a fiber otherwise starts with the state of whichever test suspended last, and keeps it while it waits
+for a slot. The printers and loggers are reached through the subscribers they registered, PHPUnit keeping no
+other reference to them.
 
 Both hang off the one place fiber switches can be observed: amphp only ever suspends through
 `EventLoop::getSuspension()`, so `ConcurrentRunner` decorates the event loop driver with

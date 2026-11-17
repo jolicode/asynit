@@ -94,6 +94,10 @@ final class ConcurrentRunner
 
         NodeStorage::set($node);
 
+        // A fiber starts with the state of whichever test suspended last, and keeps it while it waits for a
+        // slot.
+        SingletonState::reset();
+
         try {
             $this->startClass($test);
 

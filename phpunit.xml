@@ -8,6 +8,7 @@
     <testsuites>
         <testsuite name="asynit">
             <directory>tests</directory>
+            <exclude>tests/Fixtures</exclude>
         </testsuite>
     </testsuites>
 </phpunit>
