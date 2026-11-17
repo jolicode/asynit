@@ -1,4 +1,4 @@
-## Unreleased
+## 0.18.1 - 17/11/2026
 
 * Fix the JUnit, TeamCity and Open Test Reporting reports under concurrency: a failure was attributed to
   whichever test started last, and the test that failed was missing from the report
